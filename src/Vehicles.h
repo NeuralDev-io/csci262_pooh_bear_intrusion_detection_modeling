@@ -7,12 +7,13 @@
 
 #include <string>
 #include <map>
+#include <iostream>
 using namespace std;
 
 typedef struct {
     int id;
     string name, reg_format;
-    bool parking;
+    bool parking_flag;
     unsigned int vol_weight, speed_weight;
 } Vehicle;
 
@@ -20,6 +21,7 @@ class Vehicles {
 public:
     Vehicles() : n_vehicles(0) {};
     void insert(Vehicle &v);
+    void print();
 private:
     unsigned int n_vehicles;
     map<int, Vehicle, less<int> > vehicles_dict;
