@@ -38,7 +38,7 @@ void Vehicles::insert(VehicleType &v)
  * @param speed_stddev: a float to represent the standard deviation speed for that vehicle type.
  * @return: bool true if the vehicle type can be found by name key or false if otherwise.
  * */
-bool Vehicles::add_stats(string name, uint num_mean, uint num_stdev, uint speed_mean, uint speed_stddev)
+bool Vehicles::add_stats(string name, float num_mean, float num_stdev, float speed_mean, float speed_stddev)
 {
     map<string, VehicleType>::iterator iter = vehicles_dict.find(name);
 

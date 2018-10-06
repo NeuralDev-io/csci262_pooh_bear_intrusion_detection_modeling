@@ -31,7 +31,7 @@ class Vehicles {
 public:
     Vehicles() : n_vehicles(0) {};
     void insert(VehicleType&);
-    bool add_stats(string, uint, uint, uint, uint);
+    bool add_stats(string, float, float, float, float);
     void print();
 
 private:
