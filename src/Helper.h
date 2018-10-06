@@ -33,5 +33,8 @@ typedef struct {
 
 SimTime time_now();
 string formatted_time(SimTime&);
+string formatted_date(SimTime&);
+string formatted_time_date(SimTime&);
+string real_formatted_time_now();
 
 #endif //POOH_BEAR_INTRUSION_DETECTION_SYSTEM_HELPER_H

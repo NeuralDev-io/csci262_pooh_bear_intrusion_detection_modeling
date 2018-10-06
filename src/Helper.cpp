@@ -13,6 +13,7 @@
 #include "Helper.h"
 #include <ctime>
 #include <sstream>
+#include <iomanip>
 
 /*
  * Initialise a sim_time struct to start the simulation with a date of when the sim
@@ -40,7 +41,7 @@ SimTime time_now()
 }
 
 /*
- * Convert a time struct to a human-readable string.
+ * Convert a SimTime struct to a human-readable string time.
  *
  * @param t: a reference to the SimTime structure to format to a string.
  * @return: string of the time from the SimTime structure.
@@ -48,8 +49,41 @@ SimTime time_now()
 string formatted_time(SimTime &t)
 {
     stringstream ss;
-    ss << t.tm_mday << "-" << t.tm_mon << "-" << t.tm_year << " "
-       << t.tm_hour << ":" << t.tm_min << ":" << t.tm_sec << "\n";
+    ss << setfill('0') << setw(2) << t.tm_hour << ":" << setfill('0') << setw(2) << t.tm_min
+       << ":" << setfill('0') << setw(2) << t.tm_sec;
+    return ss.str();
+}
 
+/*
+ * Convert a SimTIme struct to a human-readable string date
+ *
+ * @param t: a reference to the SimTime structure to format to a string.
+ * @return: string of the time from the SimTime structure.
+ * */
+string formatted_date(SimTime &t)
+{
+    stringstream ss;
+    ss << setfill('0') << setw(2) << t.tm_mday << "-" << t.tm_mon << "-" << setw(4) << t.tm_year;
+    return ss.str();
+}
+
+/*
+ * Convert a real time tm struct and time_t to a local system time and return a string
+ * of this time formatted just like the system time.
+ *
+ * @return: a string of the real time based on the system formatted.
+ * */
+string real_formatted_time_now()
+{
+    // Get the real time based on system
+    time_t raw_time = time(0);
+    struct tm *time_now;
+    time(&raw_time);
+    time_now = localtime(&raw_time);
+
+    stringstream ss;
+    ss << setfill('0') << setw(2) << time_now->tm_mday << "-" << time_now->tm_mon + 1
+       << "-" << setw(4) << time_now->tm_year + 1900 << " " << setfill('0') << setw(2)
+       << time_now->tm_hour << ":" << time_now->tm_min << ":" << time_now->tm_sec;
     return ss.str();
 }
