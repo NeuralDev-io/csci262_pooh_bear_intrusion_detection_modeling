@@ -18,6 +18,7 @@
 #include <fstream>
 #include "Vehicles.h"
 #include "ActivityEngine.h"
+// #include "Logger.h"
 
 using namespace std;
 
@@ -36,7 +37,7 @@ int main(int argc, char * argv[]) {
     char days_str[sizeof(int)];
     char vehicles_file[BUFFER_SZ] = "data/";
     char stats_file[BUFFER_SZ] = "data/";
-    int days = 0;
+    uint days = 0;
 
     // check the correct amount of args has been passed
     if (argc < 4 || argc > 4) {
@@ -102,7 +103,6 @@ int main(int argc, char * argv[]) {
     // vehicles_dict.print();
 
     fin.open(stats_file, ifstream::in);
-
     if (!fin.good()) {
         cout << "[!!] Unable to read Stats file from: " << stats_file << "\nExiting...\n" << flush;
         exit(1);
@@ -123,7 +123,7 @@ int main(int argc, char * argv[]) {
     speed_lim = strtof(speed_lim_str.c_str(), &unused_end);
     road_len = strtof(road_len_str.c_str(), &unused_end);
 
-    ActivityEngine TrafficEngine = ActivityEngine(veh_monitored, road_len, speed_lim, parking_spots);
+    ActivityEngine TrafficEngine = ActivityEngine(days, veh_monitored, road_len, speed_lim, parking_spots);
 
     // read subsequent lines from Stats.txt as:
     // Vehicle type:Number mean:Number standard deviation:Speed mean: Speed standard deviation:
@@ -155,6 +155,8 @@ int main(int argc, char * argv[]) {
         if (!vehicles_dict.add_stats(name, num_mean, num_stddev, speed_mean, speed_stddev))
             cout << "Vehicle type " << name << " cannot be found." << endl;
     }
+
+    TrafficEngine.run();
 
     return 0;
 }

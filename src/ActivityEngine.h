@@ -14,13 +14,18 @@
 #define POOH_BEAR_INTRUSION_DETECTION_SYSTEM_ACTIVITYENGINE_H
 
 #include <zconf.h>
+#include "Logger.h"
+
+enum Event { Arrival = 1, Departure_Side_Road, Departure_End_Road, Parking_Start, Parking_Stop, Vehicle_Moves };
+
 
 class ActivityEngine {
 public:
     ActivityEngine() : n_vehicles_monitored(0), n_parking_spots(0), road_length(0), speed_limit(0) {}; // default
-    ActivityEngine(uint, float, float, uint);
+    ActivityEngine(uint, uint, float, float, uint);
+    void run();  // run the activity engine simulation
 private:
-    uint n_vehicles_monitored, n_parking_spots;
+    uint n_vehicles_monitored, n_parking_spots, simulate_days;
     float road_length, speed_limit;
 };
 
