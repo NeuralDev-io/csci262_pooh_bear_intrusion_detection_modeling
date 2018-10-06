@@ -24,7 +24,7 @@ public:
     void print();
 private:
     unsigned int n_vehicles;
-    map<int, Vehicle, less<int> > vehicles_dict;
+    map<string, Vehicle> vehicles_dict;
 };
 
 #endif //TRAFFIC_ACTIVITY_ENGINE_VEHICLES_H

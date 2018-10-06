@@ -54,7 +54,6 @@ int main(int argc, char * argv[]) {
         days = safe_int_convert(days_str, "Incorrect number used for number of days");
     }
 
-    // TODO: read in vehicles input file
     ifstream fin;
     fin.open(vehicles_file, ifstream::in);
 
@@ -94,6 +93,7 @@ int main(int argc, char * argv[]) {
                 "Incorrect number used for speed weight. Must be integer");
         vehicles_dict.insert(new_vehicle);
     }
+    fin.close();
 
     vehicles_dict.print();
 

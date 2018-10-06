@@ -22,8 +22,8 @@
 void Vehicles::insert(Vehicle &v)
 {
     v.id = ++n_vehicles;
-    map<int, Vehicle>::iterator iter = vehicles_dict.find(v.id);
-    vehicles_dict.insert(iter, pair<int, Vehicle>(v.id, v));
+    map<string, Vehicle>::iterator iter = vehicles_dict.find(v.name);
+    vehicles_dict.insert(iter, pair<string, Vehicle>(v.name, v));
 }
 
 void Vehicles::print()
@@ -35,10 +35,10 @@ void Vehicles::print()
     cout <<"|"<<setfill('-')<<setw(5)<<"-"<<"|"<<setw(17)<< "-"<<"|"<<setw(9)<<"-"
          <<"|"<<setw(13)<<"-"<<"|"<<setw(15)<<"-"<<"|"<<setw(14)<<"-"<<setfill(' ')<<"|"<<left<<endl;
 
-    map<int, Vehicle>::iterator iter = vehicles_dict.begin();
+    map<string, Vehicle>::iterator iter = vehicles_dict.begin();
     for (; iter != vehicles_dict.end(); iter++) {
         string parking = ((*iter).second.parking_flag) ? "Yes" : "No";
-        cout <<"|"<<right<<setw(4)<< (*iter).first <<" | "<<left<<setw(15)<< (*iter).second.name
+        cout <<"|"<<right<<setw(4)<< (*iter).second.id <<" | "<<left<<setw(15)<< (*iter).first
              <<" | "<<left<<setw(7)<< parking <<" | "<<left<<setw(11)<< (*iter).second.reg_format
              <<" | "<<right<<setw(13)<< (*iter).second.vol_weight <<" | "<<setw(12)<< (*iter).second.speed_weight
              <<" |"<<left<<endl;

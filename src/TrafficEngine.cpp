@@ -16,4 +16,6 @@
 *   - Dinh Che (5721970) | dbac496 at uowmail.edu.au
 *   - Duong Le (5560536) | ndl991 at uowmail.edu.au
 *********************************************************************************/
+#include "TrafficEngine.h"
+
 
