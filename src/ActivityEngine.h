@@ -18,7 +18,6 @@
 
 enum Event { Arrival = 1, Departure_Side_Road, Departure_End_Road, Parking_Start, Parking_Stop, Vehicle_Moves };
 
-
 class ActivityEngine {
 public:
     ActivityEngine() : n_vehicles_monitored(0), n_parking_spots(0), road_length(0), speed_limit(0) {}; // default

@@ -37,8 +37,10 @@ ActivityEngine::ActivityEngine(uint days, uint vehicles_monitored, float road_le
 void ActivityEngine::run()
 {
     SimTime sim_start_time = time_now();
-    cout << formatted_time(sim_start_time);
-    Logger logger = Logger();
+
+    cout << "Activity Engine started: " << real_formatted_time_now() << "\n" << flush;
+    Logger logger = Logger("Activity Engine", "test.txt");
+    logger.info(sim_start_time, "Started logging");
     // TODO: time should be stepped in 1 minute blocks
     // TODO: program should give some indication as to what is happening, without being verbose
     /*
@@ -57,6 +59,8 @@ void ActivityEngine::run()
      *    when it arrives on the road.
      * -> You only test breaches of speed limit using the average speed across the whole road based on the times,
      * */
+
+    cout << "Activity Engine finished: " << real_formatted_time_now() << "\n" << flush;
 }
 
 
