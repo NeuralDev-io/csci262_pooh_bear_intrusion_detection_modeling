@@ -36,7 +36,7 @@ ActivityEngine::ActivityEngine(uint days, uint vehicles_monitored, float road_le
 
 void ActivityEngine::run()
 {
-    sim_time sim_start_time = time_now();
+    SimTime sim_start_time = time_now();
     cout << formatted_time(sim_start_time);
     Logger logger = Logger();
     // TODO: time should be stepped in 1 minute blocks
