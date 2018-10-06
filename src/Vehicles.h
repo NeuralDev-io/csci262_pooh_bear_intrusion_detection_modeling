@@ -24,7 +24,7 @@ typedef struct {
     string name, reg_format;
     bool parking_flag;
     uint vol_weight, speed_weight;
-    uint num_mean, num_stddev, speed_mean, speed_stddev;
+    float num_mean, num_stddev, speed_mean, speed_stddev;
 } VehicleType;
 
 class Vehicles {

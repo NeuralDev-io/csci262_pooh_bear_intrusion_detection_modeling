@@ -110,7 +110,7 @@ int main(int argc, char * argv[]) {
 
     // read the first line as positive integers
     // number of vehicle types monitored | length of road in km | speed limit in km/h | number of parking spaces
-    char *end;
+    char *unused_end;
     uint veh_monitored, parking_spots;
     float speed_lim, road_len;
     string veh_monitored_str, parking_spots_str, speed_lim_str, road_len_str;
@@ -120,8 +120,8 @@ int main(int argc, char * argv[]) {
             "Incorrect number used for number of vehicles monitored. Must be integer.");
     parking_spots = safe_int_convert(parking_spots_str.c_str(),
             "Incorrect number used for number of vehicles monitored. Must be integer.");
-    speed_lim = strtof(speed_lim_str.c_str(), &end);
-    road_len = strtof(road_len_str.c_str(), &end);
+    speed_lim = strtof(speed_lim_str.c_str(), &unused_end);
+    road_len = strtof(road_len_str.c_str(), &unused_end);
 
     ActivityEngine TrafficEngine = ActivityEngine(veh_monitored, road_len, speed_lim, parking_spots);
 
@@ -134,7 +134,7 @@ int main(int argc, char * argv[]) {
         // function to safely convert them to an unsigned int
         string name;
         string num_mean_str, num_stddev_str, speed_mean_str, speed_stddev_str;
-        uint num_mean, num_stddev, speed_mean, speed_stddev;
+        float num_mean, num_stddev, speed_mean, speed_stddev;
         getline(fin, name, ':');
 
         if (name.empty())
@@ -145,12 +145,10 @@ int main(int argc, char * argv[]) {
         getline(fin, speed_mean_str, ':');
         getline(fin, speed_stddev_str, ':');
 
-        num_mean = safe_int_convert(num_mean_str.c_str(), "Invalid number used for number mean. Must be integer.");
-        num_stddev = safe_int_convert(num_stddev_str.c_str(),
-                "Invalid number used for number standard deviation. Must be integer.");
-        speed_mean = safe_int_convert(speed_mean_str.c_str(), "Invalid number used for speed mean. Must be integer.");
-        speed_stddev = safe_int_convert(speed_stddev_str.c_str(),
-                "Invalid number used for speed standard deviation. Must be integer.");
+        num_mean = strtof(num_mean_str.c_str(), &unused_end);
+        num_stddev = strtof(num_stddev_str.c_str(), &unused_end);
+        speed_mean = strtof(speed_mean_str.c_str(), &unused_end);
+        speed_stddev = strtof(speed_stddev_str.c_str(), &unused_end);
 
         // check to see if vehicle type stats was added successfully
         // TODO: should log this to a file
@@ -173,8 +171,8 @@ int main(int argc, char * argv[]) {
  * */
 unsigned int safe_int_convert(const char *int_str, const char *err_msg)
 {
-    char *end;
-    long tmp = strtol(int_str, &end, sizeof(long));
+    char *unused_end;
+    long tmp = strtol(int_str, &unused_end, sizeof(long));
     if (tmp >= INT_MIN && tmp <= INT_MAX)
         return static_cast<unsigned int>(tmp);
     else {

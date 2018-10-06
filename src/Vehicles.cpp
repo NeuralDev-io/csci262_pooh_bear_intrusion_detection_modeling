@@ -32,10 +32,10 @@ void Vehicles::insert(VehicleType &v)
  * the values in the VehicleType structure variables.
  *
  * @param name: the name of the type to find in the vehicles_dict key.
- * @param num_mean: an unsigned int to represent the mean for number of that vehicle type.
- * @param num_stddev: an unsigned int to represent the standard deviation for that vehicle type.
- * @param speed_mean: an unsigned int to represent the mean speed for that vehicle type.
- * @param speed_stddev: an unsigned int to represent the standard deviation speed for that vehicle type.
+ * @param num_mean: a float to represent the mean for number of that vehicle type.
+ * @param num_stddev: a float to represent the standard deviation for that vehicle type.
+ * @param speed_mean: a float to represent the mean speed for that vehicle type.
+ * @param speed_stddev: a float to represent the standard deviation speed for that vehicle type.
  * @return: bool true if the vehicle type can be found by name key or false if otherwise.
  * */
 bool Vehicles::add_stats(string name, uint num_mean, uint num_stdev, uint speed_mean, uint speed_stddev)
