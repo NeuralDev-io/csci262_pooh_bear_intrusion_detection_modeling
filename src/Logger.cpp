@@ -19,8 +19,16 @@
 
 /*
  * TODO:
- * - Ensure level is_enabled_for(level)
- * - Threads
+ * There are some things to consider improving:
+ * [] Ensure the level functions (i.e. info(), debug(), etc.) check the set level of the Logger to log only at the appropriate level.
+ * [] Add multi threading to use a different thread than the  main program to ensure you do not affect the running of the main program.
+ * [] Add additional information for the debug level such as:
+ *     - Function caller
+ *     - Line in the code
+ *     - Thread id
+ *     - Error messages
+ *     - Exception messages
+ * [] Check to see if the key is in config dictionary and return appropriate string.
  * */
 
 /* @brief Default constructor for a Logger with default values for the config dictionary. */
