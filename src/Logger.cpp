@@ -1,6 +1,17 @@
-//
-// Created by codeninja on 6/10/18.
-//
+/*********************************************************************************
+* CSCI262 (Spring 2018) - Assignment 03
+* Pooh Bear Intrusion Detection System Logger.cpp
+* Purpose: Implementation for Logger package class for a logging system.
+*          Based heavily on:
+ *         https://github.com/python/cpython/blob/3.7/Lib/logging/__init__.py
+*
+* @version 0.2-dev
+* @date 2018.10.07
+*
+* @authors Dinh Che (codeninja55) & Duong Le (daltonle)
+* Emails: andrew at codeninja55.me & duong.daltonle at gmail.com
+* StudentsS Dinh Che (5721970 | dbac496) & Duong Le (5560536 | ndl991)
+*********************************************************************************/
 
 #include <iostream>
 #include <sstream>
@@ -52,39 +63,55 @@ Logger::Logger(string logger_name, LEVEL level, string filename, bool std_out)
     config.insert(pair<string, string>("STDOUT", (std_out) ? "true" : "false"));
 }
 
-void Logger::info(SimTime &time, string msg)
+void Logger::_log(LEVEL level, SimTime &time, EVENT_TYPE &ev_type, string msg)
 {
-    cout << "<" << formatted_date(time) << " " << formatted_time(time) << ">:"
-         << get_logger_name() << ":" << _level_to_name(INFO) << ":" << msg << endl;
+    if (get("STDOUT") == "true") {
+        cout << "<" << formatted_date(time) << " " << formatted_time(time) << ">:"
+             << get("LOGGER") << ":" << _level_to_name(level) << ":"
+             << event_name(ev_type) << ":" << msg << endl;
+    }
 
-    ofstream fout(get_filename().c_str(), ofstream::out | ofstream::app);
-    if (!fout.good())
-        cout << "[!!] Failed to open log file " << get_filename();
+    if (get("FILENAME") != "false") {
+        ofstream fout(get("FILENAME").c_str(), ofstream::out | ofstream::app);
+        if (!fout.good())
+            cout << "[!!] Failed to open log file " << get("FILENAME");
 
-    fout << "<" << formatted_date(time) << " " << formatted_time(time) << ">:"
-         << get_logger_name() << ":" << _level_to_name(INFO) << ":" << msg << endl;
+        fout << "<" << formatted_date(time) << " " << formatted_time(time) << ">:"
+             << get("LOGGER") << ":" << _level_to_name(level) << ":"
+             << event_name(ev_type) << ":" << msg << endl;
 
-    fout.close();
+        fout.close();
+    }
 }
 
-void Logger::debug(string msg)
+void Logger::info(SimTime &time, EVENT_TYPE ev_type, string msg)
 {
-
+    // Check if info is allowed with the current level
+    _log(INFO, time, ev_type, msg);
 }
 
-void Logger::warning(string msg)
+void Logger::debug(SimTime &time, EVENT_TYPE ev_type, string msg)
 {
-
+    // Check if info is allowed with the current level
+    _log(DEBUG, time, ev_type, msg);
 }
 
-void Logger::error(string msg)
+void Logger::warning(SimTime &time, EVENT_TYPE ev_type, string msg)
 {
-
+    // Check if info is allowed with the current level
+    _log(WARNING, time, ev_type, msg);
 }
 
-void Logger::critical(string msg)
+void Logger::error(SimTime &time, EVENT_TYPE ev_type, string msg)
 {
+    // Check if info is allowed with the current level
+    _log(ERROR, time, ev_type, msg);
+}
 
+void Logger::critical(SimTime &time, EVENT_TYPE ev_type, string msg)
+{
+    // Check if info is allowed with the current level
+    _log(CRITICAL, time, ev_type, msg);
 }
 
 void Logger::set_level(LEVEL level)
@@ -94,19 +121,11 @@ void Logger::set_level(LEVEL level)
         (*iter).second = _level_to_name(level);
 }
 
-const Config_Dict &Logger::get_config() const {
-    return config;
-}
+const Config_Dict &Logger::get_config() const { return config; }
 
-string &Logger::get_logger_name()
+string &Logger::get(string key)
 {
-    Config_Iter iter = config.find("LOGGER");
-    if (iter != config.end())
-        return (*iter).second;
-}
-
-string &Logger::get_filename() {
-    Config_Iter iter = config.find("FILENAME");
+    Config_Iter iter = config.find(key);
     if (iter != config.end())
         return (*iter).second;
 }
