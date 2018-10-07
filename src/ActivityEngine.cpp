@@ -5,7 +5,8 @@
 *          Vehicles.txt and Stats.txt, as well as an argument for how many days
  *         to simulate traffic.
 *
-* @version 0.1-dev 2018.10.06
+* @version 0.1-dev
+* @date 2018.10.06
 *
 * @authors Dinh Che (codeninja55) & Duong Le (daltonle)
 * Emails andrew at codeninja55.me & duong.daltonle at gmail.com
@@ -39,8 +40,9 @@ void ActivityEngine::run()
     SimTime sim_start_time = time_now();
 
     cout << "Activity Engine started: " << real_formatted_time_now() << "\n" << flush;
-    Logger logger = Logger("Activity Engine", "test.txt");
-    logger.info(sim_start_time, "Started logging");
+    Logger logger = Logger("Activity Engine", WARNING, "test.txt", true);
+    logger.info(sim_start_time, ARRIVAL, "Started logging");
+
     // TODO: time should be stepped in 1 minute blocks
     // TODO: program should give some indication as to what is happening, without being verbose
     /*
