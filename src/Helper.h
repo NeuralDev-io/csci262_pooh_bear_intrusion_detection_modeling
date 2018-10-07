@@ -3,7 +3,8 @@
 * Pooh Bear Intrusion Detection System Helper.h
 * Purpose: main() driver for implementation of specifications
 *
-* @version 0.1-dev 2018.10.06
+* @version 0.1-dev
+* @date 2018.10.06
 *
 * @authors Dinh Che (codeninja55) & Duong Le (daltonle)
 * Emails andrew at codeninja55.me & duong.daltonle at gmail.com
@@ -15,7 +16,6 @@
 
 #include <string>
 using namespace std;
-
 
 /*
  * SimTime structure to hold the time values. Based heavily on C stdlib tm struct.
@@ -31,10 +31,14 @@ typedef struct {
     int tm_wday;  // days since Sunday (0) [0-6]
 } SimTime;
 
+enum EVENT_TYPE { ARRIVAL = 1, DEPART_SIDE_ROAD, DEPART_END_ROAD, PARKING_START, PARKING_STOP, VEHICLE_MOVE };
+typedef enum EVENT_TYPE EVENT_TYPE;
+
 SimTime time_now();
 string formatted_time(SimTime&);
 string formatted_date(SimTime&);
 string formatted_time_date(SimTime&);
 string real_formatted_time_now();
+string event_name(EVENT_TYPE);
 
 #endif //POOH_BEAR_INTRUSION_DETECTION_SYSTEM_HELPER_H

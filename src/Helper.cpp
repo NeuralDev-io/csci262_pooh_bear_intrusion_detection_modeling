@@ -3,7 +3,8 @@
 * Pooh Bear Intrusion Detection System Helper.cpp
 * Purpose: main() driver for implementation of specifications
 *
-* @version 0.1-dev 2018.10.06
+* @version 0.1-dev
+* @date 2018.10.06
 *
 * @authors Dinh Che (codeninja55) & Duong Le (daltonle)
 * Emails andrew at codeninja55.me & duong.daltonle at gmail.com
@@ -86,4 +87,25 @@ string real_formatted_time_now()
        << "-" << setw(4) << time_now->tm_year + 1900 << " " << setfill('0') << setw(2)
        << time_now->tm_hour << ":" << time_now->tm_min << ":" << time_now->tm_sec;
     return ss.str();
+}
+
+/*
+ * @param ev: an enum EVENT
+ * @return: a string representation of the enum EVENT.
+ * */
+string event_name(EVENT_TYPE ev) {
+    switch (ev) {
+        case ARRIVAL:
+            return "ARRIVAL";
+        case DEPART_SIDE_ROAD:
+            return "DEPART_SIDE_ROAD";
+        case DEPART_END_ROAD:
+            return "DEPART_END_ROAD";
+        case PARKING_START:
+            return "PARKING_START";
+        case PARKING_STOP:
+            return "PARKING_STOP";
+        case VEHICLE_MOVE:
+            return "VEHICLE_MOVE";
+    }
 }
