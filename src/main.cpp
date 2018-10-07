@@ -3,7 +3,8 @@
 * Pooh Bear Intrusion Detection System main.cpp
 * Purpose: main() driver for implementation of specifications
 *
-* @version 0.1-dev 2018.10.06
+* @version 0.1-dev
+* @date 2018.10.06
 *
 * @authors Dinh Che (codeninja55) & Duong Le (daltonle)
 * Emails andrew at codeninja55.me & duong.daltonle at gmail.com
