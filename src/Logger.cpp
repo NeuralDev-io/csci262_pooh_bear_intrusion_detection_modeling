@@ -14,7 +14,6 @@
 *********************************************************************************/
 
 #include <iostream>
-#include <sstream>
 #include <fstream>
 #include "Logger.h"
 
@@ -24,6 +23,7 @@
  * - Threads
  * */
 
+/* @brief Default constructor for a Logger with default values for the config dictionary. */
 Logger::Logger()
 {
     config.insert(pair<string, string>("LOGGER", "Default Logger"));
@@ -33,36 +33,118 @@ Logger::Logger()
     config.insert(pair<string, string>("STDOUT", "true"));
 }
 
-Logger::Logger(string logger_name, string filename)
+/* @brief Constructor with just the logger name and default values for everything else. */
+Logger::Logger(string logger_name)
 {
-    stringstream ss;
-    ss << "logs/" << filename;
     config.insert(pair<string, string>("LOGGER", logger_name));
     config.insert(pair<string, string>("LEVEL", _level_to_name(WARNING)));
-    config.insert(pair<string, string>("FILENAME", ss.str()));
+    config.insert(pair<string, string>("FILENAME", "false"));
+    config.insert(pair<string, string>("STDOUT", "true"));
+}
+
+/* @brief Constructor to allow setting of the logger name and filename */
+Logger::Logger(string logger_name, string filename)
+{
+    filename_ss << "logs/" << filename;
+    config.insert(pair<string, string>("LOGGER", logger_name));
+    config.insert(pair<string, string>("LEVEL", _level_to_name(WARNING)));
+    config.insert(pair<string, string>("FILENAME", filename_ss.str()));
     config.insert(pair<string, string>("STDOUT", "false"));
 }
 
+/* @brief Constructor to set the logger name and file name with a level. */
 Logger::Logger(string logger_name, LEVEL level, string filename)
 {
-    stringstream ss;
-    ss << "logs/" << filename;
+    filename_ss << "logs/" << filename;
     config.insert(pair<string, string>("LOGGER", logger_name));
     config.insert(pair<string, string>("LEVEL", _level_to_name(level)));
-    config.insert(pair<string, string>("FILENAME", ss.str()));
+    config.insert(pair<string, string>("FILENAME", filename_ss.str()));
     config.insert(pair<string, string>("STDOUT", "false"));
 }
 
+/* @brief Constructor to set all values in the dictionary including whether to print to stdout. */
 Logger::Logger(string logger_name, LEVEL level, string filename, bool std_out)
 {
-    stringstream ss;
-    ss << "logs/" << filename;
+    filename_ss << "logs/" << filename;
     config.insert(pair<string, string>("LOGGER", logger_name));
     config.insert(pair<string, string>("LEVEL", _level_to_name(level)));
-    config.insert(pair<string, string>("FILENAME", ss.str()));
+    config.insert(pair<string, string>("FILENAME", filename_ss.str()));
     config.insert(pair<string, string>("STDOUT", (std_out) ? "true" : "false"));
 }
 
+/*
+ * A specific log call with the INFO level.
+ *
+ * @param time: the SimTime struct of the event time.
+ * @param ev_type: the enum EVENT_TYPE of the type of event.
+ * @param msg: a c++ string of the message to log.
+ * */
+void Logger::info(SimTime &time, EVENT_TYPE ev_type, string msg)
+{
+    // Check if info is allowed with the current level
+    _log(INFO, time, ev_type, msg);
+}
+
+/* TODO: Add additional debug info.
+ * A specific log call with the DEBUG level.
+ *
+ * @param time: the SimTime struct of the event time.
+ * @param ev_type: the enum EVENT_TYPE of the type of event.
+ * @param msg: a c++ string of the message to log.
+ * */
+void Logger::debug(SimTime &time, EVENT_TYPE ev_type, string msg)
+{
+    // Check if info is allowed with the current level
+    _log(DEBUG, time, ev_type, msg);
+}
+
+/*
+ * A specific log call with the WARNING level.
+ *
+ * @param time: the SimTime struct of the event time.
+ * @param ev_type: the enum EVENT_TYPE of the type of event.
+ * @param msg: a c++ string of the message to log.
+ * */
+void Logger::warning(SimTime &time, EVENT_TYPE ev_type, string msg)
+{
+    // Check if info is allowed with the current level
+    _log(WARNING, time, ev_type, msg);
+}
+
+/*
+ * A specific log call with the ERROR level.
+ *
+ * @param time: the SimTime struct of the event time.
+ * @param ev_type: the enum EVENT_TYPE of the type of event.
+ * @param msg: a c++ string of the message to log.
+ * */
+void Logger::error(SimTime &time, EVENT_TYPE ev_type, string msg)
+{
+    // Check if info is allowed with the current level
+    _log(ERROR, time, ev_type, msg);
+}
+
+/*
+ * A specific log call with the CRITICAL level.
+ *
+ * @param time: the SimTime struct of the event time.
+ * @param ev_type: the enum EVENT_TYPE of the type of event.
+ * @param msg: a c++ string of the message to log.
+ * */
+void Logger::critical(SimTime &time, EVENT_TYPE ev_type, string msg)
+{
+    // Check if info is allowed with the current level
+    _log(CRITICAL, time, ev_type, msg);
+}
+
+/*
+ * A private internal generalised function to log a record to to stdout or a log file.
+ *
+ * @param level: the level to log.
+ * @param time: the SimTime struct to log the time of the event.
+ * @param ev_time: the enum EVENT_TYPE to log.
+ * @param msg: the c++ string message to log.
+ * */
 void Logger::_log(LEVEL level, SimTime &time, EVENT_TYPE &ev_type, string msg)
 {
     if (get("STDOUT") == "true") {
@@ -84,36 +166,11 @@ void Logger::_log(LEVEL level, SimTime &time, EVENT_TYPE &ev_type, string msg)
     }
 }
 
-void Logger::info(SimTime &time, EVENT_TYPE ev_type, string msg)
-{
-    // Check if info is allowed with the current level
-    _log(INFO, time, ev_type, msg);
-}
-
-void Logger::debug(SimTime &time, EVENT_TYPE ev_type, string msg)
-{
-    // Check if info is allowed with the current level
-    _log(DEBUG, time, ev_type, msg);
-}
-
-void Logger::warning(SimTime &time, EVENT_TYPE ev_type, string msg)
-{
-    // Check if info is allowed with the current level
-    _log(WARNING, time, ev_type, msg);
-}
-
-void Logger::error(SimTime &time, EVENT_TYPE ev_type, string msg)
-{
-    // Check if info is allowed with the current level
-    _log(ERROR, time, ev_type, msg);
-}
-
-void Logger::critical(SimTime &time, EVENT_TYPE ev_type, string msg)
-{
-    // Check if info is allowed with the current level
-    _log(CRITICAL, time, ev_type, msg);
-}
-
+/*
+ * Allow setting or changing the level of the logger after initialisation.
+ *
+ * @param level: the LEVEL enum to change to.
+ * */
 void Logger::set_level(LEVEL level)
 {
     Config_Iter iter = config.find("LEVEL");
@@ -121,8 +178,19 @@ void Logger::set_level(LEVEL level)
         (*iter).second = _level_to_name(level);
 }
 
+/*
+ * Public getter method to access the private config dictionary.
+ *
+ * @return: the map<string, string> config dictionary.
+ * */
 const Config_Dict &Logger::get_config() const { return config; }
 
+/* TODO: No check if key is actually in the dictionary.
+ * Generalised method to access the dictionary value by the passed in string key.
+ *
+ * @param key: a c++ string of the key to access.
+ * @return: a c++ string of the value stored in the config dictionary.
+ * */
 string &Logger::get(string key)
 {
     Config_Iter iter = config.find(key);
@@ -130,6 +198,12 @@ string &Logger::get(string key)
         return (*iter).second;
 }
 
+/*
+ * Simple function to change the string LEVEL to an enum LEVEL.
+ *
+ * @param level_str: a c++ string corresponding to the enum LEVEL.
+ * @return: a LEVEL enum corresponding to the string parameter.
+ * */
 LEVEL Logger::_name_to_level(string &level_str) {
     if (level_str == "NOTSET")
         return NOTSET;
@@ -145,6 +219,12 @@ LEVEL Logger::_name_to_level(string &level_str) {
         return WARNING;
 }
 
+/*
+ * A simple function to change the enum LEVEL to a string corresponding.
+ *
+ * @param level: the enum LEVEL.
+ * @return: the string corresponding to each enum LEVEL.
+ * */
 string Logger::_level_to_name(LEVEL level) {
     switch (level) {
         case NOTSET:
