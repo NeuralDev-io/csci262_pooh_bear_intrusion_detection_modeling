@@ -100,9 +100,6 @@ int main(int argc, char * argv[]) {
     }
     fin.close();
 
-    // TODO: debug
-    // vehicles_dict.print();
-
     fin.open(stats_file, ifstream::in);
     if (!fin.good()) {
         cout << "[!!] Unable to read Stats file from: " << stats_file << "\nExiting...\n" << flush;
@@ -156,6 +153,9 @@ int main(int argc, char * argv[]) {
         if (!vehicles_dict.add_stats(name, num_mean, num_stddev, speed_mean, speed_stddev))
             cout << "Vehicle type " << name << " cannot be found." << endl;
     }
+
+    // TODO: debug
+    vehicles_dict.print();
 
     TrafficEngine.run();
 

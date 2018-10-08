@@ -59,19 +59,27 @@ bool Vehicles::add_stats(string name, float num_mean, float num_stdev, float spe
 void Vehicles::print()
 {
     cout <<"| "<<right<<setw(3)<<"ID"<<" | "<<left<<setw(15)<<"Name"
-         <<" | "<<left<<setw(7)<<"Parking"<<" | "<<left<<setw(11)<<"Reg. Format"
-         <<" | "<<right<<setw(13)<<"Volume Weight"<<" | "<<right<<setw(12)<<"Speed Weight"<<" |"<<left<<endl;
+         <<" | "<<setw(7)<<"Parking"<<" | "<<setw(11)<<"Reg. Format"
+         <<" | "<<right<<setw(13)<<"Volume Weight"<<" | "<<setw(12)<<"Speed Weight"
+         <<" | "<<setw(11)<<"Number Mean"<<" | "<<setw(16)<<"Number Std. Dev."
+         <<" | "<<setw(10)<<"Speed Mean"<<" | "<<setw(15)<<"Speed Std. Dev."<<" |"
+         <<left<<endl;
 
     cout <<"|"<<setfill('-')<<setw(5)<<"-"<<"|"<<setw(17)<< "-"<<"|"<<setw(9)<<"-"
-         <<"|"<<setw(13)<<"-"<<"|"<<setw(15)<<"-"<<"|"<<setw(14)<<"-"<<setfill(' ')<<"|"<<left<<endl;
+         <<"|"<<setw(13)<<"-"<<"|"<<setw(15)<<"-"<<"|"<<setw(14)<<"-"
+         <<"|"<<setw(13)<<"-"<<"|"<<setw(18)<<"-"<<"|"<<setw(12)<<"-"
+         <<"|"<<setw(17)<<"-"
+         <<setfill(' ')<<"|"<<left<<endl;
 
     map<string, VehicleType>::iterator iter = vehicles_dict.begin();
     for (; iter != vehicles_dict.end(); iter++) {
         string parking = ((*iter).second.parking_flag) ? "Yes" : "No";
         cout <<"|"<<right<<setw(4)<< (*iter).second.id <<" | "<<left<<setw(15)<< (*iter).first
-             <<" | "<<left<<setw(7)<< parking <<" | "<<left<<setw(11)<< (*iter).second.reg_format
+             <<" | "<<setw(7)<< parking <<" | "<<setw(11)<< (*iter).second.reg_format
              <<" | "<<right<<setw(13)<< (*iter).second.vol_weight <<" | "<<setw(12)<< (*iter).second.speed_weight
-             <<" |"<<left<<"\n"<<flush;
+             <<" | "<<setw(11)<<setprecision(4)<<(*iter).second.num_mean<<" | "<<setw(16)<<(*iter).second.num_stddev
+             <<" | "<<setw(10)<<setprecision(4)<<(*iter).second.speed_mean<<" | "<<setw(15)<<(*iter).second.speed_stddev
+             <<" |"<<left<<endl;
     }
     cout<<endl;
 }

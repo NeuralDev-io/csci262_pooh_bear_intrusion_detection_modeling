@@ -162,7 +162,7 @@ void Logger::_log(LEVEL level, SimTime &time, EVENT_TYPE &ev_type, string msg)
     }
 
     if (get("FILENAME") != "false") {
-        ofstream fout(get("FILENAME").c_str(), ofstream::out | ofstream::app);
+        ofstream fout(get("FILENAME").c_str(), ofstream::out | ofstream::trunc);
         if (!fout.good())
             cout << "[!!] Failed to open log file " << get("FILENAME");
 
