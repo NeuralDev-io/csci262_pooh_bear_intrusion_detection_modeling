@@ -12,9 +12,15 @@
 * Emails andrew at codeninja55.me & duong.daltonle at gmail.com
 * Students Dinh Che (5721970 | dbac496) & Duong Le (5560536 | ndl991)
 *********************************************************************************/
-#include <iostream>
 #include "ActivityEngine.h"
+#include <Python.h>
+#include <iostream>
+#include <random>
+#include <fstream>
 #include "Helper.h"
+using namespace std;
+
+void generate_distribution_csv(default_random_engine randomEngine);
 
 /*
  * Constructor to the activity engine to store stats value to be used to
@@ -43,8 +49,14 @@ void ActivityEngine::run()
     Logger logger = Logger("Activity Engine", WARNING, "test.txt", true);
     logger.info(sim_start_time, ARRIVAL, "Started logging");
 
+    default_random_engine random_engine(0);
+    generate_distribution_csv(random_engine);
+
     // TODO: time should be stepped in 1 minute blocks
     // TODO: program should give some indication as to what is happening, without being verbose
+
+
+
     /*
      * TODO:
      * There are five types of events. The first is associated with vehicle generation, the other
@@ -65,4 +77,40 @@ void ActivityEngine::run()
     cout << "Activity Engine finished: " << real_formatted_time_now() << "\n" << flush;
 }
 
+void generate_distribution_csv(default_random_engine randomEngine)
+{
+    /* Bus generator test (num_mean = 3, num_std_dev = 1) */
+    fstream file;
+    file.open("data/normal.csv", ios::out | ios::trunc);
+    if (!file.good())
+        cout << "[!!] Open file error for csv." << endl;
 
+    /* REF: http://www.cplusplus.com/reference/random/ */
+    char delim = ',';
+    /* Normal distribution */
+    normal_distribution<float> normal(3, 1);  // @param mean, std. dev.
+    float normal_val[1439] = {};
+
+    file << "raw" << delim << "lround" << "\n";
+    for (int i = 0; i < 1439; i++) {
+        float val = normal(randomEngine);
+        normal_val[i] = val;
+        file << val << delim << lround(val) << "\n";
+    }
+    file.close();
+
+    /* Poisson distribution */
+    int n_times = 1439;
+    poisson_distribution<int> poisson(3);  // @param mean
+    int poisson_val[1439] = {};
+
+    file.open("data/poisson.csv", ios::out | ios::trunc);
+
+    file << "raw" << "\n";
+    for (int i = 0; i < 1439; i++) {
+        int val = poisson(randomEngine);
+        poisson_val[i] = val;
+        file << val << delim << lround(val) << "\n";
+    }
+    file.close();
+}
