@@ -107,5 +107,17 @@ string event_name(EVENT_TYPE ev) {
             return "PARKING_STOP";
         case VEHICLE_MOVE:
             return "VEHICLE_MOVE";
+        case UNKNOWN:
+            return "UNKNOWN";
     }
+}
+
+long long int fact(int x)
+{
+    if (x == 0) return 1;
+    long long int factorial = 1;
+    int i;
+    for (i = 2; i <= x; i++)
+        factorial *= i;
+    return factorial;
 }

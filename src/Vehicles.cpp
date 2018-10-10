@@ -24,8 +24,7 @@
 void Vehicles::insert(VehicleType &v)
 {
     v.id = ++n_vehicles;
-    map<string, VehicleType>::iterator iter = vehicles_dict.find(v.name);
-    vehicles_dict.insert(iter, pair<string, VehicleType>(v.name, v));
+    vehicles_dict.insert(pair<string, VehicleType>(v.name, v));
 }
 
 /*
@@ -51,6 +50,17 @@ bool Vehicles::add_stats(string name, float num_mean, float num_stdev, float spe
         return true;
     }
     return false;
+}
+
+int Vehicles::size() {
+    return n_vehicles;
+}
+
+map<string, VehicleType> *Vehicles::get_vehicles_dict()
+{
+    map<string, VehicleType> *vehicles_ptr;
+    vehicles_ptr = &vehicles_dict;
+    return  vehicles_ptr;
 }
 
 /*

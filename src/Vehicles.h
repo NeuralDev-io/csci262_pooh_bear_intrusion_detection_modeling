@@ -34,6 +34,8 @@ public:
     void insert(VehicleType&);
     bool add_stats(string, float, float, float, float);
     void print();
+    int size();
+    map<string, VehicleType> *get_vehicles_dict();
 
 private:
     uint n_vehicles;

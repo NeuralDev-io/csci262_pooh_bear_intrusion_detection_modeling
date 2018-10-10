@@ -31,7 +31,8 @@ typedef struct {
     int tm_wday;  // days since Sunday (0) [0-6]
 } SimTime;
 
-enum EVENT_TYPE { ARRIVAL = 1, DEPART_SIDE_ROAD, DEPART_END_ROAD, PARKING_START, PARKING_STOP, VEHICLE_MOVE };
+enum EVENT_TYPE { UNKNOWN = 0, ARRIVAL = 1, DEPART_SIDE_ROAD, DEPART_END_ROAD, PARKING_START, PARKING_STOP,
+        VEHICLE_MOVE };
 typedef enum EVENT_TYPE EVENT_TYPE;
 
 SimTime time_now();
@@ -40,5 +41,6 @@ string formatted_date(SimTime&);
 string formatted_time_date(SimTime&);
 string real_formatted_time_now();
 string event_name(EVENT_TYPE);
+long long int fact(int x);
 
 #endif //POOH_BEAR_INTRUSION_DETECTION_SYSTEM_HELPER_H

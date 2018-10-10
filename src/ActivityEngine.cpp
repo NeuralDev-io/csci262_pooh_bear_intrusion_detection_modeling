@@ -17,9 +17,15 @@
 #include <iostream>
 #include <random>
 #include <fstream>
+#include <math.h>
+#include <cmath>
+#include <iomanip>
 #include "Helper.h"
 using namespace std;
 
+long double next_occurrence(float);
+double exponential_probability(float, int);
+double poisson_probability(float, float, int);
 void generate_distribution_csv(default_random_engine randomEngine);
 
 /*
@@ -41,40 +47,68 @@ ActivityEngine::ActivityEngine(uint days, uint vehicles_monitored, float road_le
     road_length = road_len;
 }
 
-void ActivityEngine::run()
-{
-    SimTime sim_start_time = time_now();
 
-    cout << "Activity Engine started: " << real_formatted_time_now() << "\n" << flush;
-    Logger logger = Logger("Activity Engine", WARNING, "test.txt", true);
-    logger.info(sim_start_time, ARRIVAL, "Started logging");
+void ActivityEngine::run(Vehicles &vehicles)
+{
+    SimTime sim_time = time_now();
+
+    cout << "Traffic Engine started: " << real_formatted_time_now() << "\n" << flush;
+    Logger logger = Logger("Traffic Engine", WARNING, "test.txt", true);
+    // log for the number of Days specified at the initial running of Traffic
+    stringstream msg;
+    msg << "Started Traffic Engine for number of days " << simulate_days;
+    logger.info(sim_time, UNKNOWN, msg.str());
 
     default_random_engine random_engine(0);
-    generate_distribution_csv(random_engine);
+    // generate_distribution_csv(random_engine);
 
     // TODO: time should be stepped in 1 minute blocks
     // TODO: program should give some indication as to what is happening, without being verbose
 
+    // bool generate_flag = true;
+    // while (generate_flag) {
 
+    map<string, VehicleType>::iterator iter = vehicles.get_vehicles_dict()->find("Bus");
 
-    /*
-     * TODO:
-     * There are five types of events. The first is associated with vehicle generation, the other
-     * four with existing vehicle activity.
-     *   1. Vehicle arrival, always at the start of the road. This is only up to 23:00 on any given day.
-     *   2. Vehicle departure via a side road. The vehicle is then out of the road system.
-     *   3. Vehicle departure via the end of the road. The vehicle is then out of the road system.
-     *   4. Vehicle parks or stops parking.
-     *   5. Vehicle moves and possibly changes speed.
-     *
-     * -> You should think about appropriate probabilities for each of those activites.
-     * -> The statistics associated with vehicle volume are tied to the vehicle arrival.
-     * -> The statistics associated with vehicle speed are tied to the speed of the vehicle
-     *    when it arrives on the road.
-     * -> You only test breaches of speed limit using the average speed across the whole road based on the times,
-     * */
+    float minutes = 1380;  // 23 hours x 60 mins
+
+    poisson_distribution<int> poisson((*iter).second.num_mean);
+    int X = poisson(random_engine);
+    // Find probability of arrival
+    cout << (*iter).first << ": \nRandom X: " << X << endl;
+    double p_trials = poisson_probability((*iter).second.num_mean, minutes, X);
+    cout << "Poisson Probability: " << p_trials << endl;
+
+    float rate_param = (*iter).second.num_mean / minutes;
+
+    for (int i = 0; i < minutes; i++) {
+        double p_t = exponential_probability(rate_param, i);
+        cout << "Exponential Probability at time (" << i << "): " << p_t << endl;
+    }
+
+    for (int j = 0; j <= X; j++) {
+        cout<<next_occurrence(rate_param)<<endl;
+    }
+
+        // generate_flag = false;
+    // }
 
     cout << "Activity Engine finished: " << real_formatted_time_now() << "\n" << flush;
+}
+
+long double next_occurrence(float rate_param)
+{
+    return (long double) -logf(1.0f - (float) random() / (RAND_MAX + 1)) / rate_param;
+}
+
+double exponential_probability(float lambda, int X)
+{
+    return lambda * pow(exp(1), (-lambda * X));
+}
+
+double poisson_probability(float mean, float t, int X)
+{
+    return (pow(mean, X) / fact(X)) * pow(exp(1), (-mean));
 }
 
 void generate_distribution_csv(default_random_engine randomEngine)
@@ -92,9 +126,9 @@ void generate_distribution_csv(default_random_engine randomEngine)
     float normal_val[1439] = {};
 
     file << "raw" << delim << "lround" << "\n";
-    for (int i = 0; i < 1439; i++) {
+    for (float &i : normal_val) {
         float val = normal(randomEngine);
-        normal_val[i] = val;
+        i = val;
         file << val << delim << lround(val) << "\n";
     }
     file.close();
@@ -107,9 +141,9 @@ void generate_distribution_csv(default_random_engine randomEngine)
     file.open("data/poisson.csv", ios::out | ios::trunc);
 
     file << "raw" << "\n";
-    for (int i = 0; i < 1439; i++) {
+    for (int &i : poisson_val) {
         int val = poisson(randomEngine);
-        poisson_val[i] = val;
+        i = val;
         file << val << delim << lround(val) << "\n";
     }
     file.close();

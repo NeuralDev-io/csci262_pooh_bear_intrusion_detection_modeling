@@ -35,6 +35,7 @@ unsigned int safe_int_convert(const char *, const char *);
 
 int main(int argc, char * argv[]) {
 
+    // TODO: REMOVE THIS BEFORE SUBMITTING
     char days_str[sizeof(int)];
     char vehicles_file[BUFFER_SZ] = "data/";
     char stats_file[BUFFER_SZ] = "data/";
@@ -155,9 +156,9 @@ int main(int argc, char * argv[]) {
     }
 
     // TODO: debug
-    vehicles_dict.print();
+    // vehicles_dict.print();
 
-    TrafficEngine.run();
+    TrafficEngine.run(vehicles_dict);
 
     return 0;
 }
