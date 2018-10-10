@@ -53,7 +53,7 @@ void ActivityEngine::run(Vehicles &vehicles)
     SimTime sim_time = time_now();
 
     cout << "Traffic Engine started: " << real_formatted_time_now() << "\n" << flush;
-    Logger logger = Logger("Traffic Engine", WARNING, "test.txt", true);
+    Logger<EVENT_TYPE> logger = Logger<EVENT_TYPE>("Traffic Engine", WARNING, "test.txt", true);
     // log for the number of Days specified at the initial running of Traffic
     stringstream msg;
     msg << "Started Traffic Engine for number of days " << simulate_days;

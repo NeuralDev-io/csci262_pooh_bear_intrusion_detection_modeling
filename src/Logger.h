@@ -38,6 +38,7 @@ typedef enum LEVEL LEVEL;
 typedef map<string, string>::iterator Config_Iter;
 typedef map<string, string> Config_Dict;
 
+template <class T>
 class Logger {
 public:
     Logger();  // default constructor
@@ -46,14 +47,14 @@ public:
     Logger(string, LEVEL, string);
     Logger(string, LEVEL, string, bool);
     void set_level(LEVEL);
-    void info(SimTime&, EVENT_TYPE, string);
-    void debug(SimTime&, EVENT_TYPE, string);
-    void warning(SimTime&, EVENT_TYPE, string);
-    void error(SimTime&, EVENT_TYPE, string);
-    void critical(SimTime&, EVENT_TYPE, string);
+    void info(SimTime &time, T ev_type, const string &msg);
+    void debug(SimTime &time, T ev_type, const string &msg);
+    void warning(SimTime &time, T ev_type, const string &msg);
+    void error(SimTime &time, T ev_type, const string &msg);
+    void critical(SimTime &time, T ev_type, const string &msg);
     const Config_Dict &get_config() const;
     string &get(string);
-    void _log(LEVEL, SimTime&, EVENT_TYPE&, string);
+    void _log(LEVEL level, SimTime &time, T ev_type, const string &msg);
 private:
     stringstream filename_ss;  // stringstream to add directory to the beginning of log filenames
     string _level_to_name(LEVEL);
