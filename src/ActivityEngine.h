@@ -34,10 +34,8 @@ typedef struct {
 struct event_compare {
     bool operator()(const Event &lhs, const Event &rhs) {
         if (lhs.time.tm_hour == rhs.time.tm_hour) {
-            if (lhs.time.tm_min == rhs.time.tm_min) {
-                return lhs.time.tm_sec < rhs.time.tm_sec;
-            } else
-                return lhs.time.tm_min < rhs.time.tm_min;
+            return (lhs.time.tm_min == rhs.time.tm_min) ? lhs.time.tm_sec < rhs.time.tm_sec :
+                lhs.time.tm_min < rhs.time.tm_min;
         }
         return lhs.time.tm_hour < rhs.time.tm_hour;
     }

@@ -15,9 +15,10 @@
 #include "ActivityEngine.h"
 using namespace std;
 
-long double next_occurrence(float);
-double exponential_probability(float, int);
-double poisson_probability(float, float, int);
+long double next_occurrence(double rate_param, uniform_real_distribution<long double> &random,
+        default_random_engine &random_generator);
+double exponential_probability(float lambda, int t);
+double poisson_probability(float mu, int X);
 void generate_distribution_csv(default_random_engine randomEngine);
 
 /*
@@ -51,55 +52,63 @@ void ActivityEngine::run(Vehicles &vehicles)
     msg << "Started Traffic Engine for number of days " << simulate_days;
     logger.info(sim_time, UNKNOWN, msg.str());
 
-    default_random_engine random_engine(0);
-    // generate_distribution_csv(random_engine);
-
     // TODO: time should be stepped in 1 minute blocks
     // TODO: program should give some indication as to what is happening, without being verbose
+    default_random_engine random_generator(static_cast<unsigned long>(LONG_MAX));
+    // generate_distribution_csv(random_generator);
 
-    // bool generate_flag = true;
-    // while (generate_flag) {
+    /* ARRIVAL EVENTS */
+    const float minutes = 1379;  // 23 hours x 60 mins
+    map<string, VehicleType>::iterator iter = vehicles.get_vehicles_dict()->begin();
+    for (; iter != vehicles.get_vehicles_dict()->end(); ++iter) {
 
-    map<string, VehicleType>::iterator iter = vehicles.get_vehicles_dict()->find("Bus");
+        // TODO: make a function to random create registration numbers
 
-    float minutes = 1380;  // 23 hours x 60 mins
+        cout << "Vehicle type: " << (*iter).first << endl;
 
-    poisson_distribution<int> poisson((*iter).second.num_mean);
-    int X = poisson(random_engine);
-    // Find probability of arrival
-    cout << (*iter).first << ": \nRandom X: " << X << endl;
-    double p_trials = poisson_probability((*iter).second.num_mean, minutes, X);
-    cout << "Poisson Probability: " << p_trials << endl;
+        // @param mean and std. dev
+        normal_distribution<double> normal_distribution((*iter).second.num_mean, (*iter).second.num_stddev);
+        // @param min and max
+        uniform_real_distribution<long double> uniform_distribution(0, 1);
+        // Random number of X occurrences of vehicle over a day
+        uint X = static_cast<uint>(lround(normal_distribution(random_generator)));
+        // rate of occurrence
+        u_long rate_param = static_cast<u_long>((*iter).second.num_mean / minutes);
 
-    float rate_param = (*iter).second.num_mean / minutes;
+        // For the number of occurrences for a day, generate the arrival events
+        for (int j = 0; j <= X; j++) {
+            cout << next_occurrence(rate_param, uniform_distribution, random_generator) << endl;
+        }
 
-    for (int i = 0; i < minutes; i++) {
-        double p_t = exponential_probability(rate_param, i);
-        cout << "Exponential Probability at time (" << i << "): " << p_t << endl;
     }
-
-    for (int j = 0; j <= X; j++)
-        cout<<next_occurrence(rate_param)<<endl;
-
-        // generate_flag = false;
-    // }
 
     cout << "Activity Engine finished: " << real_formatted_time_now() << "\n" << flush;
 }
 
-long double next_occurrence(float rate_param)
+long double next_occurrence(double rate_param,
+                            uniform_real_distribution<long double> &random,
+                            default_random_engine &random_generator)
 {
-    return (long double) -logf(1.0f - (float) random() / (RAND_MAX + 1)) / rate_param;
+    return -logl(1.0L - (random(random_generator) / (random.max() + 1))) / rate_param;
 }
 
-double exponential_probability(float lambda, int X)
+/*
+ * @param lamnda: the rate of occurrence
+ * @param t: time interval to check probability
+ * */
+double exponential_probability(float lambda, int t)
 {
-    return lambda * pow(exp(1), (-lambda * X));
+    return lambda * pow(exp(1), (-lambda * t));
+    // return 1.0f - pow(exp(1), (-lambda * t));
 }
 
-double poisson_probability(float mean, float t, int X)
+/*
+ * @param mu: the expected occurrence over a time interval
+ * @param X: the number of expected occurrences.
+ * */
+double poisson_probability(float mu, int X)
 {
-    return (pow(mean, X) / fact(X)) * pow(exp(1), (-mean));
+    return 1.0f - (pow(mu, X) / fact(X)) * pow(exp(1), (-mu));
 }
 
 void generate_distribution_csv(default_random_engine randomEngine)
@@ -111,10 +120,10 @@ void generate_distribution_csv(default_random_engine randomEngine)
         cout << "[!!] Open file error for csv." << endl;
 
     /* REF: http://www.cplusplus.com/reference/random/ */
-    char delim = ',';
-    /* Normal distribution */
-    normal_distribution<float> normal(3, 1);  // @param mean, std. dev.
-    float normal_val[1439] = {};
+    const char delim = ',';
+    /* Log Normal distribution */
+    lognormal_distribution<float> normal(3, 1);  // @param mean, std. dev.
+    float normal_val[1379] = {};
 
     file << "raw" << delim << "lround" << "\n";
     for (float &i : normal_val) {
@@ -125,9 +134,9 @@ void generate_distribution_csv(default_random_engine randomEngine)
     file.close();
 
     /* Poisson distribution */
-    int n_times = 1439;
+    const int n_times = 1379;
     poisson_distribution<int> poisson(3);  // @param mean
-    int poisson_val[1439] = {};
+    int poisson_val[n_times] = {};
 
     file.open("data/poisson.csv", ios::out | ios::trunc);
 
