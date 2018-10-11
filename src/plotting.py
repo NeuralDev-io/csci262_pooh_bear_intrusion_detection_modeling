@@ -10,12 +10,12 @@ def create_plot():
     # Normal DataFrame
     normal_df = pd.DataFrame(normal)
     # print(normal_df)
-    print("Poisson Distribution")
+    print("Log Normal Distribution")
     print(normal_df['raw'].describe())
 
     # matplotlib histogram
-    plt.figure(figsize=(16, 10))
-    plt.title('Random Engine Normal Distribution')
+    plt.figure(figsize=(24, 16))
+    plt.title('Random Engine Log Normal Distribution')
     plt.hist(normal['raw'], color='red', edgecolor='black')
     # seaborn histogram
     # sns.distplot(normal_df['raw'], hist=True, kde=False, color='blue', hist_kws={'edgecolor': 'black'})
@@ -33,7 +33,7 @@ def create_plot():
     print("Poisson Distribution")
     print(poisson_df['raw'].describe())
 
-    plt.figure(figsize=(16, 10))
+    plt.figure(figsize=(24, 16))
     plt.title('Random Engine Poisson Distribution')
     plt.hist(poisson_df['raw'], color='orange', edgecolor='black')
     # sns.distplot(poisson_df['raw'], hist=True, kde=False, color='red', hist_kws={'edgecolor': 'black'})
