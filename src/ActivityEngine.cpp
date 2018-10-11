@@ -13,14 +13,6 @@
 * Students Dinh Che (5721970 | dbac496) & Duong Le (5560536 | ndl991)
 *********************************************************************************/
 #include "ActivityEngine.h"
-#include <Python.h>
-#include <iostream>
-#include <random>
-#include <fstream>
-#include <math.h>
-#include <cmath>
-#include <iomanip>
-#include "Utils.h"
 using namespace std;
 
 long double next_occurrence(float);
@@ -86,9 +78,8 @@ void ActivityEngine::run(Vehicles &vehicles)
         cout << "Exponential Probability at time (" << i << "): " << p_t << endl;
     }
 
-    for (int j = 0; j <= X; j++) {
+    for (int j = 0; j <= X; j++)
         cout<<next_occurrence(rate_param)<<endl;
-    }
 
         // generate_flag = false;
     // }

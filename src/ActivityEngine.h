@@ -17,6 +17,13 @@
 #include <zconf.h>
 #include <queue>
 #include <Vehicles.h>
+#include <iostream>
+#include <random>
+#include <fstream>
+#include <math.h>
+#include <cmath>
+#include <iomanip>
+#include "Utils.h"
 #include "Logger.h"
 
 typedef struct {
