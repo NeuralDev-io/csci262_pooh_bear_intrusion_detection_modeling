@@ -13,13 +13,6 @@
 * Students Dinh Che (5721970 | dbac496) & Duong Le (5560536 | ndl991)
 *********************************************************************************/
 #include "ActivityEngine.h"
-using namespace std;
-
-long double next_occurrence(double rate_param, uniform_real_distribution<long double> &random,
-        default_random_engine &random_generator);
-double exponential_probability(float lambda, int t);
-double poisson_probability(float mu, int X);
-void generate_distribution_csv(default_random_engine randomEngine);
 
 /*
  * Constructor to the activity engine to store stats value to be used to
@@ -84,67 +77,7 @@ void ActivityEngine::run(Vehicles &vehicles)
 
     cout << "Activity Engine finished: " << real_formatted_time_now() << "\n" << flush;
 }
-
 long double next_occurrence(double rate_param,
-                            uniform_real_distribution<long double> &random,
-                            default_random_engine &random_generator)
-{
-    return -logl(1.0L - (random(random_generator) / (random.max() + 1))) / rate_param;
-}
 
-/*
- * @param lamnda: the rate of occurrence
- * @param t: time interval to check probability
- * */
-double exponential_probability(float lambda, int t)
-{
-    return lambda * pow(exp(1), (-lambda * t));
-    // return 1.0f - pow(exp(1), (-lambda * t));
-}
-
-/*
- * @param mu: the expected occurrence over a time interval
- * @param X: the number of expected occurrences.
- * */
-double poisson_probability(float mu, int X)
-{
-    return 1.0f - (pow(mu, X) / fact(X)) * pow(exp(1), (-mu));
-}
-
-void generate_distribution_csv(default_random_engine randomEngine)
-{
-    /* Bus generator test (num_mean = 3, num_std_dev = 1) */
-    fstream file;
-    file.open("data/normal.csv", ios::out | ios::trunc);
-    if (!file.good())
-        cout << "[!!] Open file error for csv." << endl;
-
-    /* REF: http://www.cplusplus.com/reference/random/ */
-    const char delim = ',';
-    /* Log Normal distribution */
-    lognormal_distribution<float> normal(3, 1);  // @param mean, std. dev.
-    float normal_val[1379] = {};
-
-    file << "raw" << delim << "lround" << "\n";
-    for (float &i : normal_val) {
-        float val = normal(randomEngine);
-        i = val;
-        file << val << delim << lround(val) << "\n";
     }
-    file.close();
-
-    /* Poisson distribution */
-    const int n_times = 1379;
-    poisson_distribution<int> poisson(3);  // @param mean
-    int poisson_val[n_times] = {};
-
-    file.open("data/poisson.csv", ios::out | ios::trunc);
-
-    file << "raw" << "\n";
-    for (int &i : poisson_val) {
-        int val = poisson(randomEngine);
-        i = val;
-        file << val << delim << lround(val) << "\n";
-    }
-    file.close();
 }

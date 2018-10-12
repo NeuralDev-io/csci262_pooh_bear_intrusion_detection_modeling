@@ -14,7 +14,14 @@
 #ifndef POOH_BEAR_INTRUSION_DETECTION_SYSTEM_HELPER_H
 #define POOH_BEAR_INTRUSION_DETECTION_SYSTEM_HELPER_H
 
+#include <set>
 #include <string>
+#include <random>
+#include <ctime>
+#include <sstream>
+#include <iomanip>
+#include <fstream>
+#include <iostream>
 using namespace std;
 
 /*
@@ -42,5 +49,11 @@ string formatted_time_date(SimTime&);
 string real_formatted_time_now();
 string event_name(EVENT_TYPE);
 long long int fact(int x);
+long double next_arrival(double rate_param,
+                         uniform_real_distribution<long double> &random,
+                         default_random_engine &random_generator);
+double exponential_probability(float lambda, int t);
+double poisson_probability(float mu, int X);
+void generate_distribution_csv(default_random_engine randomEngine);
 
 #endif //POOH_BEAR_INTRUSION_DETECTION_SYSTEM_HELPER_H
