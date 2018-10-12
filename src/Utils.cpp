@@ -39,49 +39,6 @@ SimTime time_now()
 }
 
 /*
- * Convert a SimTime struct to a human-readable string time.
- *
- * @param t: a reference to the SimTime structure to format to a string.
- * @return: string of the time from the SimTime structure.
- * */
-string formatted_time(SimTime &t)
-{
-    stringstream ss;
-    ss << setfill('0') << setw(2) << t.tm_hour << ":" << setfill('0') << setw(2) << t.tm_min
-       << ":" << setfill('0') << setw(2) << t.tm_sec;
-    return ss.str();
-}
-
-/*
- * Convert a SimTime struct to a human-readable string date
- *
- * @param t: a reference to the SimTime structure to format to a string.
- * @return: string of the time from the SimTime structure.
- * */
-string formatted_date(SimTime &t)
-{
-    stringstream ss;
-    ss << setfill('0') << setw(2) << t.tm_mday << "-" << setfill('0') << setw(2) << t.tm_mon << "-" << setw(4) << t
-    .tm_year;
-    return ss.str();
-}
-
-/*
- * @brief: convert a SimTime struct to a human-readable string time and date
- *
- * @param t: a reference to the SimTime structure to format to a string
- * @return: string of the time and date formatted as DD-MM-YYYY HH:MM:ss
- * */
-string formatted_time_date(SimTime &t) {
-    stringstream ss;
-    ss << setfill('0') << setw(2) << t.tm_mday << "-" << t.tm_mon << "-" << setw(4) << t.tm_year
-       << " " << setfill('0') << setw(2) << t.tm_hour << ":"
-       << setfill('0') << setw(2) << t.tm_min << ":"
-       << setfill('0') << setw(2) << t.tm_sec;
-    return ss.str();
-}
-
-/*
  * Convert a real time tm struct and time_t to a local system time and return a string
  * of this time formatted just like the system time.
  *
