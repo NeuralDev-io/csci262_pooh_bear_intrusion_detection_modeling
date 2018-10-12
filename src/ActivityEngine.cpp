@@ -45,20 +45,27 @@ void ActivityEngine::run(Vehicles &vehicles)
     msg << "Started Traffic Engine for number of days " << simulate_days;
     logger.info(sim_time, UNKNOWN, msg.str());
 
+    generate_arrivals(vehicles);
+
     // TODO: time should be stepped in 1 minute blocks
     // TODO: program should give some indication as to what is happening, without being verbose
+
+
+    cout << "Activity Engine finished: " << real_formatted_time_now() << "\n" << flush;
+}
+
+void ActivityEngine::generate_arrivals(Vehicles &vehicles)
+{
     default_random_engine random_generator(static_cast<unsigned long>(LONG_MAX));
-    // generate_distribution_csv(random_generator);
 
     /* ARRIVAL EVENTS */
     const float minutes = 1379;  // 23 hours x 60 mins
     map<string, VehicleType>::iterator iter = vehicles.get_vehicles_dict()->begin();
     for (; iter != vehicles.get_vehicles_dict()->end(); ++iter) {
 
-        // TODO: make a function to random create registration numbers
-
         cout << "Vehicle type: " << (*iter).first << endl;
 
+        // TODO: Ensure the returned value from a normal distribution is not negative because of a large std. dev.
         // @param mean and std. dev
         normal_distribution<double> normal_distribution((*iter).second.num_mean, (*iter).second.num_stddev);
         // @param min and max
@@ -66,18 +73,16 @@ void ActivityEngine::run(Vehicles &vehicles)
         // Random number of X occurrences of vehicle over a day
         uint X = static_cast<uint>(lround(normal_distribution(random_generator)));
         // rate of occurrence
-        u_long rate_param = static_cast<u_long>((*iter).second.num_mean / minutes);
+        double rate_param = static_cast<double>(X / minutes);
 
         // For the number of occurrences for a day, generate the arrival events
         for (int j = 0; j <= X; j++) {
-            cout << next_occurrence(rate_param, uniform_distribution, random_generator) << endl;
+            VehicleStats new_stats;
+            new_stats.registration_id = Vehicles::generate_registration((*iter).second.reg_format, random_generator);
+            new_stats.arrival_time = next_arrival(rate_param, uniform_distribution, random_generator);
+            cout << "Arrival: " << new_stats.registration_id << " ==> ";
+            cout << new_stats.arrival_time << endl;
         }
-
-    }
-
-    cout << "Activity Engine finished: " << real_formatted_time_now() << "\n" << flush;
-}
-long double next_occurrence(double rate_param,
 
     }
 }

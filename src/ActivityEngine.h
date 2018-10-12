@@ -16,7 +16,6 @@
 
 #include <zconf.h>
 #include <queue>
-#include <Vehicles.h>
 #include <iostream>
 #include <random>
 #include <fstream>
@@ -24,7 +23,14 @@
 #include <cmath>
 #include <iomanip>
 #include "Utils.h"
+#include "Vehicles.h"
 #include "Logger.h"
+
+
+typedef struct {
+    string registration_id;
+    long double arrival_time;
+} VehicleStats;
 
 typedef struct {
     EVENT_TYPE ev_type;
@@ -48,6 +54,7 @@ public:
     ActivityEngine(uint, uint, float, float, uint);
     void run(Vehicles&);  // run the activity engine simulation
 private:
+    void generate_arrivals(Vehicles &vehicles);
     uint n_vehicles_monitored, n_parking_spots, simulate_days;
     float road_length, speed_limit;
     priority_queue<Event, vector<Event>, event_compare> event_q;

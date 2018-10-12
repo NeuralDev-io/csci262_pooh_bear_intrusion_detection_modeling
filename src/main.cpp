@@ -155,7 +155,7 @@ int main(int argc, char * argv[]) {
     }
 
     // TODO: debug
-    // vehicles_dict.print();
+    vehicles_dict.print();
 
     TrafficEngine.run(vehicles_dict);
 
