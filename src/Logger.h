@@ -66,7 +66,7 @@ public:
     void critical(S &time, T log_struct);
     const Config_Dict &get_config() const;
     string &get(string);
-    static void set_delimiter(char DELIMITER);
+    static void set_delimiter(char delimiter);
     static const char DELIMITER = ':';
 private:
     void _log(LEVEL level, S &time, T log_struct);
@@ -238,17 +238,6 @@ void Logger<T, S>::_log(LEVEL level, S &time, T log_struct)
              << Logger::DELIMITER << _level_to_name(level) << Logger::DELIMITER << log_struct << endl;
         fout.close();
     }
-}
-
-/*
- * @brief: change the delimiter to be used in the log record.
- *
- * @param delimiter: a char of the delimiter to use.
- * */
-template<class T, class S>
-void Logger<T, S>::set_delimiter(char delimiter)
-{
-    Logger::DELIMITER = delimiter;
 }
 
 /*
