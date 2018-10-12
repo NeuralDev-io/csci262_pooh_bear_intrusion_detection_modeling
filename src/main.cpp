@@ -13,14 +13,11 @@
 
 #include <iostream>
 #include <cstdlib>
-#include <limits.h>
 #include <string.h>
 #include <cstring>
 #include <fstream>
 #include "Vehicles.h"
 #include "ActivityEngine.h"
-// #include "Logger.h"
-
 using namespace std;
 
 #define BUFFER_SZ 100
@@ -31,7 +28,7 @@ using namespace std;
 unsigned int g_n_vehicles;
 
 /* FUNCTION PROTOTYPES */
-unsigned int safe_int_convert(const char *, const char *);
+
 
 int main(int argc, char * argv[]) {
 
@@ -160,26 +157,4 @@ int main(int argc, char * argv[]) {
     TrafficEngine.run(vehicles_dict);
 
     return 0;
-}
-
-/* HELPER UTILS */
-
-/*
- * Utility function to convert read in string to unsigned int, making sure it fits into int
- * size otherwise, print to stdout an error message defined from parameter.
- *
- * @param int_str: const char pointer to a c-style string which can be converted to an int
- * @param err_msg: a const char pointer to a c-style string a message to print to stdout for errors
- * @return: a c++ static_cast unsigned int if successful.
- * */
-unsigned int safe_int_convert(const char *int_str, const char *err_msg)
-{
-    char *unused_end;
-    long tmp = strtol(int_str, &unused_end, sizeof(long));
-    if (tmp >= INT_MIN && tmp <= INT_MAX)
-        return static_cast<unsigned int>(tmp);
-    else {
-        cout << "[!!] " << err_msg << "\nExiting..." << endl;
-        exit(1);
-    }
 }
