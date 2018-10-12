@@ -5,7 +5,7 @@
 *          Vehicles.txt and Stats.txt, as well as an argument for how many days
  *         to simulate traffic.
 *
-* @version 0.1-dev
+* @version 0.3-dev
 * @date 2018.10.06
 *
 * @authors Dinh Che (codeninja55) & Duong Le (daltonle)
@@ -13,14 +13,6 @@
 * Students Dinh Che (5721970 | dbac496) & Duong Le (5560536 | ndl991)
 *********************************************************************************/
 #include "ActivityEngine.h"
-#include <Python.h>
-#include <iostream>
-#include <random>
-#include <fstream>
-#include "Helper.h"
-using namespace std;
-
-void generate_distribution_csv(default_random_engine randomEngine);
 
 /*
  * Constructor to the activity engine to store stats value to be used to
@@ -39,78 +31,94 @@ ActivityEngine::ActivityEngine(uint days, uint vehicles_monitored, float road_le
     n_parking_spots = parking_spots;
     speed_limit = speed_lim;
     road_length = road_len;
+
+    time_seed = static_cast<unsigned long>(chrono::system_clock::now().time_since_epoch().count());
+    default_engine.seed(LONG_MAX);
+    linear_congruential_engine.seed(LONG_MAX);
+    mersenne_twister_engine.seed(LONG_MAX);
 }
 
-void ActivityEngine::run()
+
+void ActivityEngine::run(Vehicles &vehicles)
 {
-    SimTime sim_start_time = time_now();
+    SimTime sim_time = time_now();
 
-    cout << "Activity Engine started: " << real_formatted_time_now() << "\n" << flush;
-    Logger logger = Logger("Activity Engine", WARNING, "test.txt", true);
-    logger.info(sim_start_time, ARRIVAL, "Started logging");
+    cout << "Traffic Engine started: " << real_formatted_time_now() << "\n" << flush;
+    Logger<ActivityLog, SimTime> logger = Logger<ActivityLog, SimTime>("Activity Engine", WARNING, "test.txt", true);
+    // log for the number of Days specified at the initial running of Traffic
+    stringstream msg;
+    msg << "Started Traffic Engine for number of days " << simulate_days;
+    logger.info(sim_time, { UNKNOWN, "Activity Log", 0, msg.str() });
 
-    default_random_engine random_engine(0);
-    generate_distribution_csv(random_engine);
+    generate_arrivals(vehicles);
 
     // TODO: time should be stepped in 1 minute blocks
     // TODO: program should give some indication as to what is happening, without being verbose
 
-
-
-    /*
-     * TODO:
-     * There are five types of events. The first is associated with vehicle generation, the other
-     * four with existing vehicle activity.
-     *   1. Vehicle arrival, always at the start of the road. This is only up to 23:00 on any given day.
-     *   2. Vehicle departure via a side road. The vehicle is then out of the road system.
-     *   3. Vehicle departure via the end of the road. The vehicle is then out of the road system.
-     *   4. Vehicle parks or stops parking.
-     *   5. Vehicle moves and possibly changes speed.
-     *
-     * -> You should think about appropriate probabilities for each of those activites.
-     * -> The statistics associated with vehicle volume are tied to the vehicle arrival.
-     * -> The statistics associated with vehicle speed are tied to the speed of the vehicle
-     *    when it arrives on the road.
-     * -> You only test breaches of speed limit using the average speed across the whole road based on the times,
-     * */
-
     cout << "Activity Engine finished: " << real_formatted_time_now() << "\n" << flush;
 }
 
-void generate_distribution_csv(default_random_engine randomEngine)
+void ActivityEngine::generate_arrivals(Vehicles &vehicles)
 {
-    /* Bus generator test (num_mean = 3, num_std_dev = 1) */
-    fstream file;
-    file.open("data/normal.csv", ios::out | ios::trunc);
-    if (!file.good())
-        cout << "[!!] Open file error for csv." << endl;
+    const float arrival_tot_min_interval = 1380;  // 23 hours x 60 mins - because no more arrivals after 23:00
+    const float arrival_tot_hr_interval = 24;  // 24 hours x 1 day
+    map<string, VehicleType>::iterator iter = vehicles.get_vehicles_dict()->begin();
 
-    /* REF: http://www.cplusplus.com/reference/random/ */
-    char delim = ',';
-    /* Normal distribution */
-    normal_distribution<float> normal(3, 1);  // @param mean, std. dev.
-    float normal_val[1439] = {};
+    // @param min and max
+    uniform_real_distribution<double> uniform_distribution(0, 1);
 
-    file << "raw" << delim << "lround" << "\n";
-    for (int i = 0; i < 1439; i++) {
-        float val = normal(randomEngine);
-        normal_val[i] = val;
-        file << val << delim << lround(val) << "\n";
+    for (; iter != vehicles.get_vehicles_dict()->end(); ++iter) {
+        // TODO: Ensure the returned value from a normal distribution is not negative because of a large std. dev.
+        // @param mean and std. dev
+        normal_distribution<double> num_normal_distrib((*iter).second.num_mean, (*iter).second.num_stddev);
+        normal_distribution<double> speed_normal_distrib((*iter).second.speed_mean);
+
+        // Random number of X occurrences of vehicle over a day
+        uint X = static_cast<uint>(lround(num_normal_distrib(linear_congruential_engine)));
+        // rate of occurrence
+        double rate_param = static_cast<double>(X / arrival_tot_min_interval);
+
+        // TODO: debug
+        cout << "Vehicle type: " << (*iter).first << " (" << X << ")" << endl;
+
+        // For the number of occurrences for a day, generate the arrival events
+        for (int j = 1; j <= X; j++) {
+            VehicleStats veh_stats;
+            veh_stats.registration_id = Vehicles::generate_registration((*iter).second.reg_format, default_engine);
+
+            // number of minutes since time T = 0
+            int arrival_minutes = static_cast<int>(lround(next_arrival(rate_param, uniform_distribution)));
+
+            // make sure it is non-negative because not possible
+            do {
+                veh_stats.arrival_speed = speed_normal_distrib(linear_congruential_engine);
+            } while (veh_stats.arrival_speed < 0);
+
+            // add event to queue
+            SimTime event_time;
+            event_time = time_now();
+            event_time.tm_hour = arrival_minutes / 60;
+            event_time.tm_min = arrival_minutes % 60;
+            veh_stats.arrival_time = event_time;
+
+            Event arrival_event = { UNKNOWN, event_time, veh_stats };
+            event_q.push(arrival_event);
+
+            // TODO: debug
+            cout << "Arrival: " << arrival_minutes << " " << veh_stats.registration_id << " ==> ";
+            cout << event_time.formatted_time()
+                 << " (" << veh_stats.arrival_speed << " kmh)" << endl;
+        }
     }
-    file.close();
+}
 
-    /* Poisson distribution */
-    int n_times = 1439;
-    poisson_distribution<int> poisson(3);  // @param mean
-    int poisson_val[1439] = {};
-
-    file.open("data/poisson.csv", ios::out | ios::trunc);
-
-    file << "raw" << "\n";
-    for (int i = 0; i < 1439; i++) {
-        int val = poisson(randomEngine);
-        poisson_val[i] = val;
-        file << val << delim << lround(val) << "\n";
-    }
-    file.close();
+/*
+ * @brief: Generate the next arrival using a exponential distribution with a uniform distribution between 0 and 1.
+ *
+ * @return: a value that corresponds to the 'y' axis value for the random 'x' axis value between 0 and 1 from an
+ * exponential distribution.
+ * */
+long double ActivityEngine::next_arrival(double rate_param, uniform_real_distribution<double> random)
+{
+    return -logl(1.0L - random(mersenne_twister_engine) / (random.max() + 1)) / rate_param;
 }

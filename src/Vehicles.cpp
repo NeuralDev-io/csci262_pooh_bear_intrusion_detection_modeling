@@ -4,7 +4,7 @@
 * Purpose: Implementation for Vehicles wrapper class to be used as a storage
 *          container for Vehicles struct in a map based on integer id keys.
 *
-* @version 0.1-dev
+* @version 0.3-dev
 * @date 2018.10.06
 *
 * @authors Dinh Che (codeninja55) & Duong Le (daltonle)
@@ -12,7 +12,6 @@
 * StudentsS Dinh Che (5721970 | dbac496) & Duong Le (5560536 | ndl991)
 *********************************************************************************/
 
-#include <iomanip>
 #include "Vehicles.h"
 
 /*
@@ -24,8 +23,7 @@
 void Vehicles::insert(VehicleType &v)
 {
     v.id = ++n_vehicles;
-    map<string, VehicleType>::iterator iter = vehicles_dict.find(v.name);
-    vehicles_dict.insert(iter, pair<string, VehicleType>(v.name, v));
+    vehicles_dict.insert(pair<string, VehicleType>(v.name, v));
 }
 
 /*
@@ -54,7 +52,28 @@ bool Vehicles::add_stats(string name, float num_mean, float num_stdev, float spe
 }
 
 /*
- * Print the stored Vehicle types in a prettified table.
+ * @brief: A getter method for size of vehicles_dict.
+ *
+ * @return: an int which represents the size of the vehicles_dict.
+ * */
+int Vehicles::size() {
+    return n_vehicles;
+}
+
+/*
+ * @brief: A getter method to return a pointer to the vehicles_dict map.
+ *
+ * @return: A pointer to the vehicles_dic map
+ * */
+map<string, VehicleType> *Vehicles::get_vehicles_dict()
+{
+    map<string, VehicleType> *vehicles_ptr;
+    vehicles_ptr = &vehicles_dict;
+    return vehicles_ptr;
+}
+
+/*
+ * @brief: Print the stored Vehicle types in a prettified table.
  * */
 void Vehicles::print()
 {
@@ -82,4 +101,27 @@ void Vehicles::print()
              <<" |"<<left<<endl;
     }
     cout<<endl;
+}
+
+/*
+ * @brief: Generate a string registration based on the format reguired.
+ *
+ * @param reg_form: a c++ basic_string with the format for the vehicle type with 'L' being a letter and 'D' being a
+ * digit.
+ * @param generator: a generator from outside the method so the random engine is not seeded each time this function runs
+ *
+ * @return: a c++ string of the registration based on the format required.
+ * */
+string Vehicles::generate_registration(string &reg_format, default_random_engine &generator)
+{
+    string str;
+    str.reserve(reg_format.size());
+    uniform_int_distribution<int> L_uniform_int(0, 25);
+    uniform_int_distribution<int> D_uniform_int(0, 9);
+
+    for (char c : reg_format)
+        str += (c == 'L') ? LETTERS[L_uniform_int(generator)] : DIGITS[D_uniform_int(generator)];
+
+    pair<set<string>::iterator, bool> ret = UNIQUE_REGISTRATIONS.insert(str);
+    return (ret.second) ? str : generate_registration(reg_format, generator);
 }

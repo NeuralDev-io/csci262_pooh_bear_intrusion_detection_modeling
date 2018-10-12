@@ -35,9 +35,9 @@ unsigned int safe_int_convert(const char *, const char *);
 
 int main(int argc, char * argv[]) {
 
+    // TODO: REMOVE THIS BEFORE SUBMITTING
     char days_str[sizeof(int)];
-    char vehicles_file[BUFFER_SZ] = "data/";
-    char stats_file[BUFFER_SZ] = "data/";
+    char vehicles_file[BUFFER_SZ], stats_file[BUFFER_SZ];
     uint days = 0;
 
     // check the correct amount of args has been passed
@@ -45,8 +45,8 @@ int main(int argc, char * argv[]) {
         cout << "Usage: Traffic [VEHICLES FILE] [STATS FILE] [DAYS]\n" << flush;
         exit(0);
     } else if (argc == 4) {  // correct number of args passed
-        strncat(vehicles_file, argv[1], sizeof(vehicles_file) - (strlen(vehicles_file) + 1));
-        strncat(stats_file, argv[2], sizeof(stats_file) - (strlen(vehicles_file) + 1));
+        strncpy(vehicles_file, argv[1], BUFFER_SZ);
+        strncpy(stats_file, argv[2], BUFFER_SZ);
         // attempting to do int conversion from args safely
         strncpy(days_str, argv[3], sizeof(int));
         days = safe_int_convert(days_str, "Incorrect number used for number of days");
@@ -157,7 +157,7 @@ int main(int argc, char * argv[]) {
     // TODO: debug
     vehicles_dict.print();
 
-    TrafficEngine.run();
+    TrafficEngine.run(vehicles_dict);
 
     return 0;
 }
