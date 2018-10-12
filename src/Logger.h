@@ -5,7 +5,7 @@
 *          Based heavily on:
  *         https://github.com/python/cpython/blob/3.7/Lib/logging/__init__.py
 *
-* @version 0.2-dev
+* @version 0.4-dev
 * @date 2018.10.07
 *
 * @authors Dinh Che (codeninja55) & Duong Le (daltonle)
@@ -44,24 +44,34 @@ typedef enum LEVEL LEVEL;
 typedef map<string, string>::iterator Config_Iter;
 typedef map<string, string> Config_Dict;
 
-template<class T>
+/*
+ * @brief: a template Logger class with two template type arguments.
+ *
+ * @param T: a time type.
+ * @param S: a log structure type with a requirement to overload the ostream << operator.
+ * */
+template<class T, class S>
 class Logger {
 public:
-    Logger();  // default constructor
-    explicit Logger(string logger_name);
-    Logger(string logger_name, string filename);
-    Logger(string logger_name, LEVEL level, string filename);
-    Logger(string logger_name, LEVEL level, string filename, bool std_out);
+    Logger() : DELIMITER(':');  // default constructor
+    explicit Logger(string logger_name) : DELIMITER(':');
+    Logger(string logger_name, string filename) : DELIMITER(':');
+    Logger(string logger_name, LEVEL level, string filename) : DELIMITER(':');
+    Logger(string logger_name, LEVEL level, string filename, bool std_out) : DELIMITER(':');
     void set_level(LEVEL level);
-    void info(SimTime &time, T ev_type, const string &msg);
-    void debug(SimTime &time, T ev_type, const string &msg);
-    void warning(SimTime &time, T ev_type, const string &msg);
-    void error(SimTime &time, T ev_type, const string &msg);
-    void critical(SimTime &time, T ev_type, const string &msg);
+    void info(S &time, T log_struct);
+    void debug(S &time, T log_struct);
+    void warning(S &time, T log_struct);
+    void error(S &time, T log_struct);
+    void critical(S &time, T log_struct);
     const Config_Dict &get_config() const;
     string &get(string);
+
+    static void set_delimiter(char DELIMITER);
+
+    static char DELIMITER;
 private:
-    void _log(LEVEL level, SimTime &time, T ev_type, const string &msg);
+    void _log(LEVEL level, S &time, T log_struct);
     stringstream filename_ss;  // stringstream to add directory to the beginning of log filenames
     Config_Dict config;  // a dictionary of configuration values with key and string values
     string _level_to_name(LEVEL);  // function to convert enum to string
@@ -83,8 +93,8 @@ private:
  */
 
 /* @brief Default constructor for a Logger with default values for the config dictionary. */
-template<class T>
-Logger<T>::Logger()
+template<class T, class S>
+Logger<T, S>::Logger()
 {
     config.insert(pair<string, string>("LOGGER", "Default Logger"));
     config.insert(pair<string, string>("LEVEL", _level_to_name(WARNING)));
@@ -94,8 +104,8 @@ Logger<T>::Logger()
 }
 
 /* @brief Constructor with just the logger name and default values for everything else. */
-template<class T>
-Logger<T>::Logger(string logger_name)
+template<class T, class S>
+Logger<T, S>::Logger(string logger_name)
 {
     config.insert(pair<string, string>("LOGGER", logger_name));
     config.insert(pair<string, string>("LEVEL", _level_to_name(WARNING)));
@@ -104,8 +114,8 @@ Logger<T>::Logger(string logger_name)
 }
 
 /* @brief Constructor to allow setting of the logger name and filename */
-template<class T>
-Logger<T>::Logger(string logger_name, string filename)
+template<class T, class S>
+Logger<T, S>::Logger(string logger_name, string filename)
 {
     filename_ss << "logs/" << filename;
     config.insert(pair<string, string>("LOGGER", logger_name));
@@ -115,8 +125,8 @@ Logger<T>::Logger(string logger_name, string filename)
 }
 
 /* @brief Constructor to set the logger name and file name with a level. */
-template<class T>
-Logger<T>::Logger(string logger_name, LEVEL level, string filename)
+template<class T, class S>
+Logger<T, S>::Logger(string logger_name, LEVEL level, string filename)
 {
     filename_ss << "logs/" << filename;
     config.insert(pair<string, string>("LOGGER", logger_name));
@@ -126,8 +136,8 @@ Logger<T>::Logger(string logger_name, LEVEL level, string filename)
 }
 
 /* @brief Constructor to set all values in the dictionary including whether to print to stdout. */
-template<class T>
-Logger<T>::Logger(string logger_name, LEVEL level, string filename, bool std_out)
+template<class T, class S>
+Logger<T, S>::Logger(string logger_name, LEVEL level, string filename, bool std_out)
 {
     filename_ss << "logs/" << filename;
     config.insert(pair<string, string>("LOGGER", logger_name));
@@ -143,11 +153,11 @@ Logger<T>::Logger(string logger_name, LEVEL level, string filename, bool std_out
  * @param ev_type: the enum EVENT_TYPE of the type of event.
  * @param msg: a c++ string of the message to log.
  * */
-template<class T>
-void Logger<T>::info(SimTime &time, T ev_type, const string &msg)
+template<class T, class S>
+void Logger<T, S>::info(S &time, T log_struct)
 {
     // Check if info is allowed with the current level
-    _log(INFO, time, ev_type, msg);
+    _log(INFO, time, log_struct);
 }
 
 /* TODO: Add additional debug info.
@@ -157,11 +167,11 @@ void Logger<T>::info(SimTime &time, T ev_type, const string &msg)
  * @param ev_type: the enum EVENT_TYPE of the type of event.
  * @param msg: a c++ string of the message to log.
  * */
-template<class T>
-void Logger<T>::debug(SimTime &time, T ev_type, const string &msg)
+template<class T, class S>
+void Logger<T, S>::debug(S &time, T log_struct)
 {
     // Check if info is allowed with the current level
-    _log(DEBUG, time, ev_type, msg);
+    _log(DEBUG, time, log_struct);
 }
 
 /*
@@ -171,11 +181,11 @@ void Logger<T>::debug(SimTime &time, T ev_type, const string &msg)
  * @param ev_type: the enum EVENT_TYPE of the type of event.
  * @param msg: a c++ string of the message to log.
  * */
-template<class T>
-void Logger<T>::warning(SimTime &time, T ev_type, const string &msg)
+template<class T, class S>
+void Logger<T, S>::warning(S &time, T log_struct)
 {
     // Check if info is allowed with the current level
-    _log(WARNING, time, ev_type, msg);
+    _log(WARNING, time, log_struct);
 }
 
 /*
@@ -185,11 +195,11 @@ void Logger<T>::warning(SimTime &time, T ev_type, const string &msg)
  * @param ev_type: the enum EVENT_TYPE of the type of event.
  * @param msg: a c++ string of the message to log.
  * */
-template<class T>
-void Logger<T>::error(SimTime &time, T ev_type, const string &msg)
+template<class T, class S>
+void Logger<T, S>::error(S &time, T log_struct)
 {
     // Check if info is allowed with the current level
-    _log(ERROR, time, ev_type, msg);
+    _log(ERROR, time, log_struct);
 }
 
 /*
@@ -199,11 +209,11 @@ void Logger<T>::error(SimTime &time, T ev_type, const string &msg)
  * @param ev_type: the enum EVENT_TYPE of the type of event.
  * @param msg: a c++ string of the message to log.
  * */
-template<class T>
-void Logger<T>::critical(SimTime &time, T ev_type, const string &msg)
+template<class T, class S>
+void Logger<T, S>::critical(S &time, T log_struct)
 {
     // Check if info is allowed with the current level
-    _log(CRITICAL, time, ev_type, msg);
+    _log(CRITICAL, time, log_struct);
 }
 
 /*
@@ -214,26 +224,33 @@ void Logger<T>::critical(SimTime &time, T ev_type, const string &msg)
  * @param ev_time: the enum EVENT_TYPE to log.
  * @param msg: the c++ string message to log.
  * */
-template<class T>
-void Logger<T>::_log(LEVEL level, SimTime &time, T ev_type, const string &msg)
+template<class T, class S>
+void Logger<T, S>::_log(LEVEL level, S &time, T log_struct)
 {
-    if (get("STDOUT") == "true") {
-        cout << "<" << formatted_date(time) << " " << formatted_time(time) << ">:"
-             << get("LOGGER") << ":" << _level_to_name(level) << ":"
-             << event_name(ev_type) << ":" << msg << endl;
-    }
+    if (get("STDOUT") == "true")
+        cout << time.formatted_time_date() << Logger::DELIMITER << get("LOGGER")
+             << Logger::DELIMITER << _level_to_name(level) << Logger::DELIMITER << log_struct << endl;
 
     if (get("FILENAME") != "false") {
         ofstream fout(get("FILENAME").c_str(), ofstream::out | ofstream::trunc);
         if (!fout.good())
-            cout << "[!!] Failed to open log file " << get("FILENAME");
+            cout << "<" << time.formatted_time_date() << "> [!!] Failed to open log file " << get("FILENAME");
 
-        fout << "<" << formatted_date(time) << " " << formatted_time(time) << ">:"
-             << get("LOGGER") << ":" << _level_to_name(level) << ":"
-             << event_name(ev_type) << ":" << msg << endl;
-
+        fout << time.formatted_time_date() << Logger::DELIMITER << get("LOGGER")
+             << Logger::DELIMITER << _level_to_name(level) << Logger::DELIMITER << log_struct << endl;
         fout.close();
     }
+}
+
+/*
+ * @brief: change the delimiter to be used in the log record.
+ *
+ * @param delimiter: a char of the delimiter to use.
+ * */
+template<class T, class S>
+void Logger<T, S>::set_delimiter(char delimiter)
+{
+    Logger::DELIMITER = delimiter;
 }
 
 /*
@@ -241,8 +258,8 @@ void Logger<T>::_log(LEVEL level, SimTime &time, T ev_type, const string &msg)
  *
  * @param level: the LEVEL enum to change to.
  * */
-template<class T>
-void Logger<T>::set_level(LEVEL level)
+template<class T, class S>
+void Logger<T, S>::set_level(LEVEL level)
 {
     Config_Iter iter = config.find("LEVEL");
     if (iter != config.end())
@@ -254,8 +271,8 @@ void Logger<T>::set_level(LEVEL level)
  *
  * @return: the map<string, string> config dictionary.
  * */
-template<class T>
-const Config_Dict &Logger<T>::get_config() const { return config; }
+template<class T, class S>
+const Config_Dict &Logger<T, S>::get_config() const { return Logger::config; }
 
 /* TODO: No check if key is actually in the dictionary.
  * Generalised method to access the dictionary value by the passed in string key.
@@ -263,8 +280,8 @@ const Config_Dict &Logger<T>::get_config() const { return config; }
  * @param key: a c++ string of the key to access.
  * @return: a c++ string of the value stored in the config dictionary.
  * */
-template<class T>
-string &Logger<T>::get(string key)
+template<class T, class S>
+string &Logger<T, S>::get(string key)
 {
     Config_Iter iter = config.find(key);
     if (iter != config.end())
@@ -277,8 +294,8 @@ string &Logger<T>::get(string key)
  * @param level_str: a c++ string corresponding to the enum LEVEL.
  * @return: a LEVEL enum corresponding to the string parameter.
  * */
-template<class T>
-LEVEL Logger<T>::_name_to_level(string &level_str) {
+template<class T, class S>
+LEVEL Logger<T, S>::_name_to_level(string &level_str) {
     if (level_str == "NOTSET")
         return NOTSET;
     else if (level_str == "INFO")
@@ -299,8 +316,8 @@ LEVEL Logger<T>::_name_to_level(string &level_str) {
  * @param level: the enum LEVEL.
  * @return: the string corresponding to each enum LEVEL.
  * */
-template<class T>
-string Logger<T>::_level_to_name(LEVEL level) {
+template<class T, class S>
+string Logger<T, S>::_level_to_name(LEVEL level) {
     switch (level) {
         case NOTSET:
             return "NOTSET";

@@ -1,3 +1,5 @@
+#include <utility>
+
 /*********************************************************************************
 * CSCI262 (Spring 2018) - Assignment 03
 * Pooh Bear Intrusion Detection System ActivityEngine.h
@@ -26,13 +28,42 @@
 #include "Utils.h"
 #include "Vehicles.h"
 #include "Logger.h"
+using namespace std;
 
+/*
+ * @brief: a wrapper structure that is passed into the logger object to be printed.
+ *         As a requirement, it must overload the << operator so when printing, the
+ *         desired properties are printed as required.
+ * */
+typedef struct ActivityLog {
+    EVENT_TYPE ev_type = UNKNOWN;
+    string log_name = "Activity Log";
+    float speed = 0;
+    string msg = "";
 
-typedef struct {
+    ActivityLog(EVENT_TYPE ev_type,
+                string log_name,
+                float speed,
+                string msg) : ev_type(ev_type),
+                              log_name(std::move(log_name)),
+                              speed(speed),
+                              msg(std::move(msg)) { }
+
+    friend ostream& operator<<(ostream& os, ActivityLog const& activity_log)
+    {
+        return os << activity_log.log_name << ":" << event_name(activity_log.ev_type) << ":" << activity_log.msg
+                  << ":" << activity_log.speed;
+    }
+} ActivityLog;
+
+typedef struct VehicleStats {
     string registration_id;
     SimTime arrival_time;
     double arrival_speed;
     float prob_parking, prob_side_exit, prob_end_exit;
+
+    VehicleStats() : registration_id(""), arrival_time(SimTime()), arrival_speed(0), prob_parking(0), prob_side_exit(0),
+                     prob_end_exit(0) {}
 } VehicleStats;
 
 typedef struct {

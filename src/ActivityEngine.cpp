@@ -44,17 +44,16 @@ void ActivityEngine::run(Vehicles &vehicles)
     SimTime sim_time = time_now();
 
     cout << "Traffic Engine started: " << real_formatted_time_now() << "\n" << flush;
-    Logger<EVENT_TYPE> logger = Logger<EVENT_TYPE>("Traffic Engine", WARNING, "test.txt", true);
+    Logger<ActivityLog, SimTime> logger = Logger<ActivityLog, SimTime>("Activity Engine", WARNING, "test.txt", true);
     // log for the number of Days specified at the initial running of Traffic
     stringstream msg;
     msg << "Started Traffic Engine for number of days " << simulate_days;
-    logger.info(sim_time, UNKNOWN, msg.str());
+    logger.info(sim_time, { UNKNOWN, "Activity Log", 0, msg.str() });
 
     generate_arrivals(vehicles);
 
     // TODO: time should be stepped in 1 minute blocks
     // TODO: program should give some indication as to what is happening, without being verbose
-
 
     cout << "Activity Engine finished: " << real_formatted_time_now() << "\n" << flush;
 }
