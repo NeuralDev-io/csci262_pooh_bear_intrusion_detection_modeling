@@ -12,7 +12,6 @@
 * StudentsS Dinh Che (5721970 | dbac496) & Duong Le (5560536 | ndl991)
 *********************************************************************************/
 
-#include <iomanip>
 #include "Vehicles.h"
 
 /*
@@ -92,4 +91,18 @@ void Vehicles::print()
              <<" |"<<left<<endl;
     }
     cout<<endl;
+}
+
+string Vehicles::generate_registration(string &reg_format, default_random_engine &generator)
+{
+    string str;
+    str.reserve(reg_format.size());
+    uniform_int_distribution<int> L_uniform_int(0, 25);
+    uniform_int_distribution<int> D_uniform_int(0, 9);
+
+    for (char c : reg_format)
+        str += (c == 'L') ? LETTERS[L_uniform_int(generator)] : DIGITS[D_uniform_int(generator)];
+
+    pair<set<string>::iterator, bool> ret = UNIQUE_REGISTRATIONS.insert(str);
+    return (ret.second) ? str : generate_registration(reg_format, generator);
 }

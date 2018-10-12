@@ -15,10 +15,18 @@
 #define POOH_BEAR_INTRUSION_DETECTION_SYSTEM_VEHICLES_H
 
 #include <string>
+#include <sstream>
 #include <map>
+#include <set>
 #include <iostream>
 #include <zconf.h>
+#include <random>
+#include <iomanip>
 using namespace std;
+
+const char LETTERS[27] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const char DIGITS[11] = "0123456789";
+static set<string> UNIQUE_REGISTRATIONS;
 
 typedef struct {
     int id;
@@ -36,7 +44,7 @@ public:
     void print();
     int size();
     map<string, VehicleType> *get_vehicles_dict();
-
+    static string generate_registration(string &reg_format, default_random_engine &generator);
 private:
     uint n_vehicles;
     map<string, VehicleType> vehicles_dict;
