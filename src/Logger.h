@@ -53,11 +53,11 @@ typedef map<string, string> Config_Dict;
 template<class T, class S>
 class Logger {
 public:
-    Logger() : DELIMITER(':');  // default constructor
-    explicit Logger(string logger_name) : DELIMITER(':');
-    Logger(string logger_name, string filename) : DELIMITER(':');
-    Logger(string logger_name, LEVEL level, string filename) : DELIMITER(':');
-    Logger(string logger_name, LEVEL level, string filename, bool std_out) : DELIMITER(':');
+    Logger();  // default constructor
+    explicit Logger(string logger_name);
+    Logger(string logger_name, string filename);
+    Logger(string logger_name, LEVEL level, string filename);
+    Logger(string logger_name, LEVEL level, string filename, bool std_out);
     void set_level(LEVEL level);
     void info(S &time, T log_struct);
     void debug(S &time, T log_struct);
@@ -66,10 +66,8 @@ public:
     void critical(S &time, T log_struct);
     const Config_Dict &get_config() const;
     string &get(string);
-
     static void set_delimiter(char DELIMITER);
-
-    static char DELIMITER;
+    static const char DELIMITER = ':';
 private:
     void _log(LEVEL level, S &time, T log_struct);
     stringstream filename_ss;  // stringstream to add directory to the beginning of log filenames

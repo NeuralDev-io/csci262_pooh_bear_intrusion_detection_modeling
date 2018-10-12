@@ -91,9 +91,7 @@ public:
 private:
     void generate_arrivals(Vehicles &vehicles);
     void simulate_events();
-    long double next_arrival(double rate_param,
-                             uniform_real_distribution<double> &random,
-                             mt19937_64 &mt_engine);
+    long double next_arrival(double rate_param, uniform_real_distribution<double> random);
     unsigned long time_seed;
     default_random_engine default_engine;
     minstd_rand0 linear_congruential_engine;

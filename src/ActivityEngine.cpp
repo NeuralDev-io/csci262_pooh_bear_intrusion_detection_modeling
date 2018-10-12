@@ -63,14 +63,16 @@ void ActivityEngine::generate_arrivals(Vehicles &vehicles)
     const float arrival_tot_min_interval = 1380;  // 23 hours x 60 mins - because no more arrivals after 23:00
     const float arrival_tot_hr_interval = 24;  // 24 hours x 1 day
     map<string, VehicleType>::iterator iter = vehicles.get_vehicles_dict()->begin();
+
+    // TODO: Ensure the returned value from a normal distribution is not negative because of a large std. dev.
+    // @param mean and std. dev
+    normal_distribution<double> num_normal_distrib((*iter).second.num_mean, (*iter).second.num_stddev);
+    normal_distribution<double> speed_normal_distrib((*iter).second.speed_mean);
+    // @param min and max
+    uniform_real_distribution<double> uniform_distribution(0, 1);
+
     for (; iter != vehicles.get_vehicles_dict()->end(); ++iter) {
 
-        // TODO: Ensure the returned value from a normal distribution is not negative because of a large std. dev.
-        // @param mean and std. dev
-        normal_distribution<double> num_normal_distrib((*iter).second.num_mean, (*iter).second.num_stddev);
-        normal_distribution<double> speed_normal_distrib((*iter).second.speed_mean);
-        // @param min and max
-        uniform_real_distribution<double> uniform_distribution(0, 1);
         // Random number of X occurrences of vehicle over a day
         uint X = static_cast<uint>(lround(num_normal_distrib(linear_congruential_engine)));
         // rate of occurrence
@@ -85,9 +87,7 @@ void ActivityEngine::generate_arrivals(Vehicles &vehicles)
             veh_stats.registration_id = Vehicles::generate_registration((*iter).second.reg_format, default_engine);
 
             // number of minutes since time T = 0
-            int arrival_minutes = static_cast<int>(lround(next_arrival(rate_param,
-                    uniform_distribution,
-                    mersenne_twister_engine)));
+            int arrival_minutes = static_cast<int>(lround(next_arrival(rate_param, uniform_distribution)));
 
             // make sure it is non-negative because not possible
             do {
@@ -118,8 +118,7 @@ void ActivityEngine::generate_arrivals(Vehicles &vehicles)
  * @return: a value that corresponds to the 'y' axis value for the random 'x' axis value between 0 and 1 from an
  * exponential distribution.
  * */
-long double ActivityEngine::next_arrival(double rate_param, uniform_real_distribution<double> &random,
-                                         mt19937_64 &mt_engine)
+long double ActivityEngine::next_arrival(double rate_param, uniform_real_distribution<double> random)
 {
-    return -logl(1.0L - random(mt_engine) / (random.max() + 1)) / rate_param;
+    return -logl(1.0L - random(mersenne_twister_engine) / (random.max() + 1)) / rate_param;
 }
