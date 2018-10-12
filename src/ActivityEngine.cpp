@@ -101,12 +101,12 @@ void ActivityEngine::generate_arrivals(Vehicles &vehicles)
             event_time.tm_min = arrival_minutes % 60;
             veh_stats.arrival_time = event_time;
 
-            Event arrival_event = { ARRIVAL, event_time, veh_stats };
+            Event arrival_event = { UNKNOWN, event_time, veh_stats };
             event_q.push(arrival_event);
 
             // TODO: debug
             cout << "Arrival: " << arrival_minutes << " " << veh_stats.registration_id << " ==> ";
-            cout << formatted_time(event_time)
+            cout << event_time.formatted_time()
                  << " (" << veh_stats.arrival_speed << " kmh)" << endl;
         }
     }
