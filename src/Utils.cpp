@@ -53,7 +53,7 @@ string formatted_time(SimTime &t)
 }
 
 /*
- * Convert a SimTIme struct to a human-readable string date
+ * Convert a SimTime struct to a human-readable string date
  *
  * @param t: a reference to the SimTime structure to format to a string.
  * @return: string of the time from the SimTime structure.
@@ -61,7 +61,23 @@ string formatted_time(SimTime &t)
 string formatted_date(SimTime &t)
 {
     stringstream ss;
-    ss << setfill('0') << setw(2) << t.tm_mday << "-" << t.tm_mon << "-" << setw(4) << t.tm_year;
+    ss << setfill('0') << setw(2) << t.tm_mday << "-" << setfill('0') << setw(2) << t.tm_mon << "-" << setw(4) << t
+    .tm_year;
+    return ss.str();
+}
+
+/*
+ * @brief: convert a SimTime struct to a human-readable string time and date
+ *
+ * @param t: a reference to the SimTime structure to format to a string
+ * @return: string of the time and date formatted as DD-MM-YYYY HH:MM:ss
+ * */
+string formatted_time_date(SimTime &t) {
+    stringstream ss;
+    ss << setfill('0') << setw(2) << t.tm_mday << "-" << t.tm_mon << "-" << setw(4) << t.tm_year
+       << " " << setfill('0') << setw(2) << t.tm_hour << ":"
+       << setfill('0') << setw(2) << t.tm_min << ":"
+       << setfill('0') << setw(2) << t.tm_sec;
     return ss.str();
 }
 
@@ -117,13 +133,6 @@ long long int fact(int x)
     for (i = 2; i <= x; i++)
         factorial *= i;
     return factorial;
-}
-
-long double next_arrival(double rate_param,
-                         uniform_real_distribution<long double> &random,
-                         default_random_engine &random_generator)
-{
-    return -logl(1.0L - (random(random_generator) / (random.max() + 1))) / rate_param;
 }
 
 /*
