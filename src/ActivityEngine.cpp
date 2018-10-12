@@ -44,13 +44,16 @@ void ActivityEngine::run(Vehicles &vehicles)
     SimTime sim_time = time_now();
 
     cout << "Traffic Engine started: " << real_formatted_time_now() << "\n" << flush;
-    Logger<ActivityLog, SimTime> logger = Logger<ActivityLog, SimTime>("Activity Engine", WARNING, "test.txt", true);
+    // Set the last param to true if you want to output log to stdout
+    logger = Logger<ActivityLog, SimTime>("Activity Engine", WARNING, "test.txt", true);
+    veh_logger = Logger<VehicleLog, SimTime>("Activity Engine", WARNING, "test.txt", true);
     // log for the number of Days specified at the initial running of Traffic
     stringstream msg;
     msg << "Started Traffic Engine for number of days " << simulate_days;
-    logger.info(sim_time, { UNKNOWN, "Activity Log", 0, msg.str() });
+    logger.info(sim_time, { "NOTICE", "Activity Log", msg.str() });
 
     generate_arrivals(vehicles);
+    simulate_events();
 
     // TODO: time should be stepped in 1 minute blocks
     // TODO: program should give some indication as to what is happening, without being verbose
@@ -79,11 +82,12 @@ void ActivityEngine::generate_arrivals(Vehicles &vehicles)
         double rate_param = static_cast<double>(X / arrival_tot_min_interval);
 
         // TODO: debug
-        cout << "Vehicle type: " << (*iter).first << " (" << X << ")" << endl;
+        // cout << "Vehicle type: " << (*iter).first << " (" << X << ")" << endl;
 
         // For the number of occurrences for a day, generate the arrival events
         for (int j = 1; j <= X; j++) {
             VehicleStats veh_stats;
+            veh_stats.veh_name = (*iter).first;
             veh_stats.registration_id = Vehicles::generate_registration((*iter).second.reg_format, default_engine);
 
             // number of minutes since time T = 0
@@ -101,13 +105,30 @@ void ActivityEngine::generate_arrivals(Vehicles &vehicles)
             event_time.tm_min = arrival_minutes % 60;
             veh_stats.arrival_time = event_time;
 
-            Event arrival_event = { UNKNOWN, event_time, veh_stats };
+            // set probabilty for other 3 events
+            // veh_stats.prob_parking = (!(*iter).second.parking_flag) ? 0 :
+
+            Event arrival_event = { ARRIVAL, event_time, veh_stats };
             event_q.push(arrival_event);
 
             // TODO: debug
-            cout << "Arrival: " << arrival_minutes << " " << veh_stats.registration_id << " ==> ";
-            cout << event_time.formatted_time()
-                 << " (" << veh_stats.arrival_speed << " kmh)" << endl;
+            // cout << "Arrival: " << arrival_minutes << " " << veh_stats.registration_id << " ==> ";
+            // cout << event_time.formatted_time()
+            //      << " (" << veh_stats.arrival_speed << " kmh)" << endl;
+        }
+    }
+}
+
+void ActivityEngine::simulate_events()
+{
+    while (!event_q.empty()) {
+        Event ev = event_q.top();  // returns a reference to the top event but does not remove it
+        switch(ev.ev_type) {
+            case ARRIVAL:
+                veh_logger.info(ev.time, { ARRIVAL, "Vehicle Log", ev.stats.veh_name, ev.stats.registration_id,
+                                       ev.stats.arrival_speed });
+                event_q.pop();  // returns void, but must remove from queue
+                break;
         }
     }
 }

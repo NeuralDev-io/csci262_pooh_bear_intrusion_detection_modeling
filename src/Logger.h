@@ -16,6 +16,9 @@
 #ifndef POOH_BEAR_INTRUSION_DETECTION_SYSTEM_LOGGER_H
 #define POOH_BEAR_INTRUSION_DETECTION_SYSTEM_LOGGER_H
 
+#include <sys/stat.h>
+#include <unistd.h>
+#include <stdio.h>
 #include <string>
 #include <map>
 #include <time.h>
@@ -43,6 +46,7 @@ typedef enum LEVEL LEVEL;
 
 typedef map<string, string>::iterator Config_Iter;
 typedef map<string, string> Config_Dict;
+static const char DELIMITER = ':';
 
 /*
  * @brief: a template Logger class with two template type arguments.
@@ -66,12 +70,11 @@ public:
     void critical(S &time, T log_struct);
     const Config_Dict &get_config() const;
     string &get(string);
-    static void set_delimiter(char delimiter);
-    static const char DELIMITER = ':';
 private:
     void _log(LEVEL level, S &time, T log_struct);
     stringstream filename_ss;  // stringstream to add directory to the beginning of log filenames
     Config_Dict config;  // a dictionary of configuration values with key and string values
+    bool is_file_exists(const string &name);  // test if the file for logging already exists to use trunc or append
     string _level_to_name(LEVEL);  // function to convert enum to string
     LEVEL _name_to_level(string&);  // function to convert string to enum
 };
@@ -226,16 +229,22 @@ template<class T, class S>
 void Logger<T, S>::_log(LEVEL level, S &time, T log_struct)
 {
     if (get("STDOUT") == "true")
-        cout << time.formatted_time_date() << Logger::DELIMITER << get("LOGGER")
-             << Logger::DELIMITER << _level_to_name(level) << Logger::DELIMITER << log_struct << endl;
+        cout << time.formatted_time_date() << DELIMITER << get("LOGGER")
+             << DELIMITER << _level_to_name(level) << DELIMITER << log_struct << endl;
 
     if (get("FILENAME") != "false") {
-        ofstream fout(get("FILENAME").c_str(), ofstream::out | ofstream::trunc);
-        if (!fout.good())
-            cout << "<" << time.formatted_time_date() << "> [!!] Failed to open log file " << get("FILENAME");
+        ofstream fout;
+        if (is_file_exists(get("FILENAME"))) {
+            fout.open(get("FILENAME").c_str(), ios::out | ios::app);
+        } else {
+            fout.open(get("FILENAME").c_str(), ios::out | ios::trunc);
+        }
 
-        fout << time.formatted_time_date() << Logger::DELIMITER << get("LOGGER")
-             << Logger::DELIMITER << _level_to_name(level) << Logger::DELIMITER << log_struct << endl;
+        if (!fout.good())
+            cout << "<" << time.formatted_time_date() << "> [!!] Failed to open log file " << get("FILENAME") << endl;
+
+        fout << time.formatted_time_date() << DELIMITER << get("LOGGER")
+             << DELIMITER << _level_to_name(level) << DELIMITER << log_struct << endl;
         fout.close();
     }
 }
@@ -273,6 +282,13 @@ string &Logger<T, S>::get(string key)
     Config_Iter iter = config.find(key);
     if (iter != config.end())
         return (*iter).second;
+}
+
+template<class T, class S>
+bool Logger<T, S>::is_file_exists(const string &name)
+{
+    struct stat buffer{};
+    return (stat (name.c_str(), &buffer) == 0);
 }
 
 /*

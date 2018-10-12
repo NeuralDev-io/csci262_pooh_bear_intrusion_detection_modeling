@@ -36,33 +36,53 @@ using namespace std;
  *         desired properties are printed as required.
  * */
 typedef struct ActivityLog {
-    EVENT_TYPE ev_type = UNKNOWN;
+    string ev_type = "NOTICE";
     string log_name = "Activity Log";
-    float speed = 0;
     string msg = "";
 
-    ActivityLog(EVENT_TYPE ev_type,
-                string log_name,
-                float speed,
-                string msg) : ev_type(ev_type),
-                              log_name(std::move(log_name)),
-                              speed(speed),
-                              msg(std::move(msg)) { }
+    ActivityLog(string ev_type, string log_name, string msg) : ev_type(ev_type),
+                                                               log_name(log_name),
+                                                               msg(msg) { }
 
     friend ostream& operator<<(ostream& os, ActivityLog const& activity_log)
     {
-        return os << activity_log.log_name << ":" << event_name(activity_log.ev_type) << ":" << activity_log.msg
-                  << ":" << activity_log.speed;
+        return os << activity_log.log_name << DELIMITER << activity_log.ev_type << DELIMITER
+                  << activity_log.msg << DELIMITER;
     }
 } ActivityLog;
 
+typedef struct VehicleLog {
+    EVENT_TYPE ev_type = UNKNOWN;
+    string log_name = "Vehicle Log";
+    string veh_name = "";
+    string veh_registration = "NA";
+    double speed = 0;
+
+    VehicleLog(EVENT_TYPE ev_type, string log_name, string veh_name,
+                string veh_registration, double speed) : ev_type(ev_type),
+                                                         log_name(std::move(log_name)),
+                                                         veh_name(veh_name),
+                                                         veh_registration(veh_registration),
+                                                         speed(speed) { }
+
+    friend ostream& operator<<(ostream& os, VehicleLog const& veh_log)
+    {
+        return os << veh_log.log_name << DELIMITER << event_name(veh_log.ev_type) << DELIMITER
+                  << veh_log.veh_name << DELIMITER << veh_log.veh_registration << DELIMITER
+                  << setprecision(2) << veh_log.speed;
+    }
+} VehicleLog;
+
 typedef struct VehicleStats {
+    string veh_name;
     string registration_id;
     SimTime arrival_time;
     double arrival_speed;
     float prob_parking, prob_side_exit, prob_end_exit;
 
-    VehicleStats() : registration_id(""), arrival_time(SimTime()), arrival_speed(0), prob_parking(0), prob_side_exit(0),
+    // default constructor for VehicleStats
+    VehicleStats() : veh_name(""), registration_id(""), arrival_time(SimTime()),
+                     arrival_speed(0), prob_parking(0), prob_side_exit(0),
                      prob_end_exit(0) {}
 } VehicleStats;
 
@@ -98,6 +118,8 @@ private:
     mt19937_64 mersenne_twister_engine;
     uint n_vehicles_monitored, n_parking_spots, simulate_days;
     float road_length, speed_limit;
+    Logger<ActivityLog, SimTime> logger;
+    Logger<VehicleLog, SimTime> veh_logger;
     priority_queue<Event, vector<Event>, event_compare> event_q;
 };
 
