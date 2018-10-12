@@ -51,19 +51,29 @@ bool Vehicles::add_stats(string name, float num_mean, float num_stdev, float spe
     return false;
 }
 
+/*
+ * @brief: A getter method for size of vehicles_dict.
+ *
+ * @return: an int which represents the size of the vehicles_dict.
+ * */
 int Vehicles::size() {
     return n_vehicles;
 }
 
+/*
+ * @brief: A getter method to return a pointer to the vehicles_dict map.
+ * 
+ * @return: A pointer to the vehicles_dic map
+ * */
 map<string, VehicleType> *Vehicles::get_vehicles_dict()
 {
     map<string, VehicleType> *vehicles_ptr;
     vehicles_ptr = &vehicles_dict;
-    return  vehicles_ptr;
+    return vehicles_ptr;
 }
 
 /*
- * Print the stored Vehicle types in a prettified table.
+ * @brief: Print the stored Vehicle types in a prettified table.
  * */
 void Vehicles::print()
 {
@@ -93,6 +103,15 @@ void Vehicles::print()
     cout<<endl;
 }
 
+/*
+ * @brief: Generate a string registration based on the format reguired.
+ *
+ * @param reg_form: a c++ basic_string with the format for the vehicle type with 'L' being a letter and 'D' being a
+ * digit.
+ * @param generator: a generator from outside the method so the random engine is not seeded each time this function runs
+ *
+ * @return: a c++ string of the registration based on the format required.
+ * */
 string Vehicles::generate_registration(string &reg_format, default_random_engine &generator)
 {
     string str;
