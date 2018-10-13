@@ -53,9 +53,9 @@ void ActivityEngine::run(Vehicles &vehicles)
     logger.info(sim_time, { "NOTICE", "Activity Log", msg.str() });
 
     generate_arrivals(vehicles);
-    simulate_events();
-
     // TODO: time should be stepped in 1 minute blocks
+    // simulate_events();
+
     // TODO: program should give some indication as to what is happening, without being verbose
 
     cout << "Activity Engine finished: " << real_formatted_time_now() << "\n" << flush;
@@ -63,6 +63,7 @@ void ActivityEngine::run(Vehicles &vehicles)
 
 void ActivityEngine::generate_arrivals(Vehicles &vehicles)
 {
+    const float tot_min_day = 1440;
     const float arrival_tot_min_interval = 1380;  // 23 hours x 60 mins - because no more arrivals after 23:00
     const float arrival_tot_hr_interval = 24;  // 24 hours x 1 day
     map<string, VehicleType>::iterator iter = vehicles.get_vehicles_dict()->begin();
@@ -82,7 +83,7 @@ void ActivityEngine::generate_arrivals(Vehicles &vehicles)
         double rate_param = static_cast<double>(X / arrival_tot_min_interval);
 
         // TODO: debug
-        // cout << "Vehicle type: " << (*iter).first << " (" << X << ")" << endl;
+        cout << "Vehicle type: " << (*iter).first << " (" << X << ")" << endl;
 
         // For the number of occurrences for a day, generate the arrival events
         for (int j = 1; j <= X; j++) {
@@ -90,14 +91,14 @@ void ActivityEngine::generate_arrivals(Vehicles &vehicles)
             veh_stats.veh_name = (*iter).first;
             veh_stats.registration_id = Vehicles::generate_registration((*iter).second.reg_format, default_engine);
 
-            // number of minutes since time T = 0
-            int arrival_minutes = static_cast<int>(lround(next_arrival(rate_param, uniform_distribution)));
 
             // make sure it is non-negative because not possible
             do {
                 veh_stats.arrival_speed = speed_normal_distrib(linear_congruential_engine);
             } while (veh_stats.arrival_speed < 0);
 
+            // number of minutes since time T = 0
+            int arrival_minutes = static_cast<int>(lround(next_arrival(rate_param, uniform_distribution)));
             // add event to queue
             SimTime event_time;
             event_time = time_now();
@@ -105,16 +106,17 @@ void ActivityEngine::generate_arrivals(Vehicles &vehicles)
             event_time.tm_min = arrival_minutes % 60;
             veh_stats.arrival_time = event_time;
 
-            // set probabilty for other 3 events
+            // set probability for other 3 events
             // veh_stats.prob_parking = (!(*iter).second.parking_flag) ? 0 :
 
             Event arrival_event = { ARRIVAL, event_time, veh_stats };
             event_q.push(arrival_event);
 
             // TODO: debug
-            // cout << "Arrival: " << arrival_minutes << " " << veh_stats.registration_id << " ==> ";
-            // cout << event_time.formatted_time()
-            //      << " (" << veh_stats.arrival_speed << " kmh)" << endl;
+            cout << "Arrival: " << arrival_minutes << " " << veh_stats.registration_id << " ==> "
+                 << event_time.formatted_time() << " (" << veh_stats.arrival_speed << " kmh) --> Est. End (min): "
+                 << (road_length * (veh_stats.arrival_speed / 60)) + arrival_minutes  // est. end time if same speed
+                 << endl;
         }
     }
 }

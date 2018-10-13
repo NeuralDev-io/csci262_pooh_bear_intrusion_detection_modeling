@@ -162,3 +162,49 @@
 <12-10-2018 00:05:00>:Activity Engine:INFO:Vehicle Log:ARRIVAL:Motorbike:WQ77ZX:55
 <12-10-2018 00:04:00>:Activity Engine:INFO:Vehicle Log:ARRIVAL:Red car:D6KK4D:51
 <12-10-2018 00:03:00>:Activity Engine:INFO:Vehicle Log:ARRIVAL:Red car:D6QU2M:51
+<12-10-2018 00:00:00>:Activity Engine:INFO:Activity Log:NOTICE:Started Traffic Engine for number of days 2:
+<12-10-2018 06:16:00>:Activity Engine:INFO:Vehicle Log:ARRIVAL:Emergency:PY85:61
+<12-10-2018 05:10:00>:Activity Engine:INFO:Vehicle Log:ARRIVAL:Elephant:K6:10
+<12-10-2018 03:54:00>:Activity Engine:INFO:Vehicle Log:ARRIVAL:Elephant:J0:10
+<12-10-2018 03:49:00>:Activity Engine:INFO:Vehicle Log:ARRIVAL:Taxi:C45W:54
+<12-10-2018 03:38:00>:Activity Engine:INFO:Vehicle Log:ARRIVAL:Emergency:CR47:61
+<12-10-2018 03:14:00>:Activity Engine:INFO:Vehicle Log:ARRIVAL:Bus:VAB560:40
+<12-10-2018 02:55:00>:Activity Engine:INFO:Vehicle Log:ARRIVAL:Taxi:W25N:52
+<12-10-2018 02:27:00>:Activity Engine:INFO:Vehicle Log:ARRIVAL:Bus:ADT452:41
+<12-10-2018 02:14:00>:Activity Engine:INFO:Vehicle Log:ARRIVAL:Bus:BRR935:39
+<12-10-2018 01:26:00>:Activity Engine:INFO:Vehicle Log:ARRIVAL:Motorbike:GC90NJ:53
+<12-10-2018 01:23:00>:Activity Engine:INFO:Vehicle Log:ARRIVAL:Motorbike:TU81AR:54
+<12-10-2018 01:15:00>:Activity Engine:INFO:Vehicle Log:ARRIVAL:Motorbike:HL74GH:52
+<12-10-2018 01:07:00>:Activity Engine:INFO:Vehicle Log:ARRIVAL:Motorbike:ST60QX:54
+<12-10-2018 01:07:00>:Activity Engine:INFO:Vehicle Log:ARRIVAL:Taxi:U77A:52
+<12-10-2018 00:56:00>:Activity Engine:INFO:Vehicle Log:ARRIVAL:Motorbike:XN53ZM:54
+<12-10-2018 00:52:00>:Activity Engine:INFO:Vehicle Log:ARRIVAL:Motorbike:XT20TI:54
+<12-10-2018 00:46:00>:Activity Engine:INFO:Vehicle Log:ARRIVAL:Red car:Y2EI8Q:50
+<12-10-2018 00:45:00>:Activity Engine:INFO:Vehicle Log:ARRIVAL:Red car:C2AK0S:51
+<12-10-2018 00:42:00>:Activity Engine:INFO:Vehicle Log:ARRIVAL:Red car:H1DO8A:50
+<12-10-2018 00:39:00>:Activity Engine:INFO:Vehicle Log:ARRIVAL:Red car:J4VY6F:50
+<12-10-2018 00:38:00>:Activity Engine:INFO:Vehicle Log:ARRIVAL:Motorbike:JE48XB:54
+<12-10-2018 00:38:00>:Activity Engine:INFO:Vehicle Log:ARRIVAL:Red car:L8RS9Y:50
+<12-10-2018 00:35:00>:Activity Engine:INFO:Vehicle Log:ARRIVAL:Red car:Z4DO2M:50
+<12-10-2018 00:35:00>:Activity Engine:INFO:Vehicle Log:ARRIVAL:Taxi:L78S:54
+<12-10-2018 00:32:00>:Activity Engine:INFO:Vehicle Log:ARRIVAL:Red car:M9DF3Q:50
+<12-10-2018 00:31:00>:Activity Engine:INFO:Vehicle Log:ARRIVAL:Red car:G3JN5V:50
+<12-10-2018 00:23:00>:Activity Engine:INFO:Vehicle Log:ARRIVAL:Red car:P8TM9Q:50
+<12-10-2018 00:22:00>:Activity Engine:INFO:Vehicle Log:ARRIVAL:Motorbike:QT93GZ:56
+<12-10-2018 00:21:00>:Activity Engine:INFO:Vehicle Log:ARRIVAL:Red car:K2AX4D:49
+<12-10-2018 00:20:00>:Activity Engine:INFO:Vehicle Log:ARRIVAL:Red car:K8HK5M:51
+<12-10-2018 00:19:00>:Activity Engine:INFO:Vehicle Log:ARRIVAL:Red car:B3GD7L:50
+<12-10-2018 00:16:00>:Activity Engine:INFO:Vehicle Log:ARRIVAL:Red car:R9GW4N:52
+<12-10-2018 00:16:00>:Activity Engine:INFO:Vehicle Log:ARRIVAL:Red car:P8PY5D:51
+<12-10-2018 00:13:00>:Activity Engine:INFO:Vehicle Log:ARRIVAL:Red car:N4YT5X:49
+<12-10-2018 00:12:00>:Activity Engine:INFO:Vehicle Log:ARRIVAL:Motorbike:HX54YB:55
+<12-10-2018 00:11:00>:Activity Engine:INFO:Vehicle Log:ARRIVAL:Red car:Q8EF7D:51
+<12-10-2018 00:07:00>:Activity Engine:INFO:Vehicle Log:ARRIVAL:Red car:Y4DX0E:50
+<12-10-2018 00:05:00>:Activity Engine:INFO:Vehicle Log:ARRIVAL:Motorbike:WQ77ZX:55
+<12-10-2018 00:04:00>:Activity Engine:INFO:Vehicle Log:ARRIVAL:Red car:D6KK4D:51
+<12-10-2018 00:03:00>:Activity Engine:INFO:Vehicle Log:ARRIVAL:Red car:D6QU2M:51
+<12-10-2018 00:00:00>:Activity Engine:INFO:Activity Log:NOTICE:Started Traffic Engine for number of days 2:
+<12-10-2018 00:00:00>:Activity Engine:INFO:Activity Log:NOTICE:Started Traffic Engine for number of days 2:
+<12-10-2018 00:00:00>:Activity Engine:INFO:Activity Log:NOTICE:Started Traffic Engine for number of days 2:
+<13-10-2018 00:00:00>:Activity Engine:INFO:Activity Log:NOTICE:Started Traffic Engine for number of days 2:
+<13-10-2018 00:00:00>:Activity Engine:INFO:Activity Log:NOTICE:Started Traffic Engine for number of days 2:
