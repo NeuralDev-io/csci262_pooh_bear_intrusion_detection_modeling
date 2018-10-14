@@ -5,7 +5,7 @@
 * Pooh Bear Intrusion Detection System ActivityEngine.h
 * Purpose: Header file for ActivityEngine class.
 *
-* @version 0.3-dev
+* @version 0.4-dev
 * @date 2018.10.06
 *
 * @authors Dinh Che (codeninja55) & Duong Le (daltonle)
@@ -22,7 +22,6 @@
 #include <random>
 #include <fstream>
 #include <math.h>
-#include <cmath>
 #include <iomanip>
 #include <chrono>
 #include "Utils.h"
@@ -95,11 +94,11 @@ typedef struct {
 
 struct event_compare {
     bool operator()(const Event &lhs, const Event &rhs) {
-        if (lhs.time.tm_hour == rhs.time.tm_hour) {
-            return (lhs.time.tm_min == rhs.time.tm_min) ? lhs.time.tm_sec < rhs.time.tm_sec :
-                lhs.time.tm_min < rhs.time.tm_min;
+        if (rhs.time.tm_hour == lhs.time.tm_hour) {
+            return (rhs.time.tm_min == lhs.time.tm_min) ? rhs.time.tm_sec < lhs.time.tm_sec :
+                   rhs.time.tm_min < lhs.time.tm_min;
         }
-        return lhs.time.tm_hour < rhs.time.tm_hour;
+        return rhs.time.tm_hour < lhs.time.tm_hour;
     }
 };
 
@@ -112,7 +111,7 @@ public:
 private:
     void generate_arrivals(Vehicles &vehicles);
     void simulate_events();
-    double next_occurrence(double rate_param, uniform_real_distribution<double> random);
+    long double biased_expovariate(double rate_param, double lower_bound, double upper_bound);
     unsigned long time_seed;
     default_random_engine default_engine;
     minstd_rand0 linear_congruential_engine;

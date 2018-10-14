@@ -5,7 +5,7 @@
 *          Vehicles.txt and Stats.txt, as well as an argument for how many days
  *         to simulate traffic.
 *
-* @version 0.3-dev
+* @version 0.4-dev
 * @date 2018.10.06
 *
 * @authors Dinh Che (codeninja55) & Duong Le (daltonle)
@@ -13,6 +13,7 @@
 * Students Dinh Che (5721970 | dbac496) & Duong Le (5560536 | ndl991)
 *********************************************************************************/
 #include "ActivityEngine.h"
+#include <assert.h>
 
 long double exit_occurrence(double rate_param, uniform_real_distribution<double> random, mt19937_64 mt_engine);
 
@@ -51,12 +52,12 @@ void ActivityEngine::run(Vehicles &vehicles)
     veh_logger = Logger<VehicleLog, SimTime>("Activity Engine", WARNING, "test.txt", true);
     // log for the number of Days specified at the initial running of Traffic
     stringstream msg;
-    msg << "Started Traffic Engine for number of days " << simulate_days;
+    msg << "Started Traffic Engine for number of days:" << simulate_days;
     logger.info(sim_time, { "NOTICE", "Activity Log", msg.str() });
 
     generate_arrivals(vehicles);
     // TODO: time should be stepped in 1 minute blocks
-    // simulate_events();
+    simulate_events();
 
     // TODO: program should give some indication as to what is happening, without being verbose
 
@@ -65,12 +66,8 @@ void ActivityEngine::run(Vehicles &vehicles)
 
 void ActivityEngine::generate_arrivals(Vehicles &vehicles)
 {
-    const double day_min_interval = 1439.0F;
     auto iter = vehicles.get_vehicles_dict()->begin();
     auto iter_end = vehicles.get_vehicles_dict()->end();
-
-    // @param min and max
-    uniform_real_distribution<double> uniform_distribution(0, 1);
 
     for (; iter != iter_end; ++iter) {
 
@@ -83,12 +80,12 @@ void ActivityEngine::generate_arrivals(Vehicles &vehicles)
         auto N = static_cast<uint>(lround(num_normal_distrib(default_engine)));
         // rate of occurrence
         const double arrival_time_interval = 23.0F;
-        double lambda = N / (arrival_time_interval * 60.0F);  // converted to minutes i.e. 1 occurrence per minute
+        double limit = (arrival_time_interval * 60.0F * 60.0F) - 1.0F;
+        double lambda = N / limit;  // converted to seconds i.e. 1 occurrence per X seconds
 
         // TODO: debug
         cout << "\nVehicle type: " << (*iter).first << " (" << N << ") [" << setprecision(6) << lambda << "]" << endl;
 
-        double limit = arrival_time_interval * 60.0F;
         double timestamps;
         vector<double> timestamps_list;
         exponential_distribution<double> expovariate(lambda);
@@ -117,6 +114,7 @@ void ActivityEngine::generate_arrivals(Vehicles &vehicles)
                 timestamps_list.clear();
         }
 
+        // With a list of timestamps for this vehicle type, create vehicle stats
         for (double &timestamp : timestamps_list) {
 
             VehicleStats veh_stats;
@@ -132,53 +130,65 @@ void ActivityEngine::generate_arrivals(Vehicles &vehicles)
             SimTime event_time;
             event_time = time_now();
 
-            event_time.tm_hour = static_cast<int>(lround(timestamp)) / 60;
-            event_time.tm_min = (static_cast<int>(lround(timestamp))) % 60;
-            // event_time.tm_sec = static_cast<int>(it) % 60;
+            event_time.tm_hour = static_cast<int>(lround(timestamp)) / 60 / 60;
+            event_time.tm_min = static_cast<int>(lround(timestamp)) / 60 % 60;
+            event_time.tm_sec = static_cast<int>(lround(timestamp)) % 60;
             veh_stats.arrival_time = event_time;
 
             // set probability for other 3 events
             veh_stats.prob_parking = (!(*iter).second.parking_flag) ? 0 : 0.02;
             veh_stats.prob_end_exit = 0.5;
 
+            // random binomial distribution true or false based on the probability of the event occurring
             veh_stats.prob_side_exit = 0.2;
             bernoulli_distribution side_exit_random(veh_stats.prob_side_exit);
-            veh_stats.side_exit_flag = side_exit_random(default_engine);
+            veh_stats.side_exit_flag = side_exit_random(default_engine);  // bernoulli_distribution implem returns a bool
 
-            SimTime exit_time = time_now();
+            /*
+             * If the vehicle is due to exit via a side road, generate an exit timestamp.
+             * To do this, make a biased uniform distribution that only gives small values.
+             * To run this through the exponential distribution, it will always do a ln of a value extremely
+             * close to 1 and then divide that by a very small lambda. This means the vehicle will be biased
+             * to exit the road very soon.
+             * */
+            SimTime exit_time(event_time);
             if (veh_stats.side_exit_flag) {
-                double exit_interval = day_min_interval - timestamp;
+                double exit_interval = (limit + (60*60)) - timestamp;  // vehicles can exit after 24:00 so add an hour
                 double exit_timestamp = timestamp;  // can only exit after arrival time
-                exponential_distribution<double> exit_expovariate(1 / exit_interval);
 
-                while (exit_timestamp < limit) {
-                    double test = exit_expovariate(mersenne_twister_engine);
-                    if (exit_timestamp + test < limit) {
+                while (exit_timestamp < (limit + (60*60))) {
+                    long double test = biased_expovariate(1/exit_interval, 0, 0.02F);
+                    if (exit_timestamp + test < (limit + (60*60))) {
                         exit_timestamp += test;
                         break;
                     }
                 }
 
-                exit_time.tm_min = static_cast<int>(lround(exit_timestamp)) % 60;
-                exit_time.tm_hour = static_cast<int>(lround(exit_timestamp)) / 60;
+                exit_time.tm_hour = static_cast<int>(lround(exit_timestamp)) / 60 / 60;
+                exit_time.tm_min = static_cast<int>(lround(exit_timestamp)) / 60 % 60;
+                exit_time.tm_sec = static_cast<int>(lround(exit_timestamp)) % 60;
+                Event exit_event({DEPART_SIDE_ROAD, exit_time, veh_stats} );
+                event_q.push(exit_event);
             }
 
 
-            // Event arrival_event = { ARRIVAL, event_time, veh_stats };
-            // event_q.push(arrival_event);
+            Event arrival_event = { ARRIVAL, event_time, veh_stats };
+            event_q.push(arrival_event);
+
 
             // TODO: debug
-            cout << "Arrival: " << event_time.formatted_time() << " " << veh_stats.registration_id << " ==> "
-                 << "(" << veh_stats.arrival_speed << ") -> Exit: " << ((veh_stats.side_exit_flag) ? "T" : "F")
-                 << " -> Exit timestamp: " << exit_time.formatted_time()
-                 << endl;
+            /*cout << "Arrival: " << event_time.formatted_time() << " ==> " << veh_stats.registration_id << " "
+                 << "(" << veh_stats.arrival_speed << " kmh)" << endl;
+
+            if (veh_stats.side_exit_flag)
+                cout << "Exit: " << exit_time.formatted_time() << " ==> " << veh_stats.registration_id << endl;*/
         }
     }
 }
 
 void ActivityEngine::simulate_events()
 {
-    int t;
+    /*int t;
     for (t = 0; t <= 1439; t++) {
         Event ev = event_q.top();  // returns a reference to the top element
 
@@ -186,9 +196,9 @@ void ActivityEngine::simulate_events()
 
         }
 
-    }
+    }*/
 
-    /*while (!event_q.empty()) {
+    while (!event_q.empty()) {
         Event ev = event_q.top();  // returns a reference to the top event but does not remove it
         switch(ev.ev_type) {
             case ARRIVAL:
@@ -196,6 +206,32 @@ void ActivityEngine::simulate_events()
                                        ev.stats.arrival_speed });
                 event_q.pop();  // returns void, but must remove from queue
                 break;
+            case DEPART_SIDE_ROAD:
+                veh_logger.warning(ev.time, { DEPART_SIDE_ROAD, "Vehicle Log", ev.stats.veh_name,
+                                              ev.stats.registration_id, -1 });
+                event_q.pop();
+                break;
         }
-    }*/
+    }
+}
+
+/*
+ * @brief: a biased function to return the variate from an exponential distribution with a lower and upper
+ * bound that does not necessarily need to be [0, 1].
+ *
+ * @param rate_param: the rate of occurrence for the event.
+ * @param lower_bound: the lower bound of the bias, must be >= 0.
+ * @param upper_bound: the upper bound of the bias, must be <= 1.0.
+ *
+ * @return: the y value of the exponential distribution which is the likely next interval occurence
+ *          of the event defined by the rate parameter or lambda.
+ * */
+long double ActivityEngine::biased_expovariate(double rate_param, double lower_bound, double upper_bound) {
+    assert (lower_bound >= 0);
+    assert (upper_bound <= 1.0F);
+    uniform_real_distribution<double> biased_distribution(lower_bound, upper_bound);
+    long double rand_val = biased_distribution(mersenne_twister_engine);
+    while (rand_val == 1.0F)  // check if the random value is 1 to avoid passing 0 to logb()
+        rand_val = biased_distribution(mersenne_twister_engine);
+    return -logl(1.0F - rand_val) / rate_param;
 }
