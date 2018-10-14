@@ -78,12 +78,13 @@ typedef struct VehicleStats {
     string registration_id;
     SimTime arrival_time;
     double arrival_speed;
-    float prob_parking, prob_side_exit, prob_end_exit;
+    double prob_parking, prob_side_exit, prob_end_exit;
+    bool side_exit_flag;
 
     // default constructor for VehicleStats
     VehicleStats() : veh_name(""), registration_id(""), arrival_time(SimTime()),
                      arrival_speed(0), prob_parking(0), prob_side_exit(0),
-                     prob_end_exit(0) {}
+                     prob_end_exit(0), side_exit_flag(false) {}
 } VehicleStats;
 
 typedef struct {
@@ -111,7 +112,7 @@ public:
 private:
     void generate_arrivals(Vehicles &vehicles);
     void simulate_events();
-    long double next_arrival(double rate_param, uniform_real_distribution<double> random);
+    double next_occurrence(double rate_param, uniform_real_distribution<double> random);
     unsigned long time_seed;
     default_random_engine default_engine;
     minstd_rand0 linear_congruential_engine;
