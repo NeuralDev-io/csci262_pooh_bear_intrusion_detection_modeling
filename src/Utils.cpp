@@ -34,7 +34,6 @@ SimTime time_now()
     time_now.tm_mday = real_time_now->tm_mday;
     time_now.tm_mon = real_time_now->tm_mon + 1;
     time_now.tm_year = real_time_now->tm_year + 1900;
-    time_now.tm_wday = real_time_now->tm_wday;
     return time_now;
 }
 

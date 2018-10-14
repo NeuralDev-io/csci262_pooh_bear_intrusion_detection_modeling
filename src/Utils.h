@@ -36,9 +36,9 @@ typedef struct SimTime {
     int tm_mday;  // day of the month | [1-31]
     int tm_mon;   // months since January [0-11]
     int tm_year;  // years since 1900
-    int tm_wday;  // days since Sunday (0) [0-6]
 
-    SimTime() : tm_sec(0), tm_min(0), tm_hour(0), tm_mday(1), tm_mon(0), tm_year(1018), tm_wday(0) {}
+    SimTime() : tm_sec(0), tm_min(0), tm_hour(0), tm_mday(1), tm_mon(0), tm_year(2018) {}
+    SimTime(const SimTime &ST) = default;  // trivial copy constructor
 
     /*
     * Convert a SimTime struct to a human-readable string time.
