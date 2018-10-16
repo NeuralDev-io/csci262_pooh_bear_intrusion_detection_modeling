@@ -19,8 +19,8 @@ ActivityEngine::ActivityEngine() : n_vehicles_monitored(0), n_parking_spots(0), 
                                    speed_limit(0), simulate_days(0), time_seed(0)
 {
     // Set the last param to true if you want to output log to stdout
-    Logger<SimTime, ActivityLog> logger("Activity Engine", WARNING, "test.txt", true);
-    Logger<SimTime, VehicleLog> veh_logger("Activity Engine", WARNING, "test.txt", true);
+    logger = Logger<SimTime, ActivityLog>("Activity Engine", INFO, "logs_baseline", true);
+    veh_logger = Logger<SimTime, VehicleLog>("Activity Engine", INFO, "logs_baseline", true);
 
     time_seed = static_cast<unsigned long>(chrono::system_clock::now().time_since_epoch().count());
     default_engine.seed(0);
@@ -32,12 +32,12 @@ void ActivityEngine::run(Vehicles &vehicles)
 {
     SimTime sim_time = time_now();
 
-    cout << "Traffic Engine started: " << real_formatted_time_now() << "\n" << flush;
+    cout << "[*****SYSTEM*****] Activity Engine started: " << real_formatted_time_now() << "\n" << flush;
 
     // log for the number of Days specified at the initial running of Traffic
     stringstream msg;
-    msg << "Started Traffic Engine for number of days:" << simulate_days;
-    logger.info(sim_time, { "NOTICE", "Activity Log", msg.str() });
+    msg << "Started Activity Engine for number of days:" << simulate_days;
+    logger.info(sim_time, ActivityLog( "NOTICE", "Activity Log", msg.str() ));
 
     generate_arrivals(vehicles);
     // TODO: time should be stepped in 1 minute blocks
@@ -45,7 +45,7 @@ void ActivityEngine::run(Vehicles &vehicles)
 
     // TODO: program should give some indication as to what is happening, without being verbose
 
-    cout << "Activity Engine finished: " << real_formatted_time_now() << "\n" << flush;
+    cout << "[*****SYSTEM*****] Activity Engine finished: " << real_formatted_time_now() << "\n" << flush;
 }
 
 void ActivityEngine::generate_arrivals(Vehicles &vehicles)
@@ -186,13 +186,13 @@ void ActivityEngine::simulate_events()
         Event ev = event_q.top();  // returns a reference to the top event but does not remove it
         switch(ev.ev_type) {
             case ARRIVAL:
-                veh_logger.info(ev.time, { ARRIVAL, "Vehicle Log", ev.stats.veh_name, ev.stats.registration_id,
-                                       ev.stats.arrival_speed });
+                veh_logger.info(ev.time, VehicleLog( ARRIVAL, "Vehicle Log", ev.stats.veh_name, ev.stats.registration_id,
+                                       ev.stats.arrival_speed ));
                 event_q.pop();  // returns void, but must remove from queue
                 break;
             case DEPART_SIDE_ROAD:
-                veh_logger.warning(ev.time, { DEPART_SIDE_ROAD, "Vehicle Log", ev.stats.veh_name,
-                                              ev.stats.registration_id, -1 });
+                veh_logger.warning(ev.time, VehicleLog( DEPART_SIDE_ROAD, "Vehicle Log", ev.stats.veh_name,
+                                              ev.stats.registration_id, -1 ));
                 event_q.pop();
                 break;
         }
