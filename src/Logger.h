@@ -13,6 +13,8 @@
 * StudentsS Dinh Che (5721970 | dbac496) & Duong Le (5560536 | ndl991)
 *********************************************************************************/
 
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "OCUnusedGlobalDeclarationInspection"
 #ifndef POOH_BEAR_INTRUSION_DETECTION_SYSTEM_LOGGER_H
 #define POOH_BEAR_INTRUSION_DETECTION_SYSTEM_LOGGER_H
 
@@ -21,6 +23,7 @@
 #include <stdio.h>
 #include <string>
 #include <map>
+#include <queue>
 #include <time.h>
 #include <sstream>
 #include <iostream>
@@ -44,9 +47,16 @@ using namespace std;
 enum LEVEL { NOTSET = 0, INFO = 10, DEBUG = 20, WARNING = 30, ERROR = 40, CRITICAL = 50 };
 typedef enum LEVEL LEVEL;
 
+typedef struct Log {
+    string msg = "";
+    struct tm log_time;
+} Log;
+
 typedef map<string, string>::iterator Config_Iter;
 typedef map<string, string> Config_Dict;
 static const char DELIMITER = ':';
+static bool DELETE_FLAG = true;
+static priority_queue<Log, vector<Log>, > loq_queue;
 
 /*
  * @brief: a template Logger class with two template type arguments.
@@ -54,29 +64,40 @@ static const char DELIMITER = ':';
  * @param T: a time type.
  * @param S: a log structure type with a requirement to overload the ostream << operator.
  * */
-template<class T, class S>
+template<typename T, typename S>
 class Logger {
 public:
     Logger();  // default constructor
+    ~Logger();  // destructor to log to file
+    Logger& operator=(const Logger &rhs);
+    bool operator==(const Logger &rhs) const;
+    bool operator!=(const Logger &rhs) const;
+    Logger(const Logger &other);
     explicit Logger(string logger_name);
-    Logger(string logger_name, string filename);
-    Logger(string logger_name, LEVEL level, string filename);
-    Logger(string logger_name, LEVEL level, string filename, bool std_out);
+    explicit Logger(string logger_name, string filename);
+    explicit Logger(string logger_name, LEVEL level, string filename);
+    explicit Logger(string logger_name, LEVEL level, string filename, bool std_out);
+
     void set_level(LEVEL level);
-    void info(S &time, T log_struct);
-    void debug(S &time, T log_struct);
-    void warning(S &time, T log_struct);
-    void error(S &time, T log_struct);
-    void critical(S &time, T log_struct);
+    void info(T &time, S log_struct);
+    void debug(T &time, S log_struct);
+    void warning(T &time, S log_struct);
+    void error(T &time, S log_struct);
+    void critical(T &time, S log_struct);
+    void flush();
     const Config_Dict &get_config() const;
     string &get(string);
+
 private:
-    void _log(LEVEL level, S &time, T log_struct);
-    stringstream filename_ss;  // stringstream to add directory to the beginning of log filenames
-    Config_Dict config;  // a dictionary of configuration values with key and string values
+    void _log(LEVEL level, T &time, S log_struct);
+    void _add_record(LEVEL level, T &time, S &log_struct);
+    void _file_handler();
+    bool _check_level();  // TODO:
     bool is_file_exists(const string &name);  // test if the file for logging already exists to use trunc or append
     string _level_to_name(LEVEL);  // function to convert enum to string
     LEVEL _name_to_level(string&);  // function to convert string to enum
+    Config_Dict config;  // a dictionary of configuration values with key and string values
+    stringstream filename_ss;  // stringstream to add prefix to filenames
 };
 
 /*
@@ -93,8 +114,39 @@ private:
  * [] Check to see if the key is in config dictionary and return appropriate string.
  */
 
+template<typename T, typename S>
+Logger<T, S>& Logger<T, S>::operator=(const Logger<T, S> &rhs)
+{
+    // check for self assignment
+    if (&rhs == this)
+        return *this;
+
+    filename_ss << rhs.filename_ss.str();
+    config = rhs.config;
+    return *this;
+}
+
+template<typename T, typename S>
+Logger<T, S>::Logger(const Logger &other)
+{
+    filename_ss << other.filename_ss.str();
+    config = other.config;
+}
+
+template<typename T, typename S>
+bool Logger<T, S>::operator==(const Logger &rhs) const
+{
+    return config.begin() == rhs.config.begin();
+}
+
+template<typename T, typename S>
+bool Logger<T, S>::operator!=(const Logger &rhs) const
+{
+    return !(rhs == *this);
+}
+
 /* @brief Default constructor for a Logger with default values for the config dictionary. */
-template<class T, class S>
+template<typename T, typename S>
 Logger<T, S>::Logger()
 {
     config.insert(pair<string, string>("LOGGER", "Default Logger"));
@@ -105,7 +157,7 @@ Logger<T, S>::Logger()
 }
 
 /* @brief Constructor with just the logger name and default values for everything else. */
-template<class T, class S>
+template<typename T, typename S>
 Logger<T, S>::Logger(string logger_name)
 {
     config.insert(pair<string, string>("LOGGER", logger_name));
@@ -115,7 +167,7 @@ Logger<T, S>::Logger(string logger_name)
 }
 
 /* @brief Constructor to allow setting of the logger name and filename */
-template<class T, class S>
+template<typename T, typename S>
 Logger<T, S>::Logger(string logger_name, string filename)
 {
     filename_ss << "logs/" << filename;
@@ -126,7 +178,7 @@ Logger<T, S>::Logger(string logger_name, string filename)
 }
 
 /* @brief Constructor to set the logger name and file name with a level. */
-template<class T, class S>
+template<typename T, typename S>
 Logger<T, S>::Logger(string logger_name, LEVEL level, string filename)
 {
     filename_ss << "logs/" << filename;
@@ -137,7 +189,7 @@ Logger<T, S>::Logger(string logger_name, LEVEL level, string filename)
 }
 
 /* @brief Constructor to set all values in the dictionary including whether to print to stdout. */
-template<class T, class S>
+template<typename T, typename S>
 Logger<T, S>::Logger(string logger_name, LEVEL level, string filename, bool std_out)
 {
     filename_ss << "logs/" << filename;
@@ -147,6 +199,12 @@ Logger<T, S>::Logger(string logger_name, LEVEL level, string filename, bool std_
     config.insert(pair<string, string>("STDOUT", (std_out) ? "true" : "false"));
 }
 
+template<typename T, typename S>
+Logger<T, S>::~Logger()
+{
+    flush();
+}
+
 /*
  * A specific log call with the INFO level.
  *
@@ -154,8 +212,8 @@ Logger<T, S>::Logger(string logger_name, LEVEL level, string filename, bool std_
  * @param ev_type: the enum EVENT_TYPE of the type of event.
  * @param msg: a c++ string of the message to log.
  * */
-template<class T, class S>
-void Logger<T, S>::info(S &time, T log_struct)
+template<typename T, typename S>
+void Logger<T, S>::info(T &time, S log_struct)
 {
     // Check if info is allowed with the current level
     _log(INFO, time, log_struct);
@@ -168,8 +226,8 @@ void Logger<T, S>::info(S &time, T log_struct)
  * @param ev_type: the enum EVENT_TYPE of the type of event.
  * @param msg: a c++ string of the message to log.
  * */
-template<class T, class S>
-void Logger<T, S>::debug(S &time, T log_struct)
+template<typename T, typename S>
+void Logger<T, S>::debug(T &time, S log_struct)
 {
     // Check if info is allowed with the current level
     _log(DEBUG, time, log_struct);
@@ -182,8 +240,8 @@ void Logger<T, S>::debug(S &time, T log_struct)
  * @param ev_type: the enum EVENT_TYPE of the type of event.
  * @param msg: a c++ string of the message to log.
  * */
-template<class T, class S>
-void Logger<T, S>::warning(S &time, T log_struct)
+template<typename T, typename S>
+void Logger<T, S>::warning(T &time, S log_struct)
 {
     // Check if info is allowed with the current level
     _log(WARNING, time, log_struct);
@@ -196,8 +254,8 @@ void Logger<T, S>::warning(S &time, T log_struct)
  * @param ev_type: the enum EVENT_TYPE of the type of event.
  * @param msg: a c++ string of the message to log.
  * */
-template<class T, class S>
-void Logger<T, S>::error(S &time, T log_struct)
+template<typename T, typename S>
+void Logger<T, S>::error(T &time, S log_struct)
 {
     // Check if info is allowed with the current level
     _log(ERROR, time, log_struct);
@@ -210,8 +268,8 @@ void Logger<T, S>::error(S &time, T log_struct)
  * @param ev_type: the enum EVENT_TYPE of the type of event.
  * @param msg: a c++ string of the message to log.
  * */
-template<class T, class S>
-void Logger<T, S>::critical(S &time, T log_struct)
+template<typename T, typename S>
+void Logger<T, S>::critical(T &time, S log_struct)
 {
     // Check if info is allowed with the current level
     _log(CRITICAL, time, log_struct);
@@ -225,26 +283,59 @@ void Logger<T, S>::critical(S &time, T log_struct)
  * @param ev_time: the enum EVENT_TYPE to log.
  * @param msg: the c++ string message to log.
  * */
-template<class T, class S>
-void Logger<T, S>::_log(LEVEL level, S &time, T log_struct)
+template<typename T, typename S>
+void Logger<T, S>::_log(LEVEL level, T &time, S log_struct)
 {
     if (get("STDOUT") == "true")
         cout << time.formatted_time_date() << DELIMITER << get("LOGGER")
              << DELIMITER << _level_to_name(level) << DELIMITER << log_struct << endl;
 
+    // TODO: Check if level is not critical, otherwise open a log file and just write it straight away
     if (get("FILENAME") != "false") {
-        ofstream fout;
-        if (is_file_exists(get("FILENAME"))) {
-            fout.open(get("FILENAME").c_str(), ios::out | ios::app);
-        } else {
-            fout.open(get("FILENAME").c_str(), ios::out | ios::trunc);
+        _add_record(level, time, log_struct);
+    }
+}
+
+template<typename T, typename S>
+void Logger<T, S>::_add_record(LEVEL level, T &time, S &log_struct)
+{
+    stringstream ss;
+
+    ss << time.formatted_time_date() << DELIMITER << get("LOGGER")
+       << DELIMITER << _level_to_name(level) << DELIMITER << log_struct << endl;
+
+    LogBuffer.delete_flag
+    .push(ss.str());
+}
+
+template<typename T, typename S>
+void Logger<T, S>::_file_handler()
+{
+    if (is_file_exists(get("FILENAME")) && LogBuffer.delete_flag) {
+        if (remove(get("FILENAME").c_str()) != 0) {
+            stringstream ss;
+            ss << "<" << real_formatted_time_now() << "> [!!] Failed to delete old log file " << get("FILENAME");
+            perror(ss.str().c_str());
         }
+        LogBuffer.delete_flag = false;
+    }
+}
+
+template<typename T, typename S>
+void Logger<T, S>::flush()
+{
+    if (!_log_buffer.empty()) {
+        ofstream fout;
+        fout.open(get("FILENAME").c_str(), ios::out | ios::app);
 
         if (!fout.good())
-            cout << "<" << time.formatted_time_date() << "> [!!] Failed to open log file " << get("FILENAME") << endl;
+            cout << "<" << real_formatted_time_now() << "> [!!] Failed to open log file " << get("FILENAME") << endl;
 
-        fout << time.formatted_time_date() << DELIMITER << get("LOGGER")
-             << DELIMITER << _level_to_name(level) << DELIMITER << log_struct << endl;
+        for (int i = 0; i < _log_buffer.size(); i++) {
+            fout << _log_buffer.front();
+            _log_buffer.pop();
+        }
+        fout.flush();
         fout.close();
     }
 }
@@ -254,10 +345,10 @@ void Logger<T, S>::_log(LEVEL level, S &time, T log_struct)
  *
  * @param level: the LEVEL enum to change to.
  * */
-template<class T, class S>
+template<typename T, typename S>
 void Logger<T, S>::set_level(LEVEL level)
 {
-    Config_Iter iter = config.find("LEVEL");
+    auto iter = config.find("LEVEL");
     if (iter != config.end())
         (*iter).second = _level_to_name(level);
 }
@@ -267,7 +358,7 @@ void Logger<T, S>::set_level(LEVEL level)
  *
  * @return: the map<string, string> config dictionary.
  * */
-template<class T, class S>
+template<typename T, typename S>
 const Config_Dict &Logger<T, S>::get_config() const { return Logger::config; }
 
 /* TODO: No check if key is actually in the dictionary.
@@ -276,15 +367,16 @@ const Config_Dict &Logger<T, S>::get_config() const { return Logger::config; }
  * @param key: a c++ string of the key to access.
  * @return: a c++ string of the value stored in the config dictionary.
  * */
-template<class T, class S>
+template<typename T, typename S>
 string &Logger<T, S>::get(string key)
 {
-    Config_Iter iter = config.find(key);
+    auto iter = config.find(key);
     if (iter != config.end())
         return (*iter).second;
+    // return string("");
 }
 
-template<class T, class S>
+template<typename T, typename S>
 bool Logger<T, S>::is_file_exists(const string &name)
 {
     struct stat buffer{};
@@ -297,7 +389,7 @@ bool Logger<T, S>::is_file_exists(const string &name)
  * @param level_str: a c++ string corresponding to the enum LEVEL.
  * @return: a LEVEL enum corresponding to the string parameter.
  * */
-template<class T, class S>
+template<typename T, typename S>
 LEVEL Logger<T, S>::_name_to_level(string &level_str) {
     if (level_str == "NOTSET")
         return NOTSET;
@@ -319,7 +411,7 @@ LEVEL Logger<T, S>::_name_to_level(string &level_str) {
  * @param level: the enum LEVEL.
  * @return: the string corresponding to each enum LEVEL.
  * */
-template<class T, class S>
+template<typename T, typename S>
 string Logger<T, S>::_level_to_name(LEVEL level) {
     switch (level) {
         case NOTSET:
@@ -339,4 +431,11 @@ string Logger<T, S>::_level_to_name(LEVEL level) {
     }
 }
 
+template<typename T, typename S>
+bool Logger<T, S>::_check_level() {
+    return false;
+}
+
 #endif //POOH_BEAR_INTRUSION_DETECTION_SYSTEM_LOGGER_H
+
+#pragma clang diagnostic pop

@@ -46,7 +46,7 @@ typedef struct ActivityLog {
     friend ostream& operator<<(ostream& os, ActivityLog const& activity_log)
     {
         return os << activity_log.log_name << DELIMITER << activity_log.ev_type << DELIMITER
-                  << activity_log.msg << DELIMITER;
+                  << activity_log.msg;
     }
 } ActivityLog;
 
@@ -68,7 +68,7 @@ typedef struct VehicleLog {
     {
         return os << veh_log.log_name << DELIMITER << event_name(veh_log.ev_type) << DELIMITER
                   << veh_log.veh_name << DELIMITER << veh_log.veh_registration << DELIMITER
-                  << setprecision(2) << veh_log.speed;
+                  << fixed << setprecision(2) << veh_log.speed;
     }
 } VehicleLog;
 
@@ -118,8 +118,8 @@ private:
     mt19937_64 mersenne_twister_engine;
     uint n_vehicles_monitored, n_parking_spots, simulate_days;
     float road_length, speed_limit;
-    Logger<ActivityLog, SimTime> logger;
-    Logger<VehicleLog, SimTime> veh_logger;
+    Logger<SimTime, ActivityLog> logger;
+    Logger<SimTime, VehicleLog> veh_logger;
     priority_queue<Event, vector<Event>, event_compare> event_q;
 };
 

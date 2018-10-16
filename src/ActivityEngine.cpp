@@ -15,8 +15,6 @@
 #include "ActivityEngine.h"
 #include <assert.h>
 
-long double exit_occurrence(double rate_param, uniform_real_distribution<double> random, mt19937_64 mt_engine);
-
 /*
  * Constructor to the activity engine to store stats value to be used to
  * create a statistical simulation model
@@ -48,8 +46,8 @@ void ActivityEngine::run(Vehicles &vehicles)
 
     cout << "Traffic Engine started: " << real_formatted_time_now() << "\n" << flush;
     // Set the last param to true if you want to output log to stdout
-    logger = Logger<ActivityLog, SimTime>("Activity Engine", WARNING, "test.txt", true);
-    veh_logger = Logger<VehicleLog, SimTime>("Activity Engine", WARNING, "test.txt", true);
+    logger = Logger<SimTime, ActivityLog>("Activity Engine", WARNING, "test.txt", true);
+    veh_logger = Logger<SimTime, VehicleLog>("Activity Engine", WARNING, "test.txt", true);
     // log for the number of Days specified at the initial running of Traffic
     stringstream msg;
     msg << "Started Traffic Engine for number of days:" << simulate_days;
@@ -213,6 +211,9 @@ void ActivityEngine::simulate_events()
                 break;
         }
     }
+
+    // veh_logger.flush();
+    // logger.flush();
 }
 
 /*
@@ -227,6 +228,7 @@ void ActivityEngine::simulate_events()
  *          of the event defined by the rate parameter or lambda.
  * */
 long double ActivityEngine::biased_expovariate(double rate_param, double lower_bound, double upper_bound) {
+    // TODO: consider logging critical event to file
     assert (lower_bound >= 0);
     assert (upper_bound <= 1.0F);
     uniform_real_distribution<double> biased_distribution(lower_bound, upper_bound);
