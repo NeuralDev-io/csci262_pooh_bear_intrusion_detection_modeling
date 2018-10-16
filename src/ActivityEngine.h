@@ -16,7 +16,6 @@
 #ifndef POOH_BEAR_INTRUSION_DETECTION_SYSTEM_ACTIVITYENGINE_H
 #define POOH_BEAR_INTRUSION_DETECTION_SYSTEM_ACTIVITYENGINE_H
 
-#include <zconf.h>
 #include <queue>
 #include <iostream>
 #include <random>
@@ -104,9 +103,9 @@ struct event_compare {
 
 class ActivityEngine {
 public:
-    ActivityEngine() : n_vehicles_monitored(0), n_parking_spots(0), road_length(0),
-                       speed_limit(0), simulate_days(0), time_seed(0) {}; // default
-    ActivityEngine(uint days, uint vehicles_monitored, float road_len, float speed_lim, uint parking_spots);
+    ActivityEngine(); // default
+    void set_statistics(unsigned days, unsigned vehicles_monitored, float road_len,
+                        float speed_lim, unsigned parking_spots);
     void run(Vehicles&);  // run the activity engine simulation
 private:
     void generate_arrivals(Vehicles &vehicles);
@@ -116,7 +115,7 @@ private:
     default_random_engine default_engine;
     minstd_rand0 linear_congruential_engine;
     mt19937_64 mersenne_twister_engine;
-    uint n_vehicles_monitored, n_parking_spots, simulate_days;
+    unsigned n_vehicles_monitored, n_parking_spots, simulate_days;
     float road_length, speed_limit;
     Logger<SimTime, ActivityLog> logger;
     Logger<SimTime, VehicleLog> veh_logger;

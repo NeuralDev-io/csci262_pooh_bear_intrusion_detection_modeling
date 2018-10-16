@@ -3,7 +3,7 @@
 * Pooh Bear Intrusion Detection System ActivityEngine.cpp
 * Purpose: Creates a traffic simulation engine based on reading of input from
 *          Vehicles.txt and Stats.txt, as well as an argument for how many days
- *         to simulate traffic.
+*          to simulate traffic.
 *
 * @version 0.4-dev
 * @date 2018.10.06
@@ -15,23 +15,12 @@
 #include "ActivityEngine.h"
 #include <assert.h>
 
-/*
- * Constructor to the activity engine to store stats value to be used to
- * create a statistical simulation model
- *
- * @param days: number of days to run the simulation
- * @param vehicles_monitored: number of vehicle types to be monitored
- * @param road_len: length of the road in km
- * @param speed_lim: speed limit in km/h
- * @param parking_spots: number of parking spaces available
- * */
-ActivityEngine::ActivityEngine(uint days, uint vehicles_monitored, float road_len, float speed_lim, uint parking_spots)
+ActivityEngine::ActivityEngine() : n_vehicles_monitored(0), n_parking_spots(0), road_length(0),
+                                   speed_limit(0), simulate_days(0), time_seed(0)
 {
-    simulate_days = days;
-    n_vehicles_monitored = vehicles_monitored;
-    n_parking_spots = parking_spots;
-    speed_limit = speed_lim;
-    road_length = road_len;
+    // Set the last param to true if you want to output log to stdout
+    Logger<SimTime, ActivityLog> logger("Activity Engine", WARNING, "test.txt", true);
+    Logger<SimTime, VehicleLog> veh_logger("Activity Engine", WARNING, "test.txt", true);
 
     time_seed = static_cast<unsigned long>(chrono::system_clock::now().time_since_epoch().count());
     default_engine.seed(0);
@@ -39,15 +28,12 @@ ActivityEngine::ActivityEngine(uint days, uint vehicles_monitored, float road_le
     mersenne_twister_engine.seed(0);
 }
 
-
 void ActivityEngine::run(Vehicles &vehicles)
 {
     SimTime sim_time = time_now();
 
     cout << "Traffic Engine started: " << real_formatted_time_now() << "\n" << flush;
-    // Set the last param to true if you want to output log to stdout
-    logger = Logger<SimTime, ActivityLog>("Activity Engine", WARNING, "test.txt", true);
-    veh_logger = Logger<SimTime, VehicleLog>("Activity Engine", WARNING, "test.txt", true);
+
     // log for the number of Days specified at the initial running of Traffic
     stringstream msg;
     msg << "Started Traffic Engine for number of days:" << simulate_days;
@@ -75,14 +61,14 @@ void ActivityEngine::generate_arrivals(Vehicles &vehicles)
         normal_distribution<double> speed_normal_distrib((*iter).second.speed_mean, (*iter).second.speed_stddev);
 
         // Random number of X occurrences of vehicle over a day
-        auto N = static_cast<uint>(lround(num_normal_distrib(default_engine)));
+        auto N = static_cast<unsigned int>(lround(num_normal_distrib(default_engine)));
         // rate of occurrence
         const double arrival_time_interval = 23.0F;
         double limit = (arrival_time_interval * 60.0F * 60.0F) - 1.0F;
         double lambda = N / limit;  // converted to seconds i.e. 1 occurrence per X seconds
 
         // TODO: debug
-        cout << "\nVehicle type: " << (*iter).first << " (" << N << ") [" << setprecision(6) << lambda << "]" << endl;
+        // cout << "\nVehicle type: " << (*iter).first << " (" << N << ") [" << setprecision(6) << lambda << "]" << endl;
 
         double timestamps;
         vector<double> timestamps_list;
@@ -236,4 +222,24 @@ long double ActivityEngine::biased_expovariate(double rate_param, double lower_b
     while (rand_val == 1.0F)  // check if the random value is 1 to avoid passing 0 to logb()
         rand_val = biased_distribution(mersenne_twister_engine);
     return -logl(1.0F - rand_val) / rate_param;
+}
+
+/*
+ * Function to the activity engine to set stats value to be used to
+ * create a statistical simulation model
+ *
+ * @param days: number of days to run the simulation
+ * @param vehicles_monitored: number of vehicle types to be monitored
+ * @param road_len: length of the road in km
+ * @param speed_lim: speed limit in km/h
+ * @param parking_spots: number of parking spaces available
+ * */
+void ActivityEngine::set_statistics(unsigned days, unsigned vehicles_monitored, float road_len,
+                                    float speed_lim, unsigned parking_spots)
+{
+    simulate_days = days;
+    n_vehicles_monitored = vehicles_monitored;
+    n_parking_spots = parking_spots;
+    speed_limit = speed_lim;
+    road_length = road_len;
 }

@@ -19,7 +19,6 @@
 #include <map>
 #include <set>
 #include <iostream>
-#include <zconf.h>
 #include <random>
 #include <iomanip>
 using namespace std;
@@ -32,7 +31,7 @@ typedef struct {
     int id;
     string name, reg_format;
     bool parking_flag;
-    uint vol_weight, speed_weight;
+    unsigned vol_weight, speed_weight;
     float num_mean, num_stddev, speed_mean, speed_stddev;
 } VehicleType;
 
@@ -46,7 +45,7 @@ public:
     map<string, VehicleType> *get_vehicles_dict();
     static string generate_registration(string &reg_format, default_random_engine &generator);
 private:
-    uint n_vehicles;
+    unsigned n_vehicles;
     map<string, VehicleType> vehicles_dict;
 };
 
