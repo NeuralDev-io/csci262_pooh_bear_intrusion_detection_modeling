@@ -52,7 +52,9 @@ unsigned int safe_int_convert(const char *int_str, const char *err_msg)
     if (tmp >= INT_MIN && tmp <= INT_MAX)
         return static_cast<unsigned int>(tmp);
     else {
-        cout << "[!!] " << err_msg << "\nExiting..." << endl;
+        stringstream ss;
+        ss << "[!!] " << err_msg << "\nExiting..." << endl;
+        perror(ss.str().c_str());
         exit(1);
     }
 }

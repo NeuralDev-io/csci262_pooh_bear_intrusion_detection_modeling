@@ -81,7 +81,9 @@ void read_vehicles_file(ifstream &fin, char *vehicles_file, Vehicles &vehicles_d
 {
     fin.open(vehicles_file, ifstream::in);
     if (!fin.good()) {
-        cout << "[*****FILE ERROR*****] Unable to read Vehicles file from: " << vehicles_file << "\nExiting...\n" << flush;
+        stringstream ss;
+        ss << "[*****FILE ERROR*****] Unable to read Vehicles file from: " << vehicles_file << "\nExiting...\n" << flush;
+        perror(ss.str().c_str());
         exit(1);
     }
 
@@ -127,7 +129,9 @@ void read_stats_file(ifstream &fin, char *stats_file, Vehicles &vehicles_dict, A
 {
     fin.open(stats_file, ifstream::in);
     if (!fin.good()) {
-        cout << "[*****FILE ERROR*****] Unable to read Stats file from: " << stats_file << "\nExiting...\n" << flush;
+        stringstream ss;
+        ss << "[*****FILE ERROR*****] Unable to read Stats file from: " << stats_file << "\nExiting...\n" << flush;
+        perror(ss.str().c_str());
         exit(1);
     }
 
