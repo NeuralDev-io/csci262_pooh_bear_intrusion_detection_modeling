@@ -46,7 +46,7 @@ typedef struct SimTime {
     * @param t: a reference to the SimTime structure to format to a string.
     * @return: string of the time from the SimTime structure.
     * */
-    string formatted_time()
+    string formatted_time() const
     {
         stringstream ss;
         ss << "<" << setfill('0') << setw(2) << this->tm_hour << ":" << setfill('0') << setw(2) << this->tm_min
@@ -60,7 +60,7 @@ typedef struct SimTime {
      * @param t: a reference to the SimTime structure to format to a string.
      * @return: string of the time from the SimTime structure.
      * */
-    string formatted_date()
+    string formatted_date() const
     {
         stringstream ss;
         ss << "<" << setfill('0') << setw(2) << this->tm_mday << "-" << setfill('0') << setw(2) << this->tm_mon
@@ -74,7 +74,8 @@ typedef struct SimTime {
      * @param t: a reference to the SimTime structure to format to a string
      * @return: string of the time and date formatted as DD-MM-YYYY HH:MM:ss
      * */
-    string formatted_time_date() {
+    string formatted_time_date() const
+    {
         stringstream ss;
         ss << "<" << setfill('0') << setw(2) << this->tm_mday << "-" << this->tm_mon << "-" << setw(4) << this->tm_year
            << " " << setfill('0') << setw(2) << this->tm_hour << ":"
