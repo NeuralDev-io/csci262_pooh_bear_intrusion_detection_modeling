@@ -34,7 +34,10 @@ void read_vehicles_file(ifstream &fin, char *vehicles_file, Vehicles &vehicles_d
 void read_stats_file(ifstream &fin, char *stats_file, Vehicles &vehicles_dict, ActivityEngine &activity_engine);
 
 
-int main(int argc, char * argv[]) {
+int main(int argc, char * argv[])
+{
+    // when starting the system, delete all the old logs first before creating new ones.
+    system("exec rm -r logs/*");
 
     // TODO: REMOVE THIS BEFORE SUBMITTING
     char days_str[sizeof(int)];
