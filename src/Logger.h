@@ -294,7 +294,6 @@ void Logger<T, S>::_add_record(LEVEL level, T &time, S &log_struct)
     fout << time.formatted_time_date() << DELIMITER << get("LOGGER") << DELIMITER
     << _level_to_name(level) << DELIMITER << log_struct << endl;
 
-    fout.flush();
     fout.close();
 }
 
