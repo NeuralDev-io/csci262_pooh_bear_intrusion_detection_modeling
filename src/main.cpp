@@ -36,8 +36,11 @@ void read_stats_file(ifstream &fin, char *stats_file, Vehicles &vehicles_dict, A
 
 int main(int argc, char * argv[])
 {
-    // when starting the system, delete all the old logs first before creating new ones.
-    system("exec rm -r logs/*");
+    // when starting the system, delete all the old logs before creating new ones.
+    if (is_dir_exists("logs/"))
+        system("exec rm -r logs/*");
+    else
+        system("exec mkdir logs/");
 
     // TODO: REMOVE THIS BEFORE SUBMITTING
     char days_str[sizeof(int)];
