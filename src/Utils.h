@@ -89,6 +89,21 @@ typedef struct SimTime {
 enum EVENT_TYPE { UNKNOWN = 0, ARRIVAL = 1, DEPART_SIDE_ROAD, DEPART_END_ROAD, PARKING_START, VEHICLE_MOVE };
 typedef enum EVENT_TYPE EVENT_TYPE;
 
+typedef struct VehicleStats {
+    string veh_name;
+    string registration_id;
+    SimTime arrival_time;
+    SimTime departure_time;
+    double arrival_speed;
+    double prob_parking, prob_side_exit, prob_end_exit;
+    bool side_exit_flag;
+
+    // default constructor for VehicleStats
+    VehicleStats() : veh_name(""), registration_id(""), arrival_time(SimTime()),
+                     arrival_speed(0), prob_parking(0), prob_side_exit(0),
+                     prob_end_exit(0), side_exit_flag(false) {}
+} VehicleStats;
+
 unsigned int safe_int_convert(const char *, const char *);
 SimTime time_now();
 string real_formatted_time_now();
