@@ -19,6 +19,7 @@
 #include <fstream>
 #include "Vehicles.h"
 #include "ActivityEngine.h"
+#include "AnalysisEngine.h"
 using namespace std;
 
 #define BUFFER_SZ 100
@@ -91,6 +92,9 @@ int main(int argc, char * argv[])
     vehicles_dict.print();
 
     activity_engine.run(vehicles_dict);
+
+    AnalysisEngine analysis_engine;
+    analysis_engine.run(vehicles_dict, "logs_baseline");
 
     return 0;
 }

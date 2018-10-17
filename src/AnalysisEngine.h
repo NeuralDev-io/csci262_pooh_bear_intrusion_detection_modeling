@@ -16,16 +16,16 @@
 using namespace std;
 
 typedef struct AnalysisStats {
-    int day_count;
-    map<string, unsigned long> day_volume;     // number of vehicles today
-    map<string, unsigned long> total_volume;   // total number of vehicles
+    int day_count;  // number of days analysed, not including current day
+    map<string,long> day_volume;     // number of vehicles today
+    map<string, vector<long>> total_volume;   // total number of vehicles
     map<string, vector<double>> speed;
     map<string, VehicleStats> curr_vehicles;        // current vehicles on the road
     vector<VehicleStats> speeding_tickets;
 
     // default constructor for AnalysisStats
-    AnalysisStats(): day_count(0), day_volume(map<string, unsigned long>()),
-                     total_volume(map<string, unsigned long>()),
+    AnalysisStats(): day_count(0), day_volume(map<string, long>()),
+                     total_volume(map<string, vector<long>>()),
                      speed(map<string, vector<double>>()),
                      speeding_tickets(vector<VehicleStats>()) {}
 } AnalysisStats;
@@ -50,12 +50,12 @@ class AnalysisEngine {
 public:
     AnalysisEngine();   // default
     AnalysisEngine(string log_file);
-    void run(Vehicles vehicles_dict, char* filename);
+    void run(Vehicles vehicles_dict, string filename);
 private:
     void import_vehicles(Vehicles);
     void read_log(string log_file);
     void process_log();
-    void add_speeding(VehicleStats, double speed);
+    void add_speeding(VehicleStats);
     void end_day();
     void end_analysis();
     map<string, VehicleStats> curr_vehicles;

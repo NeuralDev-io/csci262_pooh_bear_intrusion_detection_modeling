@@ -18,7 +18,7 @@ AnalysisEngine::AnalysisEngine(string log_file): curr_vehicles(map<string, Vehic
     logger = Logger<SimTime, AnalysisLog>("Analysis Engine", INFO, log_file, true);
 }
 
-void AnalysisEngine::run(Vehicles vehicles_dict, char* log_file)
+void AnalysisEngine::run(Vehicles vehicles_dict, string log_file)
 {
     SimTime sim_time = time_now();
 
@@ -43,8 +43,8 @@ void AnalysisEngine::import_vehicles(Vehicles vehicles_dict)
 
     for (; iter != iter_end; ++iter) {
         // initialise stats
-        stats.day_volume.insert(pair<string, unsigned long>((*iter).first, 0));
-        stats.total_volume.insert(pair<string, unsigned long>((*iter).first, 0));
+        stats.day_volume.insert(pair<string, long>((*iter).first, 0));
+        stats.total_volume.insert(pair<string, vector<long>>((*iter).first, vector<long>()));
         stats.speed.insert(pair<string, vector<double>>((*iter).first, vector<double>()));
     }
 }
@@ -52,7 +52,9 @@ void AnalysisEngine::import_vehicles(Vehicles vehicles_dict)
 void AnalysisEngine::read_log(string log_file)
 {
     ifstream fin;
-    fin.open(log_file);
+    stringstream filename;
+    filename << "logs/" << log_file;
+    fin.open(filename.str());
 
     if (!fin.good()) {
         cout << "<" << real_formatted_time_now() << "> [*****FILE ERROR*****] Failed to open log file." << endl;
@@ -98,7 +100,8 @@ void AnalysisEngine::process_log()
         start_pos = tmp.find(':');
         SimTime curr_time(tmp.substr(0, start_pos)); // time
         // test if the simulation has gone to the next day
-        if (curr_time.compare_date(prev_time) > 0)
+        if (curr_time.compare_date(prev_time) > 0
+            && prev_time.compare(SimTime())!= 0)
             end_day();
         prev_time = curr_time;
 
@@ -145,8 +148,10 @@ void AnalysisEngine::process_log()
                 veh_stats.departure_time = curr_time;
                 // check speeding
                 double avg_speed = road_length / (curr_time.diff(veh_stats.arrival_time));
-                if (avg_speed > speed_limit)
-                    add_speeding(veh_stats, avg_speed);
+                if (avg_speed > speed_limit) {
+                    veh_stats.avg_speed = avg_speed;
+                    add_speeding(veh_stats);
+                }
             }
         }
         else if (evt_type == PARKING_START) {
@@ -160,21 +165,49 @@ void AnalysisEngine::process_log()
         }
     }
 
+    end_analysis();
 }
 
-void add_speeding(VehicleStats veh_stats, double avg_speed)
+void AnalysisEngine::add_speeding(VehicleStats veh_stats)
 {
+    stats.speeding_tickets.push_back(veh_stats);
 
+    // log warning
+    stringstream msg;
+    msg << veh_stats.veh_name << ":" << veh_stats.registration_id
+        << ":" << veh_stats.avg_speed
+        << ":" << veh_stats.arrival_time.formatted_time_date()
+        << ":" << veh_stats.departure_time.formatted_time_date();
+    logger.warning(veh_stats.departure_time, AnalysisLog( "SPEEDING", "Analysis Log", msg.str() ));
 }
 
 void AnalysisEngine::end_day()
 {
+    auto iter = stats.day_volume.begin();
+    auto iter_end = stats.day_volume.end();
+
+    // update volume data
+    while (iter != iter_end) {
+        auto iter_total = stats.total_volume.find((*iter).first);
+        if (iter_total != stats.total_volume.end()) {
+            (*iter_total).second.push_back( (*iter).second );
+            (*iter).second = 0;
+        }
+        iter++;
+    }
 
     stats.day_count++;
+    // log
+    SimTime sim_time = time_now();
+    stringstream msg;
+    msg << "Analysis day " << stats.day_count << " finished";
+    logger.info(sim_time, AnalysisLog( "NOTICE", "Analysis Log", msg.str() ));
 }
 
 void AnalysisEngine::end_analysis()
 {
     end_day();
+
+    
 
 }
