@@ -24,6 +24,8 @@ using namespace std;
 #define BUFFER_SZ 100
 #ifdef __linux__
     char OS[] = "linux";
+#elif _linux_
+    char OS[] = "linux";
 #elif _WIN32
     char OS[] = "win";
 #elif _WIN64
