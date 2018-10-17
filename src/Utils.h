@@ -42,6 +42,19 @@ typedef struct SimTime {
     SimTime(const SimTime &ST) = default;  // trivial copy constructor
 
     /*
+     * Constructor using a formatted string of time and date
+     */
+    SimTime(string time_str)
+    {
+        tm_mday = stoi(time_str.substr(1,2));
+        tm_mon = stoi(time_str.substr(4,2));
+        tm_year = stoi(time_str.substr(7,4));
+        tm_hour = stoi(time_str.substr(12,2));
+        tm_min = stoi(time_str.substr(15,2));
+        tm_sec = stoi(time_str.substr(18,2));
+    }
+
+    /*
     * Convert a SimTime struct to a human-readable string time.
     *
     * @param t: a reference to the SimTime structure to format to a string.
@@ -96,12 +109,14 @@ typedef struct VehicleStats {
     SimTime departure_time;
     double arrival_speed;
     double prob_parking, prob_side_exit, prob_end_exit;
+    double avg_speed;
     bool side_exit_flag;
 
     // default constructor for VehicleStats
     VehicleStats() : veh_name(""), registration_id(""), arrival_time(SimTime()),
-                     arrival_speed(0), prob_parking(0), prob_side_exit(0),
-                     prob_end_exit(0), side_exit_flag(false) {}
+                     departure_time(SimTime()), arrival_speed(0),
+                     prob_parking(0), prob_side_exit(0), prob_end_exit(0),
+                     avg_speed(0), side_exit_flag(false) {}
 } VehicleStats;
 
 unsigned int safe_int_convert(const char *, const char *);
