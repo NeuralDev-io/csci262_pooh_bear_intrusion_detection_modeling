@@ -38,7 +38,7 @@ typedef struct SimTime {
     int tm_mon;   // months since January [0-11]
     int tm_year;  // years since 1900
 
-    SimTime() : tm_sec(0), tm_min(0), tm_hour(0), tm_mday(1), tm_mon(0), tm_year(2018) {}
+    SimTime() : tm_sec(0), tm_min(0), tm_hour(0), tm_mday(1), tm_mon(1), tm_year(2018) {}
     SimTime(const SimTime &ST) = default;  // trivial copy constructor
 
     /*
@@ -152,6 +152,35 @@ typedef struct SimTime {
         else if (tm_mday > other.tm_mday)
             return 1;
         else return 0;
+    }
+
+    /*
+     * Find the difference between SimTimes in seconds,
+     * given SimTimes are in the same day
+     *
+     * @param: other: another SimTime
+     * @return: the difference of this SimTime and the other SimTime in seconds
+     */
+    // TODO: code for SimTimes of different dates
+    int diff(SimTime other) const
+    {
+        SimTime larger;
+        SimTime smaller;
+        int tmp = compare(other);
+        if (tmp == 0)
+            return 0;
+        else if (tmp > 0) {
+            larger = SimTime(*this);
+            smaller = SimTime(other);
+        }
+        else {
+            smaller = SimTime(*this);
+            larger = SimTime(other);
+        }
+
+        int hour_diff = larger.tm_hour - smaller.tm_hour;
+        return (3600 * hour_diff + (60*larger.tm_min + larger.tm_sec)
+                                 - (60*smaller.tm_min + smaller.tm_sec));
     }
 } SimTime;
 
