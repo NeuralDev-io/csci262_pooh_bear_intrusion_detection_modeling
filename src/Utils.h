@@ -123,6 +123,7 @@ unsigned int safe_int_convert(const char *, const char *);
 SimTime time_now();
 string real_formatted_time_now();
 string event_name(EVENT_TYPE);
+EVENT_TYPE event_type(string evt_name);
 long long int fact(int x);
 bool is_dir_exists(const char *pathname);
 double exponential_probability(float lambda, int t);
