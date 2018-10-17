@@ -14,6 +14,7 @@
 #ifndef POOH_BEAR_INTRUSION_DETECTION_SYSTEM_HELPER_H
 #define POOH_BEAR_INTRUSION_DETECTION_SYSTEM_HELPER_H
 
+#include <limits.h>
 #include <set>
 #include <string>
 #include <random>
@@ -35,9 +36,9 @@ typedef struct SimTime {
     int tm_mday;  // day of the month | [1-31]
     int tm_mon;   // months since January [0-11]
     int tm_year;  // years since 1900
-    int tm_wday;  // days since Sunday (0) [0-6]
 
-    SimTime() : tm_sec(0), tm_min(0), tm_hour(0), tm_mday(1), tm_mon(0), tm_year(1018), tm_wday(0) {}
+    SimTime() : tm_sec(0), tm_min(0), tm_hour(0), tm_mday(1), tm_mon(0), tm_year(2018) {}
+    SimTime(const SimTime &ST) = default;  // trivial copy constructor
 
     /*
     * Convert a SimTime struct to a human-readable string time.
@@ -45,7 +46,7 @@ typedef struct SimTime {
     * @param t: a reference to the SimTime structure to format to a string.
     * @return: string of the time from the SimTime structure.
     * */
-    string formatted_time()
+    string formatted_time() const
     {
         stringstream ss;
         ss << "<" << setfill('0') << setw(2) << this->tm_hour << ":" << setfill('0') << setw(2) << this->tm_min
@@ -59,7 +60,7 @@ typedef struct SimTime {
      * @param t: a reference to the SimTime structure to format to a string.
      * @return: string of the time from the SimTime structure.
      * */
-    string formatted_date()
+    string formatted_date() const
     {
         stringstream ss;
         ss << "<" << setfill('0') << setw(2) << this->tm_mday << "-" << setfill('0') << setw(2) << this->tm_mon
@@ -73,7 +74,8 @@ typedef struct SimTime {
      * @param t: a reference to the SimTime structure to format to a string
      * @return: string of the time and date formatted as DD-MM-YYYY HH:MM:ss
      * */
-    string formatted_time_date() {
+    string formatted_time_date() const
+    {
         stringstream ss;
         ss << "<" << setfill('0') << setw(2) << this->tm_mday << "-" << this->tm_mon << "-" << setw(4) << this->tm_year
            << " " << setfill('0') << setw(2) << this->tm_hour << ":"
@@ -83,14 +85,11 @@ typedef struct SimTime {
     }
 } SimTime;
 
-enum EVENT_TYPE { UNKNOWN = 0, ARRIVAL = 1, DEPART_SIDE_ROAD, DEPART_END_ROAD, PARKING_START, PARKING_STOP,
-        VEHICLE_MOVE };
+enum EVENT_TYPE { UNKNOWN = 0, ARRIVAL = 1, DEPART_SIDE_ROAD, DEPART_END_ROAD, PARKING_START, VEHICLE_MOVE };
 typedef enum EVENT_TYPE EVENT_TYPE;
 
+unsigned int safe_int_convert(const char *, const char *);
 SimTime time_now();
-string formatted_time(SimTime&);
-string formatted_date(SimTime&);
-string formatted_time_date(SimTime&);
 string real_formatted_time_now();
 string event_name(EVENT_TYPE);
 long long int fact(int x);
