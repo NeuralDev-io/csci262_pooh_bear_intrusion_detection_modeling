@@ -36,7 +36,7 @@ void ActivityEngine::run(Vehicles &vehicles)
 
     // log for the number of Days specified at the initial running of Traffic
     stringstream msg;
-    msg << "Started Activity Engine for number of days:" << simulate_days;
+    msg << "Started Activity Engine: Number of days:" << simulate_days << ":Road length:" << road_length << ":Speed limit:" << speed_limit;
     logger.info(sim_time, ActivityLog( "NOTICE", "Activity Log", msg.str() ));
 
     generate_arrivals(vehicles);
