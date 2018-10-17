@@ -15,6 +15,7 @@
 #define POOH_BEAR_INTRUSION_DETECTION_SYSTEM_HELPER_H
 
 #include <limits.h>
+#include <stdlib.h>
 #include <set>
 #include <string>
 #include <random>
@@ -93,6 +94,7 @@ SimTime time_now();
 string real_formatted_time_now();
 string event_name(EVENT_TYPE);
 long long int fact(int x);
+bool is_dir_exists(const char *pathname);
 double exponential_probability(float lambda, int t);
 double poisson_probability(float mu, int X);
 void generate_distribution_csv(default_random_engine randomEngine);

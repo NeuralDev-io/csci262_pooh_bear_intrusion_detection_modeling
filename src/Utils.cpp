@@ -11,6 +11,8 @@
 * Students Dinh Che (5721970 | dbac496) & Duong Le (5560536 | ndl991)
 *********************************************************************************/
 
+#include <sys/stat.h>
+#include <sys/types.h>
 #include "Utils.h"
 
 /*
@@ -109,6 +111,23 @@ long long int fact(int x)
     for (i = 2; i <= x; i++)
         factorial *= i;
     return factorial;
+}
+
+/*
+ * @brief: check if a directory exists given a path name. Works both in UNIX and Windows environments.
+ *
+ * @param pathname: char pointer to a pathname.
+ *
+ * @return: true if the directory exists, false otherwise.
+ * */
+bool is_dir_exists(const char *pathname)
+{
+    struct stat info{};
+
+    if (stat( pathname, &info ) != 0)
+        return false;
+    else
+        return (info.st_mode & S_IFDIR) != 0;
 }
 
 /*
