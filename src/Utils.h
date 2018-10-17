@@ -97,6 +97,62 @@ typedef struct SimTime {
            << setfill('0') << setw(2) << this->tm_sec << ">";
         return ss.str();
     }
+
+    /*
+     * Compare to another SimTime struct
+     *
+     * @param: other: a SimTime struct
+     * @return:
+     *     0 if equal
+     *     -1 if this SimTime happens before the other
+     *     1 if this SimTime happens after the other
+     */
+    int compare(SimTime other) const
+    {
+        if (compare_date(other) > 0)
+            return 1;
+        else if (compare_date(other) < 0)
+            return -1;
+        else if (tm_hour < other.tm_hour)
+            return -1;
+        else if (tm_hour > other.tm_hour)
+            return 1;
+        else if (tm_min < other.tm_min)
+            return -1;
+        else if (tm_min > other.tm_min)
+            return 1;
+        else if (tm_sec < other.tm_sec)
+            return -1;
+        else if (tm_sec > other.tm_sec)
+            return 1;
+        else return 0;
+    }
+
+    /*
+     * Compare to another SimTime struct based on date only
+     *
+     * @param: other: a SimTime struct
+     * @return:
+     *     0 if equal
+     *     -1 if this SimTime happens before the other
+     *     1 if this SimTime happens after the other
+     */
+    int compare_date(SimTime other) const
+    {
+        if (tm_year < other.tm_year)
+            return -1;
+        else if (tm_year > other.tm_year)
+            return 1;
+        else if (tm_mon < other.tm_mon)
+            return -1;
+        else if (tm_mon > other.tm_mon)
+            return 1;
+        else if (tm_mday < other.tm_mday)
+            return -1;
+        else if (tm_mday > other.tm_mday)
+            return 1;
+        else return 0;
+    }
 } SimTime;
 
 enum EVENT_TYPE { UNKNOWN = 0, ARRIVAL = 1, DEPART_SIDE_ROAD, DEPART_END_ROAD, PARKING_START, VEHICLE_MOVE };
