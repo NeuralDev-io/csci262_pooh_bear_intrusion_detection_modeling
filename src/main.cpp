@@ -22,6 +22,13 @@
 using namespace std;
 
 #define BUFFER_SZ 100
+#ifdef __linux__
+    char OS[] = "linux";
+#elif _WIN32
+    char OS[] = "win";
+#elif _WIN64
+    char OS[] = "win";
+#endif
 
 /* STRUCT DEFINITION */
 
@@ -37,10 +44,16 @@ void read_stats_file(ifstream &fin, char *stats_file, Vehicles &vehicles_dict, A
 int main(int argc, char * argv[])
 {
     // when starting the system, delete all the old logs before creating new ones.
-    if (is_dir_exists("logs/"))
-        system("exec rm -r logs/*");
-    else
-        system("exec mkdir logs/");
+    if (is_dir_exists("logs/")) {
+        if (strcmp(OS, "linux") == 0)
+            system("exec rm -r logs/*");
+        else system("del logs");
+    }
+    else {
+        if (strcmp(OS, "linux") == 0)
+            system("exec mkdir logs/");
+        else system("mkdir logs");
+    }
 
     // TODO: REMOVE THIS BEFORE SUBMITTING
     char days_str[sizeof(int)];
