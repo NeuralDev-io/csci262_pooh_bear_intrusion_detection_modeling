@@ -3,7 +3,7 @@
 * Pooh Bear Intrusion Detection System main.cpp
 * Purpose: main() driver for implementation of specifications
 *
-* @version 0.1-dev
+* @version 0.4-dev
 * @date 2018.10.06
 *
 * @authors Dinh Che (codeninja55) & Duong Le (daltonle)
@@ -12,63 +12,120 @@
 *********************************************************************************/
 
 #include <iostream>
+#include <iomanip>
 #include <cstdlib>
-#include <limits.h>
 #include <string.h>
 #include <cstring>
 #include <fstream>
 #include "Vehicles.h"
 #include "ActivityEngine.h"
-// #include "Logger.h"
-
+#include "AnalysisEngine.h"
 using namespace std;
 
 #define BUFFER_SZ 100
+#ifdef __linux__
+    char OS[] = "linux";
+#elif _linux_
+    char OS[] = "linux";
+#elif _WIN32
+    char OS[] = "win";
+#elif _WIN64
+    char OS[] = "win";
+#endif
 
 /* STRUCT DEFINITION */
 
 /* GLOBAL VARIABLES */
-unsigned int g_n_vehicles;
+unsigned int g_n_vehicles = 0;
+unsigned g_days = 0;
 
 /* FUNCTION PROTOTYPES */
-unsigned int safe_int_convert(const char *, const char *);
+void read_vehicles_file(ifstream &fin, char *vehicles_file, Vehicles &vehicles_dict);
+void read_stats_file(ifstream &fin, char *stats_file, Vehicles &vehicles_dict, ActivityEngine &activity_engine);
 
-int main(int argc, char * argv[]) {
+
+int main(int argc, char * argv[])
+{
+    // when starting the system, delete all the old logs before creating new ones.
+    if (is_dir_exists("logs/")) {
+        if (strcmp(OS, "linux") == 0)
+            system("exec rm -r logs/*");
+        else
+            system("del logs");
+    } else {
+        if (strcmp(OS, "linux") == 0)
+            system("exec mkdir logs/");
+        else
+            system("mkdir logs");
+    }
+
+    if (is_dir_exists("data/")) {
+        if (strcmp(OS, "linux") == 0)
+            system("exec rm -r data/*");
+        else
+            system("del data");
+    } else {
+        if (strcmp(OS, "linux") == 0)
+            system("exec mkdir data/");
+        else
+            system("mkdir data");
+    }
 
     char days_str[sizeof(int)];
-    char vehicles_file[BUFFER_SZ] = "data/";
-    char stats_file[BUFFER_SZ] = "data/";
-    uint days = 0;
+    char vehicles_file[BUFFER_SZ], stats_file[BUFFER_SZ];
 
     // check the correct amount of args has been passed
     if (argc < 4 || argc > 4) {
         cout << "Usage: Traffic [VEHICLES FILE] [STATS FILE] [DAYS]\n" << flush;
         exit(0);
     } else if (argc == 4) {  // correct number of args passed
-        strncat(vehicles_file, argv[1], sizeof(vehicles_file) - (strlen(vehicles_file) + 1));
-        strncat(stats_file, argv[2], sizeof(stats_file) - (strlen(vehicles_file) + 1));
+        strncpy(vehicles_file, argv[1], BUFFER_SZ);
+        strncpy(stats_file, argv[2], BUFFER_SZ);
         // attempting to do int conversion from args safely
         strncpy(days_str, argv[3], sizeof(int));
-        days = safe_int_convert(days_str, "Incorrect number used for number of days");
+        g_days = safe_int_convert(days_str, "[*****READ ERROR*****] Incorrect number used for number of days");
     }
 
+    cout << "|" << setfill('=') << setw(46) << "| "
+         << " WELCOME TO POOH BEAR INTRUSION DETECTION SYSTEM  |" << setw(47) << "|\n" << setfill(' ') << flush;
+
     ifstream fin;
-    fin.open(vehicles_file, ifstream::in);
-    if (!fin.good()) {
-        cout << "[!!] Unable to read Vehicles file from: " << vehicles_file << "\nExiting...\n" << flush;
-        exit(1);
-    }
 
     // vehicles_dict is a Vehicles wrapper object for a hash map dictionary of VehicleType structs.
     // key: name of the type. value: VehicleType structure
     Vehicles vehicles_dict = Vehicles();
+    read_vehicles_file(fin, vehicles_file, vehicles_dict);
+
+    ActivityEngine activity_engine;
+    read_stats_file(fin, stats_file, vehicles_dict, activity_engine);
+
+    // TODO: debug
+    cout << "[*****SYSTEM*****]" << left << setw(27) << " Vehicle Types " << endl;
+    vehicles_dict.print();
+
+    activity_engine.run(vehicles_dict);
+
+    AnalysisEngine analysis_engine;
+    analysis_engine.run(vehicles_dict);
+
+    return 0;
+}
+
+void read_vehicles_file(ifstream &fin, char *vehicles_file, Vehicles &vehicles_dict)
+{
+    fin.open(vehicles_file, ifstream::in);
+    if (!fin.good()) {
+        stringstream ss;
+        ss << "[*****FILE ERROR*****] Unable to read Vehicles file from: " << vehicles_file << "\nExiting...\n" << flush;
+        perror(ss.str().c_str());
+        exit(1);
+    }
 
     fin >> g_n_vehicles;  // read the first line as number of vehicle types and store it globally
-
     // read subsequent lines from Vehicles.txt as:
     // "Vehicle name:Parking flag:Registration format:Volume weight:Speed weight:"
     while (!fin.eof()) {
-        fin.ignore();  // ignore left over newline
+        fin.ignore(); // ignore newline before getline()
 
         string tmp_name;
         getline(fin, tmp_name, ':');
@@ -92,41 +149,51 @@ int main(int argc, char * argv[]) {
         getline(fin, vol_str, ':');
         getline(fin, speed_str, ':');
         new_vehicle.vol_weight = safe_int_convert(vol_str.c_str(),
-                "Incorrect number used for volume weight. Must be integer.");
+                "[*****READ ERROR*****] Incorrect number used for volume weight. Must be integer.");
         new_vehicle.speed_weight = safe_int_convert(speed_str.c_str(),
-                "Incorrect number used for speed weight. Must be integer.");
+                "[*****READ ERROR*****] Incorrect number used for speed weight. Must be integer.");
         // insert each new_vehicle struct into the Vehicles hash map dictionary
         vehicles_dict.insert(new_vehicle);
     }
     fin.close();
+}
 
+void read_stats_file(ifstream &fin, char *stats_file, Vehicles &vehicles_dict, ActivityEngine &activity_engine)
+{
     fin.open(stats_file, ifstream::in);
     if (!fin.good()) {
-        cout << "[!!] Unable to read Stats file from: " << stats_file << "\nExiting...\n" << flush;
+        stringstream ss;
+        ss << "[*****FILE ERROR*****] Unable to read Stats file from: " << stats_file << "\nExiting...\n" << flush;
+        perror(ss.str().c_str());
         exit(1);
     }
 
     // read the first line as positive integers
     // number of vehicle types monitored | length of road in km | speed limit in km/h | number of parking spaces
     char *unused_end;
-    uint veh_monitored, parking_spots;
+    unsigned veh_monitored, parking_spots;
     float speed_lim, road_len;
     string veh_monitored_str, parking_spots_str, speed_lim_str, road_len_str;
 
     fin >> veh_monitored_str >> road_len_str >> speed_lim_str >> parking_spots_str;
     veh_monitored = safe_int_convert(veh_monitored_str.c_str(),
-            "Incorrect number used for number of vehicles monitored. Must be integer.");
+            "[*****READ ERROR*****] Incorrect number used for number of vehicles monitored. Must be integer.");
     parking_spots = safe_int_convert(parking_spots_str.c_str(),
-            "Incorrect number used for number of vehicles monitored. Must be integer.");
+            "[*****READ ERROR*****] Incorrect number used for number of vehicles monitored. Must be integer.");
     speed_lim = strtof(speed_lim_str.c_str(), &unused_end);
     road_len = strtof(road_len_str.c_str(), &unused_end);
 
-    ActivityEngine TrafficEngine = ActivityEngine(days, veh_monitored, road_len, speed_lim, parking_spots);
+    cout << "[*****SYSTEM*****]" << left << setw(27) << " Vehicles Monitored: " << veh_monitored
+         << "\n[*****SYSTEM*****]" << left << setw(27) << " Road Length: " << road_len
+         << "\n[*****SYSTEM*****]" << left << setw(27) << " Parking Spots Available: " << parking_spots
+         << "\n[*****SYSTEM*****]" << left << setw(27) << " Speed Limit: " << speed_lim << " km/h\n" << endl;
+
+    activity_engine.set_statistics(g_days, veh_monitored, road_len, speed_lim, parking_spots);
 
     // read subsequent lines from Stats.txt as:
     // Vehicle type:Number mean:Number standard deviation:Speed mean: Speed standard deviation:
     while (!fin.eof()) {
-        fin.ignore(); // ignore left over newline
+        fin.ignore(); // ignore left over newline before getline()
 
         // read both each int type as a string initially and use safe_int_convert()
         // function to safely convert them to an unsigned int
@@ -152,34 +219,5 @@ int main(int argc, char * argv[]) {
         // TODO: should log this to a file
         if (!vehicles_dict.add_stats(name, num_mean, num_stddev, speed_mean, speed_stddev))
             cout << "Vehicle type " << name << " cannot be found." << endl;
-    }
-
-    // TODO: debug
-    vehicles_dict.print();
-
-    TrafficEngine.run();
-
-    return 0;
-}
-
-/* HELPER UTILS */
-
-/*
- * Utility function to convert read in string to unsigned int, making sure it fits into int
- * size otherwise, print to stdout an error message defined from parameter.
- *
- * @param int_str: const char pointer to a c-style string which can be converted to an int
- * @param err_msg: a const char pointer to a c-style string a message to print to stdout for errors
- * @return: a c++ static_cast unsigned int if successful.
- * */
-unsigned int safe_int_convert(const char *int_str, const char *err_msg)
-{
-    char *unused_end;
-    long tmp = strtol(int_str, &unused_end, sizeof(long));
-    if (tmp >= INT_MIN && tmp <= INT_MAX)
-        return static_cast<unsigned int>(tmp);
-    else {
-        cout << "[!!] " << err_msg << "\nExiting..." << endl;
-        exit(1);
     }
 }

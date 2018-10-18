@@ -3,7 +3,7 @@
 * Pooh Bear Intrusion Detection System ActivityEngine.h
 * Purpose: Header file for ActivityEngine class.
 *
-* @version 0.2-dev
+* @version 0.5-dev
 * @date 2018.10.06
 *
 * @authors Dinh Che (codeninja55) & Duong Le (daltonle)
@@ -11,40 +11,103 @@
 * Students Dinh Che (5721970 | dbac496) & Duong Le (5560536 | ndl991)
 *********************************************************************************/
 
+#include <utility>
+
 #ifndef POOH_BEAR_INTRUSION_DETECTION_SYSTEM_ACTIVITYENGINE_H
 #define POOH_BEAR_INTRUSION_DETECTION_SYSTEM_ACTIVITYENGINE_H
 
-#include <zconf.h>
 #include <queue>
+#include <iostream>
+#include <random>
+#include <fstream>
+#include <math.h>
+#include <iomanip>
+#include <chrono>
+#include "Utils.h"
+#include "Vehicles.h"
 #include "Logger.h"
+using namespace std;
+
+/*
+ * @brief: a wrapper structure that is passed into the logger object to be printed.
+ *         As a requirement, it must overload the << operator so when printing, the
+ *         desired properties are printed as required.
+ * */
+typedef struct ActivityLog {
+    string ev_type = "NOTICE";
+    string log_name = "Activity Log";
+    string msg = "";
+
+    ActivityLog(string ev_type, string log_name, string msg) : ev_type(ev_type),
+                                                               log_name(log_name),
+                                                               msg(msg) { }
+
+    friend ostream& operator<<(ostream& os, ActivityLog const& activity_log)
+    {
+        return os << activity_log.log_name << DELIMITER << activity_log.ev_type << DELIMITER
+                  << activity_log.msg;
+    }
+} ActivityLog;
+
+typedef struct VehicleLog {
+    EVENT_TYPE ev_type = ARRIVAL;
+    string log_name = "Vehicle Log";
+    string veh_name = "";
+    string veh_registration = "NA";
+    double speed = 0;
+
+    VehicleLog(EVENT_TYPE ev_type, string log_name, string veh_name,
+                string veh_registration, double speed) : ev_type(ev_type),
+                                                         log_name(std::move(log_name)),
+                                                         veh_name(veh_name),
+                                                         veh_registration(veh_registration),
+                                                         speed(speed) { }
+
+    friend ostream& operator<<(ostream& os, VehicleLog const& veh_log)
+    {
+        return os << veh_log.log_name << DELIMITER << event_name(veh_log.ev_type) << DELIMITER
+                  << veh_log.veh_name << DELIMITER << veh_log.veh_registration << DELIMITER
+                  << fixed << setprecision(2) << veh_log.speed;
+    }
+} VehicleLog;
 
 typedef struct {
     EVENT_TYPE ev_type;
     SimTime time;
+    VehicleStats stats;
 } Event;
 
 struct event_compare {
     bool operator()(const Event &lhs, const Event &rhs) {
-        if (lhs.time.tm_hour == rhs.time.tm_hour) {
-            if (lhs.time.tm_min == rhs.time.tm_min) {
-                return lhs.time.tm_sec < rhs.time.tm_sec;
-            } else
-                return lhs.time.tm_min < rhs.time.tm_min;
+        if (rhs.time.tm_hour == lhs.time.tm_hour) {
+            return (rhs.time.tm_min == lhs.time.tm_min) ? rhs.time.tm_sec < lhs.time.tm_sec :
+                   rhs.time.tm_min < lhs.time.tm_min;
         }
-        return lhs.time.tm_hour < rhs.time.tm_hour;
+        return rhs.time.tm_hour < lhs.time.tm_hour;
     }
 };
 
 class ActivityEngine {
 public:
-    ActivityEngine() : n_vehicles_monitored(0), n_parking_spots(0), road_length(0),
-                       speed_limit(0), simulate_days(0) {}; // default
-    ActivityEngine(uint, uint, float, float, uint);
-    void run();  // run the activity engine simulation
+    ActivityEngine(); // default
+    explicit ActivityEngine(string log_file);
+    void set_statistics(unsigned days, unsigned vehicles_monitored, float road_len,
+                        float speed_lim, unsigned parking_spots);
+    void run(Vehicles&);  // run the activity engine simulation
 private:
-    uint n_vehicles_monitored, n_parking_spots, simulate_days;
+    void generate_discrete_events(Vehicles &vehicles);
+    void process_vehicle(VehicleType &vehicle_type);
+    void simulate_events();
+    long double biased_expovariate(double rate_param, double lower_bound, double upper_bound);
+    unsigned long time_seed;
+    default_random_engine default_engine;
+    minstd_rand0 linear_congruential_engine;
+    mt19937_64 mersenne_twister_engine;
+    unsigned n_vehicles_monitored, n_parking_spots, simulate_days;
     float road_length, speed_limit;
-    priority_queue<Event, vector<Event>, event_compare> event_q;
+    Logger<SimTime, ActivityLog> logger;
+    Logger<SimTime, VehicleLog> veh_logger;
+    priority_queue<Event, vector<Event>, event_compare> future_event_list;
 };
 
 #endif //POOH_BEAR_INTRUSION_DETECTION_SYSTEM_ACTIVITYENGINE_H

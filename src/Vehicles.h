@@ -3,7 +3,7 @@
 * Pooh Bear Intrusion Detection System Vehicles.h
 * Purpose: Header file for Vehicles class and structure definition of Vehicle
 *
-* @version 0.1-dev
+* @version 0.3-dev
 * @date 2018.10.06
 *
 * @authors Dinh Che (codeninja55) & Duong Le (daltonle)
@@ -15,16 +15,23 @@
 #define POOH_BEAR_INTRUSION_DETECTION_SYSTEM_VEHICLES_H
 
 #include <string>
+#include <sstream>
 #include <map>
+#include <set>
 #include <iostream>
-#include <zconf.h>
+#include <random>
+#include <iomanip>
 using namespace std;
+
+const char LETTERS[27] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const char DIGITS[11] = "0123456789";
+static set<string> UNIQUE_REGISTRATIONS;
 
 typedef struct {
     int id;
     string name, reg_format;
     bool parking_flag;
-    uint vol_weight, speed_weight;
+    unsigned vol_weight, speed_weight;
     float num_mean, num_stddev, speed_mean, speed_stddev;
 } VehicleType;
 
@@ -34,9 +41,11 @@ public:
     void insert(VehicleType&);
     bool add_stats(string, float, float, float, float);
     void print();
-
+    int size();
+    map<string, VehicleType> *get_vehicles_dict();
+    static string generate_registration(string &reg_format, default_random_engine &generator);
 private:
-    uint n_vehicles;
+    unsigned n_vehicles;
     map<string, VehicleType> vehicles_dict;
 };
 
