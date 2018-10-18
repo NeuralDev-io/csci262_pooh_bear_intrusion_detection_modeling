@@ -92,6 +92,9 @@ int main(int argc, char * argv[])
 
     activity_engine.run(vehicles_dict);
 
+    AnalysisEngine analysis_engine;
+    analysis_engine.run(vehicles_dict);
+
     return 0;
 }
 
