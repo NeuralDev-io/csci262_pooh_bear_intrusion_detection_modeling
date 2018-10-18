@@ -138,7 +138,7 @@ void ActivityEngine::generate_discrete_events(Vehicles &vehicles)
             } while (veh_stats.arrival_speed < 0);
 
             // add arrival event to queue
-            SimTime arrival_time = time_now();
+            SimTime arrival_time = initialise_time();
             arrival_time.mktime(t_arrival);
             veh_stats.arrival_time = arrival_time;
 
@@ -235,23 +235,23 @@ void ActivityEngine::generate_discrete_events(Vehicles &vehicles)
 
 
             // TODO: debug
-            cout << "Arrival <" << t_arrival << " secs>:" << arrival_time.formatted_time() << " ==> " << veh_stats.registration_id << " "
-                 << "(" << veh_stats.arrival_speed << " kmh)" << endl;
-
-            if (veh_stats.n_parking > 0) {
-                cout << "Parking: ";
-                for (i = 0; i < veh_stats.ts_parking_ls.size(); i++)
-                    cout << veh_stats.ts_parking_ls[i] << " >> ";
-                cout << endl;
-
-                cout << "Parking durations: ";
-                for (simtime_t &t :  veh_stats.ts_parking_duration)
-                    cout << t << " >> ";
-                cout << endl;
-            }
-
-            if (veh_stats.side_exit_flag)
-                cout << "Side Exit: " << side_exit_time.formatted_time() << " ==> " << veh_stats.registration_id << endl;
+            // cout << "Arrival <" << t_arrival << " secs>:" << arrival_time.formatted_time() << " ==> " << veh_stats.registration_id << " "
+            //      << "(" << veh_stats.arrival_speed << " kmh)" << endl;
+            //
+            // if (veh_stats.n_parking > 0) {
+            //     cout << "Parking: ";
+            //     for (i = 0; i < veh_stats.ts_parking_ls.size(); i++)
+            //         cout << veh_stats.ts_parking_ls[i] << " >> ";
+            //     cout << endl;
+            //
+            //     cout << "Parking durations: ";
+            //     for (simtime_t &t :  veh_stats.ts_parking_duration)
+            //         cout << t << " >> ";
+            //     cout << endl;
+            // }
+            //
+            // if (veh_stats.side_exit_flag)
+            //     cout << "Side Exit: " << side_exit_time.formatted_time() << " ==> " << veh_stats.registration_id << endl;
         }
     }
 }

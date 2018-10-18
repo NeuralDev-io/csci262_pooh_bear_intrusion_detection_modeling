@@ -48,27 +48,29 @@ int main(int argc, char * argv[])
 {
     // when starting the system, delete all the old logs before creating new ones.
     if (is_dir_exists("logs/")) {
-        if (strcmp(OS, "linux") == 0) {
+        if (strcmp(OS, "linux") == 0)
             system("exec rm -r logs/*");
-            system("exec rm -r data/*");
-        }
-        else {
+        else
             system("del logs");
-            system("del data");
-        }
-    }
-    else {
-        if (strcmp(OS, "linux") == 0) {
+    } else {
+        if (strcmp(OS, "linux") == 0)
             system("exec mkdir logs/");
-            system("exec mkdir data/");
-        }
-        else {
+        else
             system("mkdir logs");
-            system("mkdir data");
-        }
     }
 
-    // TODO: REMOVE THIS BEFORE SUBMITTING
+    if (is_dir_exists("data/")) {
+        if (strcmp(OS, "linux") == 0)
+            system("exec rm -r data/*");
+        else
+            system("del data");
+    } else {
+        if (strcmp(OS, "linux") == 0)
+            system("exec mkdir data/");
+        else
+            system("mkdir data");
+    }
+
     char days_str[sizeof(int)];
     char vehicles_file[BUFFER_SZ], stats_file[BUFFER_SZ];
 
@@ -120,7 +122,6 @@ void read_vehicles_file(ifstream &fin, char *vehicles_file, Vehicles &vehicles_d
     }
 
     fin >> g_n_vehicles;  // read the first line as number of vehicle types and store it globally
-
     // read subsequent lines from Vehicles.txt as:
     // "Vehicle name:Parking flag:Registration format:Volume weight:Speed weight:"
     while (!fin.eof()) {

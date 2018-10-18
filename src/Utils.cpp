@@ -21,7 +21,7 @@
  *
  * @return: the SimTime structure that was initialised.
  * */
-SimTime time_now()
+SimTime initialise_time()
 {
     // Get the real time based on system
     time_t raw_time = time(0);
@@ -117,8 +117,6 @@ EVENT_TYPE event_type(string evt_name)
         return PARKING_START;
     if (evt_name == "VEHICLE_MOVE")
         return VEHICLE_MOVE;
-    if (evt_name == "UNKNOWN")
-        return UNKNOWN;
 }
 
 long long int fact(int x)

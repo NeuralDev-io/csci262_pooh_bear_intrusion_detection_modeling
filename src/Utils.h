@@ -305,7 +305,7 @@ double std_dev(vector<T>& vector1)
 }
 
 unsigned int safe_int_convert(const char *, const char *);
-SimTime time_now();
+SimTime initialise_time();
 string real_formatted_time_now();
 string event_name(EVENT_TYPE);
 EVENT_TYPE event_type(string evt_name);
