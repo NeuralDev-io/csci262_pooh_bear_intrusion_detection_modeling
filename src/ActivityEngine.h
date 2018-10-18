@@ -71,10 +71,29 @@ typedef struct VehicleLog {
     }
 } VehicleLog;
 
-typedef struct {
+typedef struct Event {
     EVENT_TYPE ev_type;
     SimTime time;
-    VehicleStats stats;
+    VehicleStats &stats;
+
+    Event(EVENT_TYPE ev_type, SimTime time, VehicleStats &stats) : ev_type(ev_type), time(time), stats(stats) {};
+    Event(const Event &other) = default; // trivial copy constructor
+    /*
+     * @brief: overload required to maintain only a reference pointer to stats rather than a new object every time.
+     *
+     * @return: pointer to this struct.
+     * */
+    Event& operator=(const Event& rhs)
+    {
+        if (&rhs == this)
+            return *this;
+
+        this->ev_type = rhs.ev_type;
+        this->time = rhs.time;
+        stats = rhs.stats;
+        return *this;
+    }
+
 } Event;
 
 struct event_compare {
