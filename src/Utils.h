@@ -56,9 +56,20 @@ typedef struct SimTime {
     }
 
     /*
+     * @brief: get a simtime_t type timestamp in seconds.
+     *
+     * @return: a simetime_t double timestamp in seconds.
+     * */
+    simtime_t get_timestamp()
+    {
+        return (tm_hour * 60 * 60) + (tm_min * 60) + (tm_sec);
+    }
+
+    /*
      * Constructor using a formatted string of time and date
+     * Format: '<DD-MM-YYYY HH:MM:ss>'
      */
-    SimTime(string time_str)
+    SimTime(const string &time_str)
     {
         tm_mday = stoi(time_str.substr(1,2));
         tm_mon = stoi(time_str.substr(4,2));
