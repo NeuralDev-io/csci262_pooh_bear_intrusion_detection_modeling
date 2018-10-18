@@ -50,7 +50,7 @@ typedef enum LEVEL LEVEL;
 typedef map<string, string>::iterator Config_Iter;
 typedef map<string, string> Config_Dict;
 
-static char DELIMITER = ':';
+static char DELIMITER = ',';
 
 /*
  * @brief: a template Logger class with two template type arguments.
