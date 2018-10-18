@@ -1,5 +1,3 @@
-#include <utility>
-
 /*********************************************************************************
 * CSCI262 (Spring 2018) - Assignment 03
 * Pooh Bear Intrusion Detection System ActivityEngine.h
@@ -12,6 +10,8 @@
 * Emails andrew at codeninja55.me & duong.daltonle at gmail.com
 * Students Dinh Che (5721970 | dbac496) & Duong Le (5560536 | ndl991)
 *********************************************************************************/
+
+#include <utility>
 
 #ifndef POOH_BEAR_INTRUSION_DETECTION_SYSTEM_ACTIVITYENGINE_H
 #define POOH_BEAR_INTRUSION_DETECTION_SYSTEM_ACTIVITYENGINE_H
@@ -90,15 +90,13 @@ struct event_compare {
 class ActivityEngine {
 public:
     ActivityEngine(); // default
+    explicit ActivityEngine(string log_file);
     void set_statistics(unsigned days, unsigned vehicles_monitored, float road_len,
                         float speed_lim, unsigned parking_spots);
     void run(Vehicles&);  // run the activity engine simulation
 private:
     void generate_discrete_events(Vehicles &vehicles);
     void process_vehicle(VehicleType &vehicle_type);
-    void generate_depart_side();
-    void generate_depart_end();
-    void generate_parking_events();
     void simulate_events();
     long double biased_expovariate(double rate_param, double lower_bound, double upper_bound);
     unsigned long time_seed;
