@@ -1,17 +1,17 @@
-#include <utility>
-
 /*********************************************************************************
 * CSCI262 (Spring 2018) - Assignment 03
 * Pooh Bear Intrusion Detection System ActivityEngine.h
 * Purpose: Header file for ActivityEngine class.
 *
-* @version 0.4-dev
+* @version 0.5-dev
 * @date 2018.10.06
 *
 * @authors Dinh Che (codeninja55) & Duong Le (daltonle)
 * Emails andrew at codeninja55.me & duong.daltonle at gmail.com
 * Students Dinh Che (5721970 | dbac496) & Duong Le (5560536 | ndl991)
 *********************************************************************************/
+
+#include <utility>
 
 #ifndef POOH_BEAR_INTRUSION_DETECTION_SYSTEM_ACTIVITYENGINE_H
 #define POOH_BEAR_INTRUSION_DETECTION_SYSTEM_ACTIVITYENGINE_H
@@ -50,7 +50,7 @@ typedef struct ActivityLog {
 } ActivityLog;
 
 typedef struct VehicleLog {
-    EVENT_TYPE ev_type = UNKNOWN;
+    EVENT_TYPE ev_type = ARRIVAL;
     string log_name = "Vehicle Log";
     string veh_name = "";
     string veh_registration = "NA";
@@ -90,11 +90,13 @@ struct event_compare {
 class ActivityEngine {
 public:
     ActivityEngine(); // default
+    explicit ActivityEngine(string log_file);
     void set_statistics(unsigned days, unsigned vehicles_monitored, float road_len,
                         float speed_lim, unsigned parking_spots);
     void run(Vehicles&);  // run the activity engine simulation
 private:
-    void generate_arrivals(Vehicles &vehicles);
+    void generate_discrete_events(Vehicles &vehicles);
+    void process_vehicle(VehicleType &vehicle_type);
     void simulate_events();
     long double biased_expovariate(double rate_param, double lower_bound, double upper_bound);
     unsigned long time_seed;
@@ -105,7 +107,7 @@ private:
     float road_length, speed_limit;
     Logger<SimTime, ActivityLog> logger;
     Logger<SimTime, VehicleLog> veh_logger;
-    priority_queue<Event, vector<Event>, event_compare> event_q;
+    priority_queue<Event, vector<Event>, event_compare> future_event_list;
 };
 
 #endif //POOH_BEAR_INTRUSION_DETECTION_SYSTEM_ACTIVITYENGINE_H

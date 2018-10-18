@@ -1,8 +1,8 @@
-#include <utility>
-
 //
 // Created by lnduo on 17/10/18.
 //
+
+#include <utility>
 
 #ifndef POOH_BEAR_INTRUSION_DETECTION_SYSTEM_ANALYSISENGINE_H
 #define POOH_BEAR_INTRUSION_DETECTION_SYSTEM_ANALYSISENGINE_H
@@ -63,12 +63,12 @@ class AnalysisEngine {
 public:
     AnalysisEngine();   // default
     AnalysisEngine(string log_file);
-    void run(Vehicles vehicles_dict);
+    void run(Vehicles &vehicles_dict);
 private:
-    void import_vehicles(Vehicles);
+    void import_vehicles(Vehicles&);
     void read_log();
     void process_log();
-    void add_speeding(VehicleStats);
+    void add_speeding(VehicleStats&);
     void end_day();
     void end_analysis();
     map<string, DailyStats> today_stats;

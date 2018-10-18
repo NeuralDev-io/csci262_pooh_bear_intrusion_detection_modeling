@@ -3,7 +3,7 @@
 * Pooh Bear Intrusion Detection System Helper.h
 * Purpose: main() driver for implementation of specifications
 *
-* @version 0.1-dev
+* @version 0.5-dev
 * @date 2018.10.06
 *
 * @authors Dinh Che (codeninja55) & Duong Le (daltonle)
@@ -26,6 +26,8 @@
 #include <iostream>
 using namespace std;
 
+typedef double simtime_t;
+
 /*
  * SimTime structure to hold the time values. Based heavily on C stdlib tm struct.
  * REF: http://www.cplusplus.com/reference/ctime/tm/
@@ -40,6 +42,18 @@ typedef struct SimTime {
 
     SimTime() : tm_sec(0), tm_min(0), tm_hour(0), tm_mday(1), tm_mon(1), tm_year(2018) {}
     SimTime(const SimTime &ST) = default;  // trivial copy constructor
+
+    /*
+     * @brief: takes a timestamp value and converts it to a SimTime time.
+     *
+     * @param timestamp: double value to be converted to a SimTIme struct.
+     * */
+    void mktime(simtime_t timestamp)
+    {
+        this->tm_hour = static_cast<int>(lround(timestamp)) / 60 / 60;
+        this->tm_min = static_cast<int>(lround(timestamp)) / 60 % 60;
+        this->tm_sec = static_cast<int>(lround(timestamp)) % 60;
+    }
 
     /*
      * Constructor using a formatted string of time and date
@@ -245,14 +259,16 @@ typedef struct SimTime {
     }
 } SimTime;
 
-enum EVENT_TYPE { UNKNOWN = 0, ARRIVAL = 1, DEPART_SIDE_ROAD, DEPART_END_ROAD, PARKING_START, VEHICLE_MOVE };
+enum EVENT_TYPE { ARRIVAL = 1, DEPART_SIDE_ROAD, DEPART_END_ROAD, PARKING_START, VEHICLE_MOVE };
 typedef enum EVENT_TYPE EVENT_TYPE;
 
 typedef struct VehicleStats {
-    string veh_name;
-    string registration_id;
-    SimTime arrival_time;
-    SimTime departure_time;
+    string veh_name, registration_id;
+    SimTime arrival_time, departure_time;
+    int n_parking;
+    vector<simtime_t> ts_parking_ls;
+    vector<simtime_t> ts_parking_duration;
+    vector<pair<simtime_t, double> > ts_parking_times;
     double arrival_speed;
     double prob_parking, prob_side_exit, prob_end_exit;
     double avg_speed;
@@ -289,7 +305,7 @@ double std_dev(vector<T>& vector1)
 }
 
 unsigned int safe_int_convert(const char *, const char *);
-SimTime time_now();
+SimTime initialise_time();
 string real_formatted_time_now();
 string event_name(EVENT_TYPE);
 EVENT_TYPE event_type(string evt_name);

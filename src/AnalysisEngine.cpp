@@ -30,9 +30,9 @@ AnalysisEngine::AnalysisEngine(string log_file1): curr_vehicles(map<string, Vehi
     stats_file = "stats_" + log_file1.substr(5, log_file1.length() - 5);
 }
 
-void AnalysisEngine::run(Vehicles vehicles_dict)
+void AnalysisEngine::run(Vehicles &vehicles_dict)
 {
-    SimTime sim_time = time_now();
+    SimTime sim_time = initialise_time();
 
     cout << "[*****SYSTEM*****] Analysis Engine started: " << real_formatted_time_now() << "\n" << flush;
 
@@ -41,14 +41,14 @@ void AnalysisEngine::run(Vehicles vehicles_dict)
     msg << "Started Analysis Engine";
     logger.info(sim_time, AnalysisLog( "NOTICE", "Analysis Log", msg.str() ));
 
-    import_vehicles(std::move(vehicles_dict));
+    import_vehicles(vehicles_dict);
     read_log();
     process_log();
 
     cout << "[*****SYSTEM*****] Analysis Engine finished: " << real_formatted_time_now() << "\n" << flush;
 }
 
-void AnalysisEngine::import_vehicles(Vehicles vehicles_dict)
+void AnalysisEngine::import_vehicles(Vehicles &vehicles_dict)
 {
     auto iter = vehicles_dict.get_vehicles_dict()->begin();
     auto iter_end = vehicles_dict.get_vehicles_dict()->end();
@@ -177,7 +177,7 @@ void AnalysisEngine::process_log()
     end_analysis();
 }
 
-void AnalysisEngine::add_speeding(VehicleStats veh_stats)
+void AnalysisEngine::add_speeding(VehicleStats &veh_stats)
 {
     speeding_tickets.push_back(veh_stats);
 
@@ -247,7 +247,7 @@ void AnalysisEngine::end_day()
     fout.close();
 
     // log
-    SimTime sim_time = time_now();
+    SimTime sim_time = initialise_time();
     stringstream msg;
     msg << "Analysis day " << day_count << " finished";
     logger.info(sim_time, AnalysisLog( "NOTICE", "Analysis Log", msg.str() ));
