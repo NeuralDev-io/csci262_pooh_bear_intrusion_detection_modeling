@@ -30,16 +30,35 @@ ActivityEngine::ActivityEngine() : n_vehicles_monitored(0), n_parking_spots(0), 
     mersenne_twister_engine.seed(0);
 }
 
+
+/*
+ * @brief:
+ *
+ * @param log_file:
+ * */
+ActivityEngine::ActivityEngine(string log_file)
+{
+    // Set the last param to true if you want to output log to stdout
+    logger = Logger<SimTime, ActivityLog>("Activity Engine", INFO, log_file, !DEBUG_MODE);
+    veh_logger = Logger<SimTime, VehicleLog>("Activity Engine", INFO, log_file, !DEBUG_MODE);
+
+    time_seed = static_cast<unsigned long>(chrono::system_clock::now().time_since_epoch().count());
+    default_engine.seed(0);
+    linear_congruential_engine.seed(0);
+    mersenne_twister_engine.seed(0);
+}
+
 void ActivityEngine::run(Vehicles &vehicles)
 {
-    SimTime sim_time = time_now();
+    SimTime sim_time = initialise_time();
 
     cout << "[*****SYSTEM*****] Activity Engine started: " << real_formatted_time_now() << "\n" << flush;
 
     // log for the number of Days specified at the initial running of Traffic
     stringstream msg;
-    msg << "Started Activity Engine" << DELIMITER << "Number of days=" << simulate_days
-    << DELIMITER << "Road length=" << road_length << DELIMITER << "Speed limit=" << speed_limit;
+    msg << "Started Activity Engine" << DELIMITER << "Number of days=" << simulate_days << DELIMITER
+        << "Road length=" << road_length << DELIMITER << "Speed limit=" << speed_limit << DELIMITER << "Parking spots="
+        << n_parking_spots;
     logger.info(sim_time, ActivityLog( "NOTICE", "Activity Log", msg.str() ));
 
     // TODO: for i... 0 -> N days
@@ -119,7 +138,7 @@ void ActivityEngine::generate_discrete_events(Vehicles &vehicles)
             } while (veh_stats.arrival_speed < 0);
 
             // add arrival event to queue
-            SimTime arrival_time = time_now();
+            SimTime arrival_time = initialise_time();
             arrival_time.mktime(t_arrival);
             veh_stats.arrival_time = arrival_time;
 
@@ -216,23 +235,23 @@ void ActivityEngine::generate_discrete_events(Vehicles &vehicles)
 
 
             // TODO: debug
-            cout << "Arrival <" << t_arrival << " secs>:" << arrival_time.formatted_time() << " ==> " << veh_stats.registration_id << " "
-                 << "(" << veh_stats.arrival_speed << " kmh)" << endl;
-
-            if (veh_stats.n_parking > 0) {
-                cout << "Parking: ";
-                for (i = 0; i < veh_stats.ts_parking_ls.size(); i++)
-                    cout << veh_stats.ts_parking_ls[i] << " >> ";
-                cout << endl;
-
-                cout << "Parking durations: ";
-                for (simtime_t &t :  veh_stats.ts_parking_duration)
-                    cout << t << " >> ";
-                cout << endl;
-            }
-
-            if (veh_stats.side_exit_flag)
-                cout << "Side Exit: " << side_exit_time.formatted_time() << " ==> " << veh_stats.registration_id << endl;
+            // cout << "Arrival <" << t_arrival << " secs>:" << arrival_time.formatted_time() << " ==> " << veh_stats.registration_id << " "
+            //      << "(" << veh_stats.arrival_speed << " kmh)" << endl;
+            //
+            // if (veh_stats.n_parking > 0) {
+            //     cout << "Parking: ";
+            //     for (i = 0; i < veh_stats.ts_parking_ls.size(); i++)
+            //         cout << veh_stats.ts_parking_ls[i] << " >> ";
+            //     cout << endl;
+            //
+            //     cout << "Parking durations: ";
+            //     for (simtime_t &t :  veh_stats.ts_parking_duration)
+            //         cout << t << " >> ";
+            //     cout << endl;
+            // }
+            //
+            // if (veh_stats.side_exit_flag)
+            //     cout << "Side Exit: " << side_exit_time.formatted_time() << " ==> " << veh_stats.registration_id << endl;
         }
     }
 }

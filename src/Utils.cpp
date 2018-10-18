@@ -21,7 +21,7 @@
  *
  * @return: the SimTime structure that was initialised.
  * */
-SimTime time_now()
+SimTime initialise_time()
 {
     // Get the real time based on system
     time_t raw_time = time(0);
@@ -83,7 +83,7 @@ string real_formatted_time_now()
 }
 
 /*
- * @param ev: an enum EVENT
+ * @param ev: an enum EVENT_TYPE
  * @return: a string representation of the enum EVENT.
  * */
 string event_name(EVENT_TYPE ev) {
@@ -99,6 +99,24 @@ string event_name(EVENT_TYPE ev) {
         case VEHICLE_MOVE:
             return "VEHICLE_MOVE";
     }
+}
+
+/*
+ * @param: evt_name: a string representation of the enum EVENT.
+ * @return: an enum EVENT_TYPE
+ * */
+EVENT_TYPE event_type(string evt_name)
+{
+    if (evt_name == "ARRIVAL")
+        return ARRIVAL;
+    if (evt_name == "DEPART_SIDE_ROAD")
+        return DEPART_SIDE_ROAD;
+    if (evt_name == "DEPART_END_ROAD")
+        return DEPART_END_ROAD;
+    if (evt_name == "PARKING_START")
+        return PARKING_START;
+    if (evt_name == "VEHICLE_MOVE")
+        return VEHICLE_MOVE;
 }
 
 long long int fact(int x)
