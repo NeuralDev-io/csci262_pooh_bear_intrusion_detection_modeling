@@ -75,11 +75,10 @@ void ActivityEngine::generate_discrete_events(Vehicles &vehicles)
     auto iter = vehicles.get_vehicles_dict()->begin();
     auto iter_end = vehicles.get_vehicles_dict()->end();
     int i;
-    const double arrival_time_interval = 23.0F;
-    simtime_t T_limit = (arrival_time_interval * 60.0F * 60.0F) - 1.0F;
 
     // TODO: debug
-    cout << "T_limit: " << fixed << setprecision(2) << T_limit << endl;
+    cout << "T_arrival_limit: " << fixed << setprecision(2) << T_arrival_limit << endl;
+    cout << "T_limit: " << fixed << setprecision(2) << T_day_limit << endl;
 
     for (; iter != iter_end; ++iter) {
 
@@ -90,10 +89,10 @@ void ActivityEngine::generate_discrete_events(Vehicles &vehicles)
         // Random number of X occurrences of vehicle over a day
         auto N_arrival = static_cast<unsigned int>(lround(num_normal_distrib(default_engine)));
         // rate of occurrence
-        double lambda = N_arrival / T_limit;  // converted to seconds i.e. 1 occurrence per X seconds
+        double lambda = N_arrival / T_arrival_limit;  // converted to seconds i.e. 1 occurrence per X seconds
 
         // TODO: debug
-        cout << "\nVehicle type: " << (*iter).first << " (" << N_arrival << ") [" << setprecision(6) << lambda << "]" << endl;
+        cout << "\nVehicle type: " << (*iter).first << " (" << N_arrival << ") [" << fixed << setprecision(6) << lambda << "]" << endl;
 
         simtime_t ts_arrivals;
         vector<simtime_t> ts_arrivals_ls;
@@ -115,9 +114,9 @@ void ActivityEngine::generate_discrete_events(Vehicles &vehicles)
             do {
                 double delta = expovariate(mersenne_twister_engine);
                 ts_arrivals += delta;
-                if (ts_arrivals < T_limit)
+                if (ts_arrivals < T_day_limit)
                     ts_arrivals_ls.push_back(ts_arrivals);
-            } while (ts_arrivals < T_limit);
+            } while (ts_arrivals < T_day_limit);
 
             if (ts_arrivals_ls.size() == N_arrival)
                 break;
