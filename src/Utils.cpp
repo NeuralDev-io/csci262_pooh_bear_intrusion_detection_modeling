@@ -3,7 +3,7 @@
 * Pooh Bear Intrusion Detection System Helper.cpp
 * Purpose: main() driver for implementation of specifications
 *
-* @version 0.1-dev
+* @version 0.5-dev
 * @date 2018.10.06
 *
 * @authors Dinh Che (codeninja55) & Duong Le (daltonle)
@@ -50,12 +50,12 @@ SimTime time_now()
 unsigned int safe_int_convert(const char *int_str, const char *err_msg)
 {
     char *unused_end;
-    long tmp = strtol(int_str, &unused_end, sizeof(long));
+    double tmp = strtod(int_str, &unused_end);
     if (tmp >= INT_MIN && tmp <= INT_MAX)
         return static_cast<unsigned int>(tmp);
     else {
         stringstream ss;
-        ss << "[!!] " << err_msg << "\nExiting..." << endl;
+        ss << err_msg << "\nExiting..." << endl;
         perror(ss.str().c_str());
         exit(1);
     }
@@ -98,8 +98,6 @@ string event_name(EVENT_TYPE ev) {
             return "PARKING_START";
         case VEHICLE_MOVE:
             return "VEHICLE_MOVE";
-        case UNKNOWN:
-            return "UNKNOWN";
     }
 }
 
