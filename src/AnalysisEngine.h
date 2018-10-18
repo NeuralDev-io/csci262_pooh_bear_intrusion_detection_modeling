@@ -1,3 +1,5 @@
+#include <utility>
+
 //
 // Created by lnduo on 17/10/18.
 //
@@ -16,19 +18,30 @@
 using namespace std;
 
 typedef struct AnalysisStats {
-    int day_count;  // number of days analysed, not including current day
-    map<string,long> day_volume;     // number of vehicles today
-    map<string, vector<long>> total_volume;   // total number of vehicles
-    map<string, vector<double>> speed;
-    map<string, VehicleStats> curr_vehicles;        // current vehicles on the road
-    vector<VehicleStats> speeding_tickets;
+    string veh_name;
+    vector<unsigned long> volume_dist;
+    vector<double> speed_dist;
+
+    AnalysisStats(): veh_name(""), volume_dist(vector<unsigned long>()),
+                     speed_dist(vector<double>()) {}
+
+    AnalysisStats(string name): veh_name(name), volume_dist(vector<unsigned long>()),
+                                speed_dist(vector<double>()) {}
+} AnalysisStats;
+
+typedef struct DailyStats {
+    string veh_name;
+    unsigned long volume;     // number of vehicles today
+    vector<double> speed;
+    SimTime date;
 
     // default constructor for AnalysisStats
-    AnalysisStats(): day_count(0), day_volume(map<string, long>()),
-                     total_volume(map<string, vector<long>>()),
-                     speed(map<string, vector<double>>()),
-                     speeding_tickets(vector<VehicleStats>()) {}
-} AnalysisStats;
+    DailyStats(): veh_name(""), volume(0),
+                  speed(vector<double>()), date(SimTime()) {}
+
+    DailyStats(string name): veh_name(std::move(name)), volume(0),
+                             speed(vector<double>()), date(SimTime()) {}
+} DailyStats;
 
 typedef struct AnalysisLog {
     string ev_type = "NOTICE";
@@ -50,19 +63,23 @@ class AnalysisEngine {
 public:
     AnalysisEngine();   // default
     AnalysisEngine(string log_file);
-    void run(Vehicles vehicles_dict, string filename);
+    void run(Vehicles vehicles_dict);
 private:
     void import_vehicles(Vehicles);
-    void read_log(string log_file);
+    void read_log();
     void process_log();
     void add_speeding(VehicleStats);
     void end_day();
     void end_analysis();
-    map<string, VehicleStats> curr_vehicles;
-    AnalysisStats stats;
+    map<string, DailyStats> today_stats;
+    map<string, AnalysisStats> total_stats;
+    map<string, VehicleStats> curr_vehicles;    // current vehicles on the road
+    vector<VehicleStats> speeding_tickets;      // speeding tickets
+    int day_count;
     float road_length, speed_limit;
     Logger<SimTime, AnalysisLog> logger;
     queue<string> activity_logs;
+    string log_file, data_file, stats_file;
 };
 
 #endif //POOH_BEAR_INTRUSION_DETECTION_SYSTEM_ANALYSISENGINE_H
