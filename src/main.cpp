@@ -48,14 +48,24 @@ int main(int argc, char * argv[])
 {
     // when starting the system, delete all the old logs before creating new ones.
     if (is_dir_exists("logs/")) {
-        if (strcmp(OS, "linux") == 0)
+        if (strcmp(OS, "linux") == 0) {
             system("exec rm -r logs/*");
-        else system("del logs");
+            system("exec rm -r data/*");
+        }
+        else {
+            system("del logs");
+            system("del data");
+        }
     }
     else {
-        if (strcmp(OS, "linux") == 0)
+        if (strcmp(OS, "linux") == 0) {
             system("exec mkdir logs/");
-        else system("mkdir logs");
+            system("exec mkdir data/");
+        }
+        else {
+            system("mkdir logs");
+            system("mkdir data");
+        }
     }
 
     // TODO: REMOVE THIS BEFORE SUBMITTING
