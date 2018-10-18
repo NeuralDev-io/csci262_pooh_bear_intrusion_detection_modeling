@@ -38,8 +38,8 @@ void ActivityEngine::run(Vehicles &vehicles)
 
     // log for the number of Days specified at the initial running of Traffic
     stringstream msg;
-    msg << "Started Activity Engine" << DELIMITER << "Number of days=" << simulate_days << DELIMITER << "Road length="
-        << road_length << DELIMITER << "Speed limit=" << speed_limit;
+    msg << "Started Activity Engine" << DELIMITER << "Number of days=" << simulate_days
+    << DELIMITER << "Road length=" << road_length << DELIMITER << "Speed limit=" << speed_limit;
     logger.info(sim_time, ActivityLog( "NOTICE", "Activity Log", msg.str() ));
 
     // TODO: for i... 0 -> N days
