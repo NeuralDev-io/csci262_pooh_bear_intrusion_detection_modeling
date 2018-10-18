@@ -38,3 +38,5 @@ cmake-build-debug/
 src/Traffic
 
 src/logs/
+
+src/data/

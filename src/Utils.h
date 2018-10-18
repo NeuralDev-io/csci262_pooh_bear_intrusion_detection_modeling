@@ -266,9 +266,28 @@ typedef struct VehicleStats {
 } VehicleStats;
 
 template<typename T>
-double mean(vector<T>& vector1);
+double mean(vector<T>& vector1) {
+    T sum;
+    unsigned int count = (int) vector1.size();
+    for (int i = 0; i < count; i++) {
+        sum += vector1[i];
+    }
+    return (sum / count);
+};
+
 template<typename T>
-double std_dev(vector<T>& vector1);
+double std_dev(vector<T>& vector1)
+{
+    double mean = mean(vector1);
+    T sum;
+    unsigned int count = (int) vector1.size();
+    for (int i = 0; i < count; i++) {
+        sum += (vector1[i] - mean)*(vector1[i] - mean);
+    }
+
+    return sqrt(sum / count);
+}
+
 unsigned int safe_int_convert(const char *, const char *);
 SimTime time_now();
 string real_formatted_time_now();

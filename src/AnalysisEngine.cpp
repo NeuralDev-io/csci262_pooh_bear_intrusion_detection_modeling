@@ -73,22 +73,23 @@ void AnalysisEngine::read_log()
     }
 
     string tmp;
-    for (int i = 0; i < 9; i++) {
-        getline(fin, tmp, ':'); // skip to road length
+    for (int i = 0; i < 7; i++) {
+        getline(fin, tmp, DELIMITER); // skip to road length
     }
-    getline(fin, tmp, ':');
+    getline(fin, tmp, '=');
+    getline(fin, tmp, DELIMITER);
     road_length = stof(tmp);
-    getline(fin, tmp, ':');
-    getline(fin, tmp, ':');
+    getline(fin, tmp, '=');
+    getline(fin, tmp, DELIMITER);
     speed_limit = stof(tmp);
 
     while (!fin.eof()) {
         getline(fin, tmp);
         size_t pos;
-        pos = tmp.find(':');
-        pos = tmp.find(':', pos + 1);
-        pos = tmp.find(':', pos + 1);
-        size_t end_pos = tmp.find(':', pos + 1);
+        pos = tmp.find(DELIMITER);
+        pos = tmp.find(DELIMITER, pos + 1);
+        pos = tmp.find(DELIMITER, pos + 1);
+        size_t end_pos = tmp.find(DELIMITER, pos + 1);
         if (tmp.substr(pos + 1, end_pos - pos - 1) != "Vehicle Log")
             continue;
         activity_logs.push(tmp);
@@ -108,7 +109,7 @@ void AnalysisEngine::process_log()
         tmp = activity_logs.front();
         activity_logs.pop();
 
-        start_pos = tmp.find(':');
+        start_pos = tmp.find(DELIMITER);
         SimTime curr_time(tmp.substr(0, start_pos)); // time
         // test if the simulation has gone to the next day
         if (curr_time.compare_date(prev_time) > 0
@@ -117,30 +118,30 @@ void AnalysisEngine::process_log()
         }
         prev_time = curr_time;
 
-        end_pos = tmp.find(':', ++start_pos);
+        end_pos = tmp.find(DELIMITER, ++start_pos);
         start_pos = end_pos; // skip module
-        end_pos = tmp.find(':', ++start_pos);
+        end_pos = tmp.find(DELIMITER, ++start_pos);
         start_pos = end_pos; // skip log level
-        end_pos = tmp.find(':', ++start_pos);
+        end_pos = tmp.find(DELIMITER, ++start_pos);
         start_pos = end_pos; // skip log type
 
-        end_pos = tmp.find(':', ++start_pos);
+        end_pos = tmp.find(DELIMITER, ++start_pos);
         EVENT_TYPE evt_type = event_type(tmp.substr(start_pos, end_pos - start_pos));
         start_pos = end_pos;
 
         VehicleStats veh_stats;
-        end_pos = tmp.find(':', ++start_pos);
+        end_pos = tmp.find(DELIMITER, ++start_pos);
         veh_stats.veh_name = tmp.substr(start_pos, end_pos - start_pos); // vehicle name
         start_pos = end_pos;
 
-        end_pos = tmp.find(':', ++start_pos);
+        end_pos = tmp.find(DELIMITER, ++start_pos);
         veh_stats.registration_id = tmp.substr(start_pos, end_pos - start_pos); // vehicle registration id
         start_pos = end_pos;
 
         if (evt_type == ARRIVAL) {
             veh_stats.arrival_time = curr_time; // arrival time
 
-            end_pos = tmp.find(':', ++start_pos);
+            end_pos = tmp.find(DELIMITER, ++start_pos);
             veh_stats.arrival_speed = stod(tmp.substr(start_pos, end_pos - start_pos)); // arrival speed
             // add to list of current vehicles on road
             curr_vehicles.insert(pair<string, VehicleStats>(veh_stats.registration_id, veh_stats));
@@ -168,13 +169,8 @@ void AnalysisEngine::process_log()
                     veh_stats.avg_speed = avg_speed;
                     add_speeding(veh_stats);
                 }
-                veh_stats.avg_speed = avg_speed;
-                add_speeding(veh_stats);
             }
-        } else if (evt_type == PARKING_START) {
-
-        } else if (evt_type == VEHICLE_MOVE) {
-
+            curr_vehicles.erase(veh_stats.registration_id);
         }
     }
 
@@ -187,10 +183,10 @@ void AnalysisEngine::add_speeding(VehicleStats veh_stats)
 
     // log warning
     stringstream msg;
-    msg << veh_stats.veh_name << ":" << veh_stats.registration_id
-        << ":" << veh_stats.avg_speed
-        << ":" << veh_stats.arrival_time.formatted_time_date()
-        << ":" << veh_stats.departure_time.formatted_time_date();
+    msg << veh_stats.veh_name << DELIMITER << veh_stats.registration_id
+        << DELIMITER << fixed << setprecision(2) << veh_stats.avg_speed
+        << DELIMITER << veh_stats.arrival_time.formatted_time_date()
+        << DELIMITER << veh_stats.departure_time.formatted_time_date();
     logger.warning(veh_stats.departure_time, AnalysisLog( "SPEEDING", "Analysis Log", msg.str() ));
 }
 
@@ -239,10 +235,10 @@ void AnalysisEngine::end_day()
 
         // write ticket to file
         stringstream msg;
-        msg << "\t" << veh_stats.veh_name << ":" << veh_stats.registration_id
-            << ":" << veh_stats.avg_speed
-            << ":" << veh_stats.arrival_time.formatted_time_date()
-            << ":" << veh_stats.departure_time.formatted_time_date();
+        msg << "\t" << veh_stats.veh_name << DELIMITER << veh_stats.registration_id
+            << DELIMITER << fixed << setprecision(2) << veh_stats.avg_speed
+            << DELIMITER << veh_stats.arrival_time.formatted_time_date()
+            << DELIMITER << veh_stats.departure_time.formatted_time_date();
         fout << msg.str() << endl;
 
         // delete ticket
@@ -259,7 +255,7 @@ void AnalysisEngine::end_day()
 
 void AnalysisEngine::end_analysis()
 {
-    end_day();
+    end_day(); // end the current day
 
 
 
