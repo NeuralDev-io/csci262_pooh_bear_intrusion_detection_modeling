@@ -7,6 +7,7 @@
 AnalysisEngine::AnalysisEngine(): curr_vehicles(map<string, VehicleStats>()),
                                   total_stats(map<string, AnalysisStats>()),
                                   road_length(0.0), speed_limit(0.0), day_count(0),
+                                  n_vehicles(0), n_parking_spots(0),
                                   speeding_tickets(vector<VehicleStats>()),
                                   today_stats(map<string, DailyStats>()),
                                   activity_logs(queue<string>())
@@ -20,6 +21,7 @@ AnalysisEngine::AnalysisEngine(): curr_vehicles(map<string, VehicleStats>()),
 AnalysisEngine::AnalysisEngine(string log_file1): curr_vehicles(map<string, VehicleStats>()),
                                                  total_stats(map<string, AnalysisStats>()),
                                                  road_length(0.0), speed_limit(0.0), day_count(0),
+                                                 n_vehicles(0), n_parking_spots(0),
                                                  speeding_tickets(vector<VehicleStats>()),
                                                  today_stats(map<string, DailyStats>()),
                                                  activity_logs(queue<string>())
@@ -57,6 +59,7 @@ void AnalysisEngine::import_vehicles(Vehicles &vehicles_dict)
         // initialise stats
         total_stats.insert(pair<string, AnalysisStats>((*iter).first, AnalysisStats((*iter).first)));
         today_stats.insert(pair<string, DailyStats>((*iter).first, DailyStats((*iter).first)));
+        n_vehicles++;
     }
 }
 
@@ -82,6 +85,9 @@ void AnalysisEngine::read_log()
     getline(fin, tmp, '=');
     getline(fin, tmp, DELIMITER);
     speed_limit = stof(tmp);
+    getline(fin, tmp, '=');
+    getline(fin, tmp);
+    n_parking_spots = (unsigned) stod(tmp);
 
     while (!fin.eof()) {
         getline(fin, tmp);
@@ -257,6 +263,21 @@ void AnalysisEngine::end_analysis()
 {
     end_day(); // end the current day
 
+    ofstream fout;
+    string filename = "data/" + stats_file;
+    fout.open(filename);
 
+    fout << n_vehicles << " " << road_length << " "
+         << speed_limit << " " << n_parking_spots << endl;
 
+    auto iter = total_stats.begin();
+    auto iter_end = total_stats.end();
+    for (; iter != iter_end; iter++) {
+        fout << (*iter).first << ":"
+             << fixed << setprecision(2) << mean<unsigned long>(iter->second.volume_dist) << ":"
+             << fixed << setprecision(2) << std_dev<unsigned long>(iter->second.volume_dist) << ":"
+             << fixed << setprecision(2) << mean<double>(iter->second.speed_dist) << ":"
+             << fixed << setprecision(2) << std_dev<double>(iter->second.speed_dist) << endl;
+    }
+    fout.close();
 }
