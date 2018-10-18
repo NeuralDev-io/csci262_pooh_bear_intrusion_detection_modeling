@@ -182,6 +182,67 @@ typedef struct SimTime {
         return (3600 * hour_diff + (60*larger.tm_min + larger.tm_sec)
                                  - (60*smaller.tm_min + smaller.tm_sec));
     }
+
+    /*
+     * Increase the time to 00:00:00 the next day
+     */
+    void next_day()
+    {
+        switch(tm_mon) {
+            case 1: case 3: case 5:
+            case 7: case 8: case 10:
+                if (tm_mday < 31)
+                    tm_mday++;
+                else {
+                    tm_mday = 1;
+                    tm_mon++;
+                }
+                break;
+            case 12:
+                if (tm_mday < 31)
+                    tm_mday++;
+                else {
+                    tm_mday = 1;
+                    tm_mon = 1;
+                    tm_year++;
+                }
+                break;
+            case 4: case 6: case 9: case 11:
+                if (tm_mday < 30)
+                    tm_mday++;
+                else {
+                    tm_mday = 1;
+                    tm_mon++;
+                }
+                break;
+            case 2:
+                int last_day;
+                bool leap;
+                if (tm_year % 4 == 0) {
+                    if (tm_year % 100 == 0) {
+                        if (tm_year % 400 == 0) leap = true;
+                        else leap = false;
+                    } else leap = true;
+                } else leap = false;
+
+                if (leap)
+                    last_day = 29;
+                else last_day = 28;
+                if (tm_mday < last_day)
+                    tm_mday++;
+                else {
+                    tm_mday = 1;
+                    tm_mon++;
+                }
+                break;
+            default: break;
+        }
+
+        // reset hours
+        tm_hour = 0;
+        tm_min = 0;
+        tm_sec = 0;
+    }
 } SimTime;
 
 enum EVENT_TYPE { UNKNOWN = 0, ARRIVAL = 1, DEPART_SIDE_ROAD, DEPART_END_ROAD, PARKING_START, VEHICLE_MOVE };
@@ -204,6 +265,10 @@ typedef struct VehicleStats {
                      avg_speed(0), side_exit_flag(false) {}
 } VehicleStats;
 
+template<typename T>
+double mean(vector<T>& vector1);
+template<typename T>
+double std_dev(vector<T>& vector1);
 unsigned int safe_int_convert(const char *, const char *);
 SimTime time_now();
 string real_formatted_time_now();
