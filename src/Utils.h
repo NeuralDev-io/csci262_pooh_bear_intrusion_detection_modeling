@@ -294,6 +294,44 @@ typedef struct VehicleStats {
                      departure_timestamp(0) { }
 } VehicleStats;
 
+enum EVENT_TYPE { ARRIVAL = 1, DEPART_SIDE_ROAD, DEPART_END_ROAD, PARKING_START, VEHICLE_MOVE };
+typedef enum EVENT_TYPE EVENT_TYPE;
+
+typedef struct Event {
+    EVENT_TYPE ev_type;
+    SimTime time;
+    VehicleStats *stats;
+
+    Event(EVENT_TYPE ev_type, SimTime time, VehicleStats *stats) : ev_type(ev_type), time(time), stats(stats) {};
+    Event(const Event &other) = default; // trivial copy constructor
+    /*
+     * @brief: overload required to maintain only a reference pointer to stats rather than a new object every time.
+     *
+     * @return: pointer to this struct.
+     * */
+    Event& operator=(const Event& rhs)
+    {
+        if (&rhs == this)
+            return *this;
+
+        this->ev_type = rhs.ev_type;
+        this->time = rhs.time;
+        stats = rhs.stats;
+        return *this;
+    }
+
+} Event;
+
+struct event_compare {
+    bool operator()(const Event &lhs, const Event &rhs) {
+        if (rhs.time.tm_hour == lhs.time.tm_hour) {
+            return (rhs.time.tm_min == lhs.time.tm_min) ? rhs.time.tm_sec < lhs.time.tm_sec :
+                   rhs.time.tm_min < lhs.time.tm_min;
+        }
+        return rhs.time.tm_hour < lhs.time.tm_hour;
+    }
+};
+
 template<typename T>
 double mean(vector<T>& vector1) {
     T sum;
