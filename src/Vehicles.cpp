@@ -112,7 +112,7 @@ void Vehicles::print()
  *
  * @return: a c++ string of the registration based on the format required.
  * */
-string Vehicles::generate_registration(string &reg_format, default_random_engine &generator)
+string Vehicles::generate_registration(string &reg_format, mt19937_64 &generator)
 {
     string str;
     str.reserve(reg_format.size());

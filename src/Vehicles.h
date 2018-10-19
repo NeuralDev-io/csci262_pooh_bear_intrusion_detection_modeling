@@ -43,7 +43,7 @@ public:
     void print();
     int size();
     map<string, VehicleType> *get_vehicles_dict();
-    static string generate_registration(string &reg_format, default_random_engine &generator);
+    static string generate_registration(string &reg_format, mt19937_64 &generator);
 private:
     unsigned n_vehicles;
     map<string, VehicleType> vehicles_dict;
