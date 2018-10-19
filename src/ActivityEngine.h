@@ -16,6 +16,7 @@
 #ifndef POOH_BEAR_INTRUSION_DETECTION_SYSTEM_ACTIVITYENGINE_H
 #define POOH_BEAR_INTRUSION_DETECTION_SYSTEM_ACTIVITYENGINE_H
 
+#include <algorithm>
 #include <queue>
 #include <iostream>
 #include <random>
@@ -74,9 +75,9 @@ typedef struct VehicleLog {
 typedef struct Event {
     EVENT_TYPE ev_type;
     SimTime time;
-    VehicleStats &stats;
+    VehicleStats *stats;
 
-    Event(EVENT_TYPE ev_type, SimTime time, VehicleStats &stats) : ev_type(ev_type), time(time), stats(stats) {};
+    Event(EVENT_TYPE ev_type, SimTime time, VehicleStats *stats) : ev_type(ev_type), time(time), stats(stats) {};
     Event(const Event &other) = default; // trivial copy constructor
     /*
      * @brief: overload required to maintain only a reference pointer to stats rather than a new object every time.
@@ -119,15 +120,13 @@ private:
     void simulate_events();
     long double biased_expovariate(double rate_param, double lower_bound, double upper_bound);
     unsigned long time_seed;
-    default_random_engine default_engine;
-    minstd_rand0 linear_congruential_engine;
     mt19937_64 mersenne_twister_engine;
     unsigned n_vehicles_monitored, n_parking_spots, simulate_days;
     float road_length, speed_limit;
     Logger<SimTime, ActivityLog> logger;
     Logger<SimTime, VehicleLog> veh_logger;
     priority_queue<Event, vector<Event>, event_compare> future_event_list;
-    const simtime_t T_arrival_limit = (23.0F * 60 * 60) - 1.0F;
+    const simtime_t T_arrival_limit = (22.0F * 60 * 60) - 1.0F;
     const simtime_t T_day_limit = (24.0 * 60.0F * 60.0F) - 1.0F;
 };
 
