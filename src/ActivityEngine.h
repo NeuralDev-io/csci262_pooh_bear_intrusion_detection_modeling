@@ -3,7 +3,7 @@
 * Pooh Bear Intrusion Detection System ActivityEngine.h
 * Purpose: Header file for ActivityEngine class.
 *
-* @version 0.5-dev
+* @version 0.6-dev
 * @date 2018.10.06
 *
 * @authors Dinh Che (codeninja55) & Duong Le (daltonle)
@@ -16,8 +16,10 @@
 #ifndef POOH_BEAR_INTRUSION_DETECTION_SYSTEM_ACTIVITYENGINE_H
 #define POOH_BEAR_INTRUSION_DETECTION_SYSTEM_ACTIVITYENGINE_H
 
-#include <queue>
 #include <iostream>
+#include <string.h>
+#include <algorithm>
+#include <queue>
 #include <random>
 #include <fstream>
 #include <math.h>
@@ -71,21 +73,22 @@ typedef struct VehicleLog {
     }
 } VehicleLog;
 
-typedef struct {
-    EVENT_TYPE ev_type;
-    SimTime time;
-    VehicleStats stats;
-} Event;
+typedef struct GenericLog {
+    EVENT_TYPE ev_type = PARKING_START;
+    string log_name = "Vehicle Log";
+    string veh_name = "";
+    string veh_registration = "NA";
 
-struct event_compare {
-    bool operator()(const Event &lhs, const Event &rhs) {
-        if (rhs.time.tm_hour == lhs.time.tm_hour) {
-            return (rhs.time.tm_min == lhs.time.tm_min) ? rhs.time.tm_sec < lhs.time.tm_sec :
-                   rhs.time.tm_min < lhs.time.tm_min;
-        }
-        return rhs.time.tm_hour < lhs.time.tm_hour;
+    GenericLog(EVENT_TYPE ev_type, string log_name, string veh_name,
+               string veh_registration) : ev_type(ev_type), log_name(std::move(log_name)),
+                                          veh_name(veh_name), veh_registration(veh_registration) { }
+
+    friend ostream& operator<<(ostream& os, GenericLog const& log)
+    {
+        return os << log.log_name << DELIMITER << event_name(log.ev_type) << DELIMITER
+                  << log.veh_name << DELIMITER << log.veh_registration;
     }
-};
+} GenericLog;
 
 class ActivityEngine {
 public:
@@ -95,19 +98,22 @@ public:
                         float speed_lim, unsigned parking_spots);
     void run(Vehicles&);  // run the activity engine simulation
 private:
-    void generate_discrete_events(Vehicles &vehicles);
-    void process_vehicle(VehicleType &vehicle_type);
+    void start_generating_discrete_events(int day, Vehicles &vehicles);
+    void process_parking_events(SimTime &sim_time, VehicleType &veh_type, VehicleStats &veh_stats);
+    void process_departure_events(SimTime &sim_time, VehicleType &veh_type, VehicleStats &veh_stats);
     void simulate_events();
     long double biased_expovariate(double rate_param, double lower_bound, double upper_bound);
     unsigned long time_seed;
-    default_random_engine default_engine;
-    minstd_rand0 linear_congruential_engine;
     mt19937_64 mersenne_twister_engine;
     unsigned n_vehicles_monitored, n_parking_spots, simulate_days;
     float road_length, speed_limit;
+    string log_file;
     Logger<SimTime, ActivityLog> logger;
     Logger<SimTime, VehicleLog> veh_logger;
+    Logger<SimTime, GenericLog> other_veh_logger;
     priority_queue<Event, vector<Event>, event_compare> future_event_list;
+    const simtime_t T_arrival_limit = (22.0F * 60 * 60) - 1.0F;
+    const simtime_t T_day_limit = (24.0 * 60.0F * 60.0F) - 1.0F;
 };
 
 #endif //POOH_BEAR_INTRUSION_DETECTION_SYSTEM_ACTIVITYENGINE_H
