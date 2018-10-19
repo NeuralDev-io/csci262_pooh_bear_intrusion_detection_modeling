@@ -276,6 +276,9 @@ void Logger<T, S>::_log(LEVEL level, T &time, S log_struct)
     if (get("STDOUT") == "true") {
         cout << time.formatted_time_date() << DELIMITER << get("LOGGER")
              << DELIMITER << _level_to_name(level) << DELIMITER << log_struct << endl;
+    } else if (level > 30) {  // level is either ERROR or CRITICAL
+        cout << "[*****IMPORTANT*****] " << time.formatted_time_date() << '\t' << get("LOGGER")
+             << '\t' << _level_to_name(level) << '\t' << log_struct << endl;
     }
 
     if (get("FILENAME") != "false")
@@ -347,7 +350,8 @@ bool Logger<T, S>::_is_file_exists(const string& name)
  * @return: a LEVEL enum corresponding to the string parameter.
  * */
 template<typename T, typename S>
-LEVEL Logger<T, S>::_name_to_level(string &level_str) {
+LEVEL Logger<T, S>::_name_to_level(string &level_str)
+{
     if (level_str == "NOTSET")
         return NOTSET;
     else if (level_str == "INFO")
@@ -369,7 +373,8 @@ LEVEL Logger<T, S>::_name_to_level(string &level_str) {
  * @return: the string corresponding to each enum LEVEL.
  * */
 template<typename T, typename S>
-string Logger<T, S>::_level_to_name(LEVEL level) {
+string Logger<T, S>::_level_to_name(LEVEL level)
+{
     switch (level) {
         case NOTSET:
             return "NOTSET";
