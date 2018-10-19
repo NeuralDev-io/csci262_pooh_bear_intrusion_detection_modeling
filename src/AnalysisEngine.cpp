@@ -32,7 +32,7 @@ AnalysisEngine::AnalysisEngine(string log_file1): curr_vehicles(map<string, Vehi
 
 void AnalysisEngine::run(Vehicles &vehicles_dict)
 {
-    SimTime sim_time = initialise_time();
+    SimTime sim_time = init_time_date();
 
     cout << "[*****SYSTEM*****] Analysis Engine started: " << real_formatted_time_now() << "\n" << flush;
 
@@ -73,9 +73,9 @@ void AnalysisEngine::read_log()
     }
 
     string tmp;
-    for (int i = 0; i < 7; i++) {
+    for (int i = 0; i < 7; i++)
         getline(fin, tmp, DELIMITER); // skip to road length
-    }
+
     getline(fin, tmp, '=');
     getline(fin, tmp, DELIMITER);
     road_length = stof(tmp);
@@ -154,9 +154,9 @@ void AnalysisEngine::process_log()
             }
             // add arrival_speed to total_stats
             auto iter2 = total_stats.find(veh_stats.veh_name);
-            if (iter2 != total_stats.end()) {
+            if (iter2 != total_stats.end())
                 (*iter2).second.speed_dist.push_back(veh_stats.arrival_speed);
-            }
+
         } else if (evt_type == DEPART_SIDE_ROAD) {
             curr_vehicles.erase(veh_stats.registration_id);
         } else if (evt_type == DEPART_END_ROAD) {
@@ -197,8 +197,8 @@ void AnalysisEngine::end_day()
     fout.open(filename);
 
     if (!fout.good()) {
-        cout << "<" << real_formatted_time_now() << "> [*****FILE ERROR*****] Failed to open output file. Data of day "
-        << (day_count+1) << " not recorded." << endl;
+        cout << "[*****FILE ERROR*****] " << "<" << real_formatted_time_now()
+             << "> Failed to open output file. Data of day " << (day_count+1) << " not recorded." << endl;
     }
 
     fout << "Day " << (day_count+1) << ": " << today_stats.begin()->second.date.formatted_time_date() << endl;
@@ -247,7 +247,7 @@ void AnalysisEngine::end_day()
     fout.close();
 
     // log
-    SimTime sim_time = initialise_time();
+    SimTime sim_time = init_time_date();
     stringstream msg;
     msg << "Analysis day " << day_count << " finished";
     logger.info(sim_time, AnalysisLog( "NOTICE", "Analysis Log", msg.str() ));

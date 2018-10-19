@@ -49,8 +49,7 @@ typedef struct SimTime {
      *
      * @param timestamp: double value to be converted to a SimTIme struct.
      * */
-    void mktime(simtime_t timestamp)
-    {
+    void mktime(simtime_t timestamp) {
         this->tm_hour = static_cast<int>(lround(timestamp)) / 60 / 60;
         this->tm_min = static_cast<int>(lround(timestamp)) / 60 % 60;
         this->tm_sec = static_cast<int>(lround(timestamp)) % 60;
@@ -58,21 +57,10 @@ typedef struct SimTime {
     }
 
     /*
-     * @brief: get a simtime_t type timestamp in seconds.
-     *
-     * @return: a simetime_t double timestamp in seconds.
-     * */
-    simtime_t get_timestamp()
-    {
-        return (this->tm_hour * 60 * 60) + (this->tm_min * 60) + (this->tm_sec);
-    }
-
-    /*
      * Constructor using a formatted string of time and date
      * Format: '<DD-MM-YYYY HH:MM:ss>'
      */
-    explicit SimTime(const string &time_str)
-    {
+    explicit SimTime(const string &time_str) {
         this->tm_mday = stoi(time_str.substr(1,2));
         this->tm_mon = stoi(time_str.substr(4,2));
         this->tm_year = stoi(time_str.substr(7,4));
@@ -87,8 +75,7 @@ typedef struct SimTime {
     * @param t: a reference to the SimTime structure to format to a string.
     * @return: string of the time from the SimTime structure.
     * */
-    string formatted_time() const
-    {
+    string formatted_time() const {
         stringstream ss;
         ss << "<" << setfill('0') << setw(2) << this->tm_hour << ":" << setfill('0') << setw(2) << this->tm_min
            << ":" << setfill('0') << setw(2) << this->tm_sec << ">";
@@ -101,8 +88,7 @@ typedef struct SimTime {
      * @param t: a reference to the SimTime structure to format to a string.
      * @return: string of the time from the SimTime structure.
      * */
-    string formatted_date() const
-    {
+    string formatted_date() const {
         stringstream ss;
         ss << "<" << setfill('0') << setw(2) << this->tm_mday << "-" << setfill('0') << setw(2) << this->tm_mon
            << "-" << setw(4) << this->tm_year << ">";
@@ -115,8 +101,7 @@ typedef struct SimTime {
      * @param t: a reference to the SimTime structure to format to a string
      * @return: string of the time and date formatted as DD-MM-YYYY HH:MM:ss
      * */
-    string formatted_time_date() const
-    {
+    string formatted_time_date() const {
         stringstream ss;
         ss << "<" << setfill('0') << setw(2) << this->tm_mday << "-" << this->tm_mon << "-" << setw(4) << this->tm_year
            << " " << setfill('0') << setw(2) << this->tm_hour << ":"
@@ -134,8 +119,7 @@ typedef struct SimTime {
      *     -1 if this SimTime happens before the other
      *     1 if this SimTime happens after the other
      */
-    int compare(const SimTime &other) const
-    {
+    int compare(const SimTime &other) const {
         if (compare_date(other) > 0)
             return 1;
         else if (compare_date(other) < 0)
@@ -164,8 +148,7 @@ typedef struct SimTime {
      *     -1 if this SimTime happens before the other
      *     1 if this SimTime happens after the other
      */
-    int compare_date(SimTime other) const
-    {
+    int compare_date(SimTime other) const {
         if (this->tm_year < other.tm_year)
             return -1;
         else if (this->tm_year > other.tm_year)
@@ -189,8 +172,7 @@ typedef struct SimTime {
      * @return: the difference of this SimTime and the other SimTime in seconds
      */
     // TODO: code for SimTimes of different dates
-    int diff(SimTime other) const
-    {
+    int diff(SimTime other) const {
         SimTime larger;
         SimTime smaller;
         int tmp = compare(other);
@@ -213,9 +195,8 @@ typedef struct SimTime {
     /*
      * Increase the time to 00:00:00 the next day
      */
-    void next_day()
-    {
-        switch(tm_mon) {
+    void next_day() {
+        switch(this->tm_mon) {
             case 1: case 3: case 5:
             case 7: case 8: case 10:
                 if (this->tm_mday < 31)
@@ -269,9 +250,6 @@ typedef struct SimTime {
     }
 } SimTime;
 
-enum EVENT_TYPE { ARRIVAL = 1, DEPART_SIDE_ROAD, DEPART_END_ROAD, PARKING_START, VEHICLE_MOVE };
-typedef enum EVENT_TYPE EVENT_TYPE;
-
 typedef struct VehicleStats {
     string veh_name, registration_id = "";
     SimTime arrival_time, departure_time = SimTime();
@@ -294,7 +272,7 @@ typedef struct VehicleStats {
                      departure_timestamp(0) { }
 } VehicleStats;
 
-enum EVENT_TYPE { ARRIVAL = 1, DEPART_SIDE_ROAD, DEPART_END_ROAD, PARKING_START, VEHICLE_MOVE };
+enum EVENT_TYPE { UNKNOWN = 0, ARRIVAL = 1, DEPART_SIDE_ROAD, DEPART_END_ROAD, PARKING_START, VEHICLE_MOVE };
 typedef enum EVENT_TYPE EVENT_TYPE;
 
 typedef struct Event {
@@ -355,7 +333,7 @@ double std_dev(vector<T>& vector1)
 }
 
 unsigned int safe_int_convert(const char *, const char *);
-SimTime initialise_time();
+SimTime init_time_date();
 string real_formatted_time_now();
 string event_name(EVENT_TYPE);
 EVENT_TYPE event_type(string evt_name);
