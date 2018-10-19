@@ -33,14 +33,15 @@ typedef double simtime_t;
  * REF: http://www.cplusplus.com/reference/ctime/tm/
  * */
 typedef struct SimTime {
-    int tm_sec;   // seconds after the minute [0-59] (not accomodating for leap seconds)
-    int tm_min;   // minutes after the hour [0-59]
-    int tm_hour;  // hours after midnight [0-23]
-    int tm_mday;  // day of the month | [1-31]
-    int tm_mon;   // months since January [0-11]
-    int tm_year;  // years since 1900
+    int tm_sec = 0;      // seconds after the minute [0-59] (not accommodating for leap seconds)
+    int tm_min = 0;      // minutes after the hour [0-59]
+    int tm_hour = 0;     // hours after midnight [0-23]
+    int tm_mday = 0;     // day of the month | [1-31]
+    int tm_mon = 0;      // months since January [0-11]
+    int tm_year = 1900;  // years since 1900
+    simtime_t tm_timestamp = 0;    // timestamp since 0 time of simulation
 
-    SimTime() : tm_sec(0), tm_min(0), tm_hour(0), tm_mday(1), tm_mon(1), tm_year(2018) {}
+    SimTime() : tm_sec(0), tm_min(0), tm_hour(0), tm_mday(1), tm_mon(1), tm_year(2018), tm_timestamp(0) {}
     SimTime(const SimTime &ST) = default;  // trivial copy constructor
 
     /*
@@ -53,6 +54,7 @@ typedef struct SimTime {
         this->tm_hour = static_cast<int>(lround(timestamp)) / 60 / 60;
         this->tm_min = static_cast<int>(lround(timestamp)) / 60 % 60;
         this->tm_sec = static_cast<int>(lround(timestamp)) % 60;
+        this->tm_timestamp = timestamp;
     }
 
     /*
@@ -62,21 +64,21 @@ typedef struct SimTime {
      * */
     simtime_t get_timestamp()
     {
-        return (tm_hour * 60 * 60) + (tm_min * 60) + (tm_sec);
+        return (this->tm_hour * 60 * 60) + (this->tm_min * 60) + (this->tm_sec);
     }
 
     /*
      * Constructor using a formatted string of time and date
      * Format: '<DD-MM-YYYY HH:MM:ss>'
      */
-    SimTime(const string &time_str)
+    explicit SimTime(const string &time_str)
     {
-        tm_mday = stoi(time_str.substr(1,2));
-        tm_mon = stoi(time_str.substr(4,2));
-        tm_year = stoi(time_str.substr(7,4));
-        tm_hour = stoi(time_str.substr(12,2));
-        tm_min = stoi(time_str.substr(15,2));
-        tm_sec = stoi(time_str.substr(18,2));
+        this->tm_mday = stoi(time_str.substr(1,2));
+        this->tm_mon = stoi(time_str.substr(4,2));
+        this->tm_year = stoi(time_str.substr(7,4));
+        this->tm_hour = stoi(time_str.substr(12,2));
+        this->tm_min = stoi(time_str.substr(15,2));
+        this->tm_sec = stoi(time_str.substr(18,2));
     }
 
     /*
@@ -132,23 +134,23 @@ typedef struct SimTime {
      *     -1 if this SimTime happens before the other
      *     1 if this SimTime happens after the other
      */
-    int compare(SimTime other) const
+    int compare(const SimTime &other) const
     {
         if (compare_date(other) > 0)
             return 1;
         else if (compare_date(other) < 0)
             return -1;
-        else if (tm_hour < other.tm_hour)
+        else if (this->tm_hour < other.tm_hour)
             return -1;
-        else if (tm_hour > other.tm_hour)
+        else if (this->tm_hour > other.tm_hour)
             return 1;
-        else if (tm_min < other.tm_min)
+        else if (this->tm_min < other.tm_min)
             return -1;
-        else if (tm_min > other.tm_min)
+        else if (this->tm_min > other.tm_min)
             return 1;
-        else if (tm_sec < other.tm_sec)
+        else if (this->tm_sec < other.tm_sec)
             return -1;
-        else if (tm_sec > other.tm_sec)
+        else if (this->tm_sec > other.tm_sec)
             return 1;
         else return 0;
     }
@@ -164,17 +166,17 @@ typedef struct SimTime {
      */
     int compare_date(SimTime other) const
     {
-        if (tm_year < other.tm_year)
+        if (this->tm_year < other.tm_year)
             return -1;
-        else if (tm_year > other.tm_year)
+        else if (this->tm_year > other.tm_year)
             return 1;
-        else if (tm_mon < other.tm_mon)
+        else if (this->tm_mon < other.tm_mon)
             return -1;
-        else if (tm_mon > other.tm_mon)
+        else if (this->tm_mon > other.tm_mon)
             return 1;
-        else if (tm_mday < other.tm_mday)
+        else if (this->tm_mday < other.tm_mday)
             return -1;
-        else if (tm_mday > other.tm_mday)
+        else if (this->tm_mday > other.tm_mday)
             return 1;
         else return 0;
     }
@@ -216,57 +218,54 @@ typedef struct SimTime {
         switch(tm_mon) {
             case 1: case 3: case 5:
             case 7: case 8: case 10:
-                if (tm_mday < 31)
-                    tm_mday++;
+                if (this->tm_mday < 31)
+                    this->tm_mday++;
                 else {
-                    tm_mday = 1;
-                    tm_mon++;
+                    this->tm_mday = 1;
+                    this->tm_mon++;
                 }
                 break;
             case 12:
-                if (tm_mday < 31)
-                    tm_mday++;
+                if (this->tm_mday < 31)
+                    this->tm_mday++;
                 else {
-                    tm_mday = 1;
-                    tm_mon = 1;
-                    tm_year++;
+                    this->tm_mday = 1;
+                    this->tm_mon = 1;
+                    this->tm_year++;
                 }
                 break;
             case 4: case 6: case 9: case 11:
-                if (tm_mday < 30)
-                    tm_mday++;
+                if (this->tm_mday < 30)
+                    this->tm_mday++;
                 else {
-                    tm_mday = 1;
-                    tm_mon++;
+                    this->tm_mday = 1;
+                    this->tm_mon++;
                 }
                 break;
             case 2:
                 int last_day;
                 bool leap;
-                if (tm_year % 4 == 0) {
-                    if (tm_year % 100 == 0) {
-                        if (tm_year % 400 == 0) leap = true;
-                        else leap = false;
-                    } else leap = true;
+                if (this->tm_year % 4 == 0) {
+                    if (this->tm_year % 100 == 0) leap = this->tm_year % 400 == 0;
+                    else leap = true;
                 } else leap = false;
 
-                if (leap)
-                    last_day = 29;
+                if (leap) last_day = 29;
                 else last_day = 28;
-                if (tm_mday < last_day)
-                    tm_mday++;
+                if (this->tm_mday < last_day)
+                    this->tm_mday++;
                 else {
-                    tm_mday = 1;
-                    tm_mon++;
+                    this->tm_mday = 1;
+                    this->tm_mon++;
                 }
                 break;
             default: break;
         }
 
         // reset hours
-        tm_hour = 0;
-        tm_min = 0;
-        tm_sec = 0;
+        this->tm_hour = 0;
+        this->tm_min = 0;
+        this->tm_sec = 0;
     }
 } SimTime;
 
@@ -274,22 +273,25 @@ enum EVENT_TYPE { ARRIVAL = 1, DEPART_SIDE_ROAD, DEPART_END_ROAD, PARKING_START,
 typedef enum EVENT_TYPE EVENT_TYPE;
 
 typedef struct VehicleStats {
-    string veh_name, registration_id;
-    SimTime arrival_time, departure_time;
-    int n_parking;
+    string veh_name, registration_id = "";
+    SimTime arrival_time, departure_time = SimTime();
+    simtime_t arrival_timestamp, departure_timestamp = 0;
+    int n_parking = 0;
     vector<simtime_t> ts_parking_ls;
     vector<simtime_t> ts_parking_duration;
     vector<pair<simtime_t, double> > ts_parking_times;
-    double arrival_speed;
-    double prob_parking, prob_side_exit, prob_end_exit;
-    double avg_speed;
-    bool side_exit_flag;
+    double arrival_speed, avg_speed = 0;
+    double prob_parking, prob_side_exit, prob_end_exit = 0;
+    double estimated_travel_delta = 0;  // TODO:
+    bool side_exit_flag = false;
 
     // default constructor for VehicleStats
     VehicleStats() : veh_name(""), registration_id(""), arrival_time(SimTime()),
                      departure_time(SimTime()), arrival_speed(0),
                      prob_parking(0), prob_side_exit(0), prob_end_exit(0),
-                     avg_speed(0), side_exit_flag(false) {}
+                     avg_speed(0), side_exit_flag(false), n_parking(0),
+                     estimated_travel_delta(0), arrival_timestamp(0),
+                     departure_timestamp(0) { }
 } VehicleStats;
 
 template<typename T>
@@ -308,9 +310,8 @@ double std_dev(vector<T>& vector1)
     double mean = mean(vector1);
     T sum;
     unsigned int count = (int) vector1.size();
-    for (int i = 0; i < count; i++) {
+    for (int i = 0; i < count; i++)
         sum += (vector1[i] - mean)*(vector1[i] - mean);
-    }
 
     return sqrt(sum / count);
 }
