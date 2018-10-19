@@ -4,7 +4,7 @@
 * Purpose: Implementation for Vehicles wrapper class to be used as a storage
 *          container for Vehicles struct in a map based on integer id keys.
 *
-* @version 0.3-dev
+* @version 0.6-dev
 * @date 2018.10.06
 *
 * @authors Dinh Che (codeninja55) & Duong Le (daltonle)

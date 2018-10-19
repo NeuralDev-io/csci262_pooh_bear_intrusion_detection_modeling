@@ -5,7 +5,7 @@
 *          Based heavily on:
  *         https://github.com/python/cpython/blob/3.7/Lib/logging/__init__.py
 *
-* @version 0.5-dev
+* @version 0.9-dev
 * @date 2018.10.07
 *
 * @authors Dinh Che (codeninja55) & Duong Le (daltonle)

@@ -3,7 +3,7 @@
 * Pooh Bear Intrusion Detection System Helper.h
 * Purpose: main() driver for implementation of specifications
 *
-* @version 0.5-dev
+* @version 0.6-dev
 * @date 2018.10.06
 *
 * @authors Dinh Che (codeninja55) & Duong Le (daltonle)
