@@ -92,26 +92,26 @@ int main(int argc, char * argv[])
 
 void check_directories()
 {
-    if (is_dir_exists("logs/")) {
+    if (is_dir_exists("logs")) {
         if (strcmp(OS, "linux") == 0)
             system("exec rm -r logs/*");
         else
             system("del logs");
     } else {  // DOS WIN32 or WIN64 systems
         if (strcmp(OS, "linux") == 0)
-            system("exec mkdir logs/");
+            system("exec mkdir logs");
         else
             system("mkdir logs");
     }
 
-    if (is_dir_exists("data/")) {
+    if (is_dir_exists("data")) {
         if (strcmp(OS, "linux") == 0)
             system("exec rm -r data/*");
         else
             system("del data");
     } else {
         if (strcmp(OS, "linux") == 0)
-            system("exec mkdir data/");
+            system("exec mkdir data");
         else
             system("mkdir data");
     }
