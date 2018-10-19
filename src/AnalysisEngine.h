@@ -77,6 +77,7 @@ private:
     vector<VehicleStats> speeding_tickets;      // speeding tickets
     int day_count;
     float road_length, speed_limit;
+    unsigned n_vehicles, n_parking_spots;
     Logger<SimTime, AnalysisLog> logger;
     queue<string> activity_logs;
     string log_file, data_file, stats_file;
