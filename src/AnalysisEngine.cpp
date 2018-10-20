@@ -200,7 +200,7 @@ void AnalysisEngine::end_day()
 {
     ofstream fout;
     string filename = "data/" + data_file;
-    fout.open(filename);
+    fout.open(filename, ios::out | ios::app);
 
     if (!fout.good()) {
         cout << "[*****FILE ERROR*****] " << "<" << real_formatted_time_now()
@@ -265,7 +265,7 @@ void AnalysisEngine::end_analysis()
 
     ofstream fout;
     string filename = "data/" + stats_file;
-    fout.open(filename);
+    fout.open(filename, ios::out);
 
     fout << n_vehicles << " " << road_length << " "
          << speed_limit << " " << n_parking_spots << endl;

@@ -258,17 +258,16 @@ typedef struct VehicleStats {
     int n_parking = 0;
     vector<simtime_t> ts_parking_ls;
     vector<simtime_t> ts_parking_duration;
-    vector<pair<simtime_t, double> > ts_parking_times;
     double arrival_speed, avg_speed = 0;
     double prob_parking, prob_side_exit, prob_end_exit = 0;
     double estimated_travel_delta = 0;  // TODO:
-    bool side_exit_flag, permit_speeding_flag = false;
+    bool depart_side_flag, permit_speeding_flag = false;
 
     // default constructor for VehicleStats
     VehicleStats() : veh_name(""), registration_id(""), arrival_time(SimTime()),
                      departure_time(SimTime()), arrival_speed(0),
                      prob_parking(0), prob_side_exit(0), prob_end_exit(0),
-                     avg_speed(0), side_exit_flag(false), n_parking(0),
+                     avg_speed(0), depart_side_flag(false), n_parking(0),
                      estimated_travel_delta(0), arrival_timestamp(0),
                      departure_timestamp(0) { }
 } VehicleStats;
