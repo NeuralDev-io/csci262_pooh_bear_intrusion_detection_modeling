@@ -50,9 +50,9 @@ ActivityEngine::ActivityEngine(string log_file)
 {
     // Set the last param to true if you want to output log to stdout
     log_file = log_file;
-    logger = Logger<SimTime, ActivityLog>("Activity Engine", INFO, log_file, "false");
-    veh_logger = Logger<SimTime, VehicleLog>("Activity Engine", INFO, log_file, "false");
-    other_veh_logger = Logger<SimTime, GenericLog>("Activity Engine", INFO, log_file, "false");
+    logger = Logger<SimTime, ActivityLog>("Activity Engine", INFO, log_file, false);
+    veh_logger = Logger<SimTime, VehicleLog>("Activity Engine", INFO, log_file, false);
+    other_veh_logger = Logger<SimTime, GenericLog>("Activity Engine", INFO, log_file, false);
 
     time_seed = static_cast<unsigned long>(chrono::system_clock::now().time_since_epoch().count());
     mersenne_twister_engine.seed(0);
@@ -74,22 +74,30 @@ void ActivityEngine::run(Vehicles &vehicles)
         << n_parking_spots;
     logger.info(sim_time, ActivityLog( "NOTICE", "Activity Log", msg.str() ));
 
-    for (int i = 0; i < simulate_days; i++)
-        start_generating_discrete_events(i, vehicles);
+    // run the simulation for the first day before moving the sim_time to next_day()
+    start_generating_discrete_events(sim_time, vehicles);
+
+    for (int i = 0; i < simulate_days; i++) {
+        msg.str(string());
+        msg << "Generating Discrete Events for " << sim_time.formatted_date();
+        logger.info(sim_time, ActivityLog("NOTICE", "Activity Log", msg.str()));
+
+        cout << "[*****SYSTEM*****] <" << real_formatted_time_now() << "> " << msg.str() << endl;
+
+        sim_time.next_day();
+        start_generating_discrete_events(sim_time, vehicles);
+    }
 
     simulate_events();
 
     cout << "[*****SYSTEM*****] <" << real_formatted_time_now() << "> Activity Engine Finished." << endl;
 }
 
-void ActivityEngine::start_generating_discrete_events(int day, Vehicles &vehicles)
+void ActivityEngine::start_generating_discrete_events(SimTime &sim_time, Vehicles &vehicles)
 {
     int i;
     auto iter = vehicles.get_vehicles_dict()->begin();
     auto iter_end = vehicles.get_vehicles_dict()->end();
-
-    SimTime sim_time = init_time_date();
-    if (day > 0) sim_time.next_day();
 
     for (; iter != iter_end; ++iter) {
         // @param mean and std. dev
@@ -160,7 +168,7 @@ void ActivityEngine::start_generating_discrete_events(int day, Vehicles &vehicle
             bernoulli_distribution side_exit_random(veh_stats->prob_side_exit);
             veh_stats->side_exit_flag = side_exit_random(mersenne_twister_engine);  // bernoulli implem returns a bool
 
-            process_parking_events(sim_time, (*iter).second, veh_stats);
+            process_parking_events(sim_time, (*iter).second.parking_flag, veh_stats);
             process_departure_events(sim_time, (*iter).second, veh_stats);
 
             // TODO: debug
@@ -191,11 +199,11 @@ void ActivityEngine::start_generating_discrete_events(int day, Vehicles &vehicle
     }
 }
 
-void ActivityEngine::process_parking_events(SimTime &sim_time, VehicleType &veh_type, VehicleStats *veh_stats)
+void ActivityEngine::process_parking_events(SimTime &sim_time, bool parking_flag, VehicleStats *veh_stats)
 {
     int i;
     /* Event ==> PARKING_START */
-    veh_stats->prob_parking = (veh_type.parking_flag) ? 0 : 0.2;
+    veh_stats->prob_parking = (parking_flag) ? 0 : 0.08;
     // randomly generate the number of times a person will park and use the  poisson process to generate
     // inter-arrival times between parking events.
     if (veh_stats->prob_parking != 0) {
@@ -232,7 +240,7 @@ void ActivityEngine::process_parking_events(SimTime &sim_time, VehicleType &veh_
                                  ( veh_stats->ts_parking_ls[i+1] - veh_stats->ts_parking_ls[i] ) :
                                  ( T_day_limit - veh_stats->ts_parking_ls[i] );
 
-            uniform_real_distribution<simtime_t> duration_distribution(0.0, upper_bound / 2);
+            normal_distribution<simtime_t> duration_distribution(upper_bound / 2, 2);
             double parking_delta = duration_distribution(mersenne_twister_engine);
             veh_stats->ts_parking_duration.push_back(parking_delta);
             veh_stats->ts_parking_times.emplace_back(veh_stats->ts_parking_ls[i], parking_delta);
@@ -332,7 +340,7 @@ void ActivityEngine::simulate_events()
                         ev.stats->registration_id));
                 break;
             case DEPART_END_ROAD:
-                if (ev.stats->avg_speed > 60.0) {
+                if (ev.stats->avg_speed > speed_limit) {
                     veh_logger.critical(ev.time, VehicleLog(DEPART_END_ROAD, "Vehicle Log", ev.stats->veh_name,
                                                         ev.stats->registration_id, ev.stats->avg_speed));
                 } else {
@@ -340,6 +348,7 @@ void ActivityEngine::simulate_events()
                                                         ev.stats->registration_id, ev.stats->avg_speed));
                 }
                 break;
+            case UNKNOWN: break;
         }
         future_event_list.pop();  // returns void, but must remove from queue
     }
