@@ -57,7 +57,7 @@ void ActivityEngine::run(Vehicles &vehicles)
 
     char pwd[100];
     getcwd(pwd, sizeof(pwd));
-    cout << setw(20) << "[*****SYSTEM*****]" << real_formatted_time_now() << "Activity Engine Started and logging to: "
+    cout << setw(20) << "[*****SYSTEM*****]" << real_formatted_time_now() << " Activity Engine Started and logging to: "
          << pwd << dir_slash << "logs" << dir_slash << log_file << endl;
 
     // log for the number of Days specified at the initial running of Traffic
