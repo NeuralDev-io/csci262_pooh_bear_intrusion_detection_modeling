@@ -3,7 +3,7 @@
 * Pooh Bear Intrusion Detection System Vehicles.h
 * Purpose: Header file for Vehicles class and structure definition of Vehicle
 *
-* @version 0.3-dev
+* @version 0.6-dev
 * @date 2018.10.06
 *
 * @authors Dinh Che (codeninja55) & Duong Le (daltonle)
@@ -43,7 +43,7 @@ public:
     void print();
     int size();
     map<string, VehicleType> *get_vehicles_dict();
-    static string generate_registration(string &reg_format, default_random_engine &generator);
+    static string generate_registration(string &reg_format, mt19937_64 &generator);
 private:
     unsigned n_vehicles;
     map<string, VehicleType> vehicles_dict;

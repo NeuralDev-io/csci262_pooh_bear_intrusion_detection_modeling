@@ -3,7 +3,7 @@
 * Pooh Bear Intrusion Detection System Helper.cpp
 * Purpose: main() driver for implementation of specifications
 *
-* @version 0.5-dev
+* @version 0.6-dev
 * @date 2018.10.06
 *
 * @authors Dinh Che (codeninja55) & Duong Le (daltonle)
@@ -21,10 +21,10 @@
  *
  * @return: the SimTime structure that was initialised.
  * */
-SimTime initialise_time()
+SimTime init_time_date()
 {
     // Get the real time based on system
-    time_t raw_time = time(0);
+    time_t raw_time = time(nullptr);
     struct tm *real_time_now;
     time(&raw_time);
     real_time_now = localtime(&raw_time);
@@ -98,6 +98,8 @@ string event_name(EVENT_TYPE ev) {
             return "PARKING_START";
         case VEHICLE_MOVE:
             return "VEHICLE_MOVE";
+        case UNKNOWN:
+            return "UNKNOWN";
     }
 }
 
@@ -109,14 +111,16 @@ EVENT_TYPE event_type(string evt_name)
 {
     if (evt_name == "ARRIVAL")
         return ARRIVAL;
-    if (evt_name == "DEPART_SIDE_ROAD")
+    else if (evt_name == "DEPART_SIDE_ROAD")
         return DEPART_SIDE_ROAD;
-    if (evt_name == "DEPART_END_ROAD")
+    else if (evt_name == "DEPART_END_ROAD")
         return DEPART_END_ROAD;
-    if (evt_name == "PARKING_START")
+    else if (evt_name == "PARKING_START")
         return PARKING_START;
-    if (evt_name == "VEHICLE_MOVE")
+    else if (evt_name == "VEHICLE_MOVE")
         return VEHICLE_MOVE;
+    else
+        return UNKNOWN;
 }
 
 long long int fact(int x)
@@ -144,62 +148,4 @@ bool is_dir_exists(const char *pathname)
         return false;
     else
         return (info.st_mode & S_IFDIR) != 0;
-}
-
-/*
- * @param lambda: the rate of occurrence
- * @param t: time interval to check probability
- * */
-double exponential_probability(float lambda, int t)
-{
-    return lambda * pow(exp(1), (-lambda * t));
-    // return 1.0f - pow(exp(1), (-lambda * t));
-}
-
-/*
- * @param mu: the expected occurrence over a time interval
- * @param X: the number of expected occurrences.
- * */
-double poisson_probability(float mu, int X)
-{
-    return 1.0f - (pow(mu, X) / fact(X)) * pow(exp(1), (-mu));
-}
-
-
-void generate_distribution_csv(default_random_engine randomEngine)
-{
-    /* Bus generator test (num_mean = 3, num_std_dev = 1) */
-    fstream file;
-    file.open("data/normal.csv", ios::out | ios::trunc);
-    if (!file.good())
-        cout << "[!!] Open file error for csv." << endl;
-
-    /* REF: http://www.cplusplus.com/reference/random/ */
-    const char delim = ',';
-    /* Log Normal distribution */
-    lognormal_distribution<float> normal(3, 1);  // @param mean, std. dev.
-    float normal_val[1379] = {};
-
-    file << "raw" << delim << "lround" << "\n";
-    for (float &i : normal_val) {
-        float val = normal(randomEngine);
-        i = val;
-        file << val << delim << lround(val) << "\n";
-    }
-    file.close();
-
-    /* Poisson distribution */
-    const int n_times = 1379;
-    poisson_distribution<int> poisson(3);  // @param mean
-    int poisson_val[n_times] = {};
-
-    file.open("data/poisson.csv", ios::out | ios::trunc);
-
-    file << "raw" << "\n";
-    for (int &i : poisson_val) {
-        int val = poisson(randomEngine);
-        i = val;
-        file << val << delim << lround(val) << "\n";
-    }
-    file.close();
 }

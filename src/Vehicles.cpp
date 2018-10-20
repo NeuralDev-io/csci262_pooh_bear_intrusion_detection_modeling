@@ -4,7 +4,7 @@
 * Purpose: Implementation for Vehicles wrapper class to be used as a storage
 *          container for Vehicles struct in a map based on integer id keys.
 *
-* @version 0.3-dev
+* @version 0.6-dev
 * @date 2018.10.06
 *
 * @authors Dinh Che (codeninja55) & Duong Le (daltonle)
@@ -112,7 +112,7 @@ void Vehicles::print()
  *
  * @return: a c++ string of the registration based on the format required.
  * */
-string Vehicles::generate_registration(string &reg_format, default_random_engine &generator)
+string Vehicles::generate_registration(string &reg_format, mt19937_64 &generator)
 {
     string str;
     str.reserve(reg_format.size());

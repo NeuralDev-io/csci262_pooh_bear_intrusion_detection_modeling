@@ -3,7 +3,7 @@
 * Pooh Bear Intrusion Detection System main.cpp
 * Purpose: main() driver for implementation of specifications
 *
-* @version 0.4-dev
+* @version 0.6-dev
 * @date 2018.10.06
 *
 * @authors Dinh Che (codeninja55) & Duong Le (daltonle)
@@ -40,6 +40,7 @@ unsigned int g_n_vehicles = 0;
 unsigned g_days = 0;
 
 /* FUNCTION PROTOTYPES */
+void check_directories();
 void read_vehicles_file(ifstream &fin, char *vehicles_file, Vehicles &vehicles_dict);
 void read_stats_file(ifstream &fin, char *stats_file, Vehicles &vehicles_dict, ActivityEngine &activity_engine);
 
@@ -47,29 +48,7 @@ void read_stats_file(ifstream &fin, char *stats_file, Vehicles &vehicles_dict, A
 int main(int argc, char * argv[])
 {
     // when starting the system, delete all the old logs before creating new ones.
-    if (is_dir_exists("logs/")) {
-        if (strcmp(OS, "linux") == 0)
-            system("exec rm -r logs/*");
-        else
-            system("del logs");
-    } else {
-        if (strcmp(OS, "linux") == 0)
-            system("exec mkdir logs/");
-        else
-            system("mkdir logs");
-    }
-
-    if (is_dir_exists("data/")) {
-        if (strcmp(OS, "linux") == 0)
-            system("exec rm -r data/*");
-        else
-            system("del data");
-    } else {
-        if (strcmp(OS, "linux") == 0)
-            system("exec mkdir data/");
-        else
-            system("mkdir data");
-    }
+    check_directories();
 
     char days_str[sizeof(int)];
     char vehicles_file[BUFFER_SZ], stats_file[BUFFER_SZ];
@@ -109,6 +88,33 @@ int main(int argc, char * argv[])
     analysis_engine.run(vehicles_dict);
 
     return 0;
+}
+
+void check_directories()
+{
+    if (is_dir_exists("logs")) {
+        if (strcmp(OS, "linux") == 0)
+            system("exec rm -r logs/*");
+        else
+            system("del logs");
+    } else {  // DOS WIN32 or WIN64 systems
+        if (strcmp(OS, "linux") == 0)
+            system("exec mkdir logs");
+        else
+            system("mkdir logs");
+    }
+
+    if (is_dir_exists("data")) {
+        if (strcmp(OS, "linux") == 0)
+            system("exec rm -r data/*");
+        else
+            system("del data");
+    } else {
+        if (strcmp(OS, "linux") == 0)
+            system("exec mkdir data");
+        else
+            system("mkdir data");
+    }
 }
 
 void read_vehicles_file(ifstream &fin, char *vehicles_file, Vehicles &vehicles_dict)
