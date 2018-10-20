@@ -25,8 +25,6 @@ char dir_slash = '\\';
 char dir_slash = '\\';
 #endif
 
-bool DEBUG_MODE = true;
-
 ActivityEngine::ActivityEngine() : n_vehicles_monitored(0), n_parking_spots(0), road_length(0),
                                    speed_limit(0), simulate_days(0), time_seed(0)
 {
@@ -64,7 +62,7 @@ void ActivityEngine::run(Vehicles &vehicles)
 
     char pwd[100];
     getcwd(pwd, sizeof(pwd));
-    cout << "[*****SYSTEM*****] <" << real_formatted_time_now() << "> Activity Engine Started and logging to: "
+    cout << setw(20) << "[*****SYSTEM*****]" << real_formatted_time_now() << "Activity Engine Started and logging to: "
          << pwd << dir_slash << "logs" << dir_slash << log_file << endl;
 
     // log for the number of Days specified at the initial running of Traffic
@@ -81,16 +79,14 @@ void ActivityEngine::run(Vehicles &vehicles)
         msg.str(string());
         msg << "Generating Discrete Events for " << sim_time.formatted_date();
         logger.info(sim_time, ActivityLog("NOTICE", "Activity Log", msg.str()));
+        cout << setw(20) <<  "[*****SYSTEM*****]" << real_formatted_time_now() << msg.str() << endl;
 
-        cout << "[*****SYSTEM*****] <" << real_formatted_time_now() << "> " << msg.str() << endl;
-
+        simulate_events();
         sim_time.next_day();
         start_generating_discrete_events(sim_time, vehicles);
     }
 
-    simulate_events();
-
-    cout << "[*****SYSTEM*****] <" << real_formatted_time_now() << "> Activity Engine Finished." << endl;
+    cout << setw(20) << "[*****SYSTEM*****]" << real_formatted_time_now() << "Activity Engine Finished." << endl;
 }
 
 void ActivityEngine::start_generating_discrete_events(SimTime &sim_time, Vehicles &vehicles)
@@ -107,7 +103,7 @@ void ActivityEngine::start_generating_discrete_events(SimTime &sim_time, Vehicle
         // Random number of n occurrences of vehicle over a day
         auto n_arrivals = static_cast<unsigned int>(lround(num_normal_distrib(mersenne_twister_engine)));
         // rate of occurrence
-        double lambda = n_arrivals / T_arrival_limit;  // converted to seconds i.e. 1 occurrence per X seconds
+        double lambda = n_arrivals / T_ARRIVAL_LIMIT;  // converted to seconds i.e. 1 occurrence per X seconds
 
         simtime_t ts_arrivals;
         vector<simtime_t> ts_arrivals_ls;
@@ -131,9 +127,9 @@ void ActivityEngine::start_generating_discrete_events(SimTime &sim_time, Vehicle
             do {
                 double delta = expovariate(mersenne_twister_engine);
                 ts_arrivals += delta;
-                if (ts_arrivals < T_day_limit)
+                if (ts_arrivals < T_DAY_LIMIT)
                     ts_arrivals_ls.emplace_back(ts_arrivals);
-            } while (ts_arrivals < T_day_limit);
+            } while (ts_arrivals < T_DAY_LIMIT);
 
             if (ts_arrivals_ls.size() == n_arrivals)
                 break;
@@ -147,6 +143,7 @@ void ActivityEngine::start_generating_discrete_events(SimTime &sim_time, Vehicle
             auto *veh_stats = new VehicleStats();
             veh_stats->veh_name = (*iter).first;
             veh_stats->registration_id = Vehicles::generate_registration((*iter).second.reg_format, mersenne_twister_engine);
+            veh_stats->permit_speeding_flag = ((*iter).second.speed_weight == 0);
 
             /* Event ==> ARRIVAL */
             // make sure it is non-negative because not possible
@@ -212,15 +209,15 @@ void ActivityEngine::process_parking_events(SimTime &sim_time, bool parking_flag
 
         simtime_t ts_parking;
         exponential_distribution<simtime_t> parking_expovariate(veh_stats->n_parking /
-                                                                (T_day_limit - veh_stats->arrival_timestamp));
+                                                                (T_DAY_LIMIT - veh_stats->arrival_timestamp));
         for (i = 0; i < 100; i++) {
             ts_parking = veh_stats->arrival_timestamp;
             do {
                 double delta = parking_expovariate(mersenne_twister_engine);
                 ts_parking += delta;
-                if (ts_parking < T_day_limit)
+                if (ts_parking < T_DAY_LIMIT)
                     veh_stats->ts_parking_ls.push_back(ts_parking);
-            } while (ts_parking < T_day_limit);
+            } while (ts_parking < T_DAY_LIMIT);
 
             if (veh_stats->ts_parking_ls.size() == veh_stats->n_parking)
                 break;
@@ -238,7 +235,7 @@ void ActivityEngine::process_parking_events(SimTime &sim_time, bool parking_flag
             // parking durations
             double upper_bound = (i < veh_stats->ts_parking_ls.size() - 1) ?
                                  ( veh_stats->ts_parking_ls[i+1] - veh_stats->ts_parking_ls[i] ) :
-                                 ( T_day_limit - veh_stats->ts_parking_ls[i] );
+                                 ( T_DAY_LIMIT - veh_stats->ts_parking_ls[i] );
 
             normal_distribution<simtime_t> duration_distribution(upper_bound / 2, 2);
             double parking_delta = duration_distribution(mersenne_twister_engine);
@@ -256,7 +253,6 @@ void ActivityEngine::process_parking_events(SimTime &sim_time, bool parking_flag
 
 void ActivityEngine::process_departure_events(SimTime &sim_time, VehicleType &veh_type, VehicleStats *veh_stats)
 {
-    /* Event ==> DEPART_SIDE_ROAD */
     /*
      * If the vehicle is due to exit via a side road, generate an exit timestamp.
      * To do this, make a biased uniform distribution that only gives small values.
@@ -265,13 +261,14 @@ void ActivityEngine::process_departure_events(SimTime &sim_time, VehicleType &ve
      * to exit the road very soon.
      * */
     if (veh_stats->side_exit_flag) {
+        /* Event ==> DEPART_SIDE_ROAD */
         SimTime depart_side_time(sim_time);
-        double exit_interval = T_day_limit - veh_stats->arrival_timestamp;
+        double exit_interval = T_DAY_LIMIT - veh_stats->arrival_timestamp;
         simtime_t ts_side_exit = veh_stats->arrival_timestamp;  // can only exit after arrival time
 
-        while (ts_side_exit < (T_day_limit + (3600))) {
+        while (ts_side_exit < (T_DAY_LIMIT + (3600))) {
             long double test = biased_expovariate(1/exit_interval, 0, 0.02F);
-            if (ts_side_exit + test < (T_day_limit + (60*60))) {
+            if (ts_side_exit + test < (T_DAY_LIMIT + (60*60))) {
                 ts_side_exit += test;
                 break;
             }
@@ -291,7 +288,7 @@ void ActivityEngine::process_departure_events(SimTime &sim_time, VehicleType &ve
         /* Event ==> DEPART_END */
         SimTime depart_end_time(sim_time);
         simtime_t t_depart_end = 0;
-        // need to check if parking time needs to be added
+        // check if parking time needs to be added
         double estimated_travel_delta = (road_length / veh_stats->arrival_speed) * 3600;
         if (veh_stats->n_parking != 0) {
             simtime_t estimated_t_depart_end = veh_stats->arrival_time.tm_timestamp
@@ -304,7 +301,7 @@ void ActivityEngine::process_departure_events(SimTime &sim_time, VehicleType &ve
             depart_end_time.mktime(t_depart_end);
         } else {
             simtime_t estimated_t_depart_end = veh_stats->arrival_time.tm_timestamp + estimated_travel_delta;
-            normal_distribution<double> depart_end_random(estimated_t_depart_end, 2);
+            normal_distribution<double> depart_end_random(estimated_t_depart_end, 3);
             t_depart_end = depart_end_random(mersenne_twister_engine);
             depart_end_time.mktime(t_depart_end);
         }
@@ -340,9 +337,12 @@ void ActivityEngine::simulate_events()
                         ev.stats->registration_id));
                 break;
             case DEPART_END_ROAD:
-                if (ev.stats->avg_speed > speed_limit) {
+                if (ev.stats->avg_speed > speed_limit && !ev.stats->permit_speeding_flag) {
                     veh_logger.critical(ev.time, VehicleLog(DEPART_END_ROAD, "Vehicle Log", ev.stats->veh_name,
                                                         ev.stats->registration_id, ev.stats->avg_speed));
+                } else if (ev.stats->avg_speed > speed_limit && ev.stats->permit_speeding_flag) {
+                    veh_logger.warning(ev.time, VehicleLog(DEPART_END_ROAD, "Vehicle Log", ev.stats->veh_name,
+                                                           ev.stats->registration_id, ev.stats->avg_speed));
                 } else {
                     veh_logger.info(ev.time, VehicleLog(DEPART_END_ROAD, "Vehicle Log", ev.stats->veh_name,
                                                         ev.stats->registration_id, ev.stats->avg_speed));

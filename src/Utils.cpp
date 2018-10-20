@@ -76,9 +76,9 @@ string real_formatted_time_now()
     time_now = localtime(&raw_time);
 
     stringstream ss;
-    ss << setfill('0') << setw(2) << time_now->tm_mday << "-" << time_now->tm_mon + 1
+    ss << "<" << setfill('0') << setw(2) << time_now->tm_mday << "-" << time_now->tm_mon + 1
        << "-" << setw(4) << time_now->tm_year + 1900 << " " << setfill('0') << setw(2)
-       << time_now->tm_hour << ":" << time_now->tm_min << ":" << time_now->tm_sec;
+       << time_now->tm_hour << ":" << time_now->tm_min << ":" << time_now->tm_sec << ">";
     return ss.str();
 }
 

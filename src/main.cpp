@@ -84,6 +84,7 @@ int main(int argc, char * argv[])
 
     activity_engine.run(vehicles_dict);
 
+    /* FIXME: Not sure, just take a look at it. */
     AnalysisEngine analysis_engine;
     analysis_engine.run(vehicles_dict);
 

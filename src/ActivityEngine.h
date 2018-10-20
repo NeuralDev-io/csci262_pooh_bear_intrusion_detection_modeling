@@ -112,8 +112,7 @@ private:
     Logger<SimTime, VehicleLog> veh_logger;
     Logger<SimTime, GenericLog> other_veh_logger;
     priority_queue<Event, vector<Event>, event_compare> future_event_list;
-    const simtime_t T_arrival_limit = (22.0F * 60 * 60) - 1.0F;
-    const simtime_t T_day_limit = (24.0 * 60.0F * 60.0F) - 1.0F;
+
 };
 
 #endif //POOH_BEAR_INTRUSION_DETECTION_SYSTEM_ACTIVITYENGINE_H

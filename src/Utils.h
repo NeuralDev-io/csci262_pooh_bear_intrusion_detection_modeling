@@ -24,6 +24,7 @@
 #include <iomanip>
 #include <fstream>
 #include <iostream>
+#include "Config.h"
 using namespace std;
 
 typedef double simtime_t;
@@ -261,7 +262,7 @@ typedef struct VehicleStats {
     double arrival_speed, avg_speed = 0;
     double prob_parking, prob_side_exit, prob_end_exit = 0;
     double estimated_travel_delta = 0;  // TODO:
-    bool side_exit_flag = false;
+    bool side_exit_flag, permit_speeding_flag = false;
 
     // default constructor for VehicleStats
     VehicleStats() : veh_name(""), registration_id(""), arrival_time(SimTime()),
@@ -338,8 +339,5 @@ string event_name(EVENT_TYPE);
 EVENT_TYPE event_type(string evt_name);
 long long int fact(int x);
 bool is_dir_exists(const char *pathname);
-double exponential_probability(float lambda, int t);
-double poisson_probability(float mu, int X);
-void generate_distribution_csv(default_random_engine randomEngine);
 
 #endif //POOH_BEAR_INTRUSION_DETECTION_SYSTEM_HELPER_H
