@@ -28,7 +28,7 @@ char dir_slash = '\\';
 ActivityEngine::ActivityEngine() : n_vehicles_monitored(0), n_parking_spots(0), road_length(0), speed_limit(0), simulate_days(0)
 {
     // Set the last param to true if you want to output log to stdout
-    log_file = "logs_baseline";
+    log_file =  LOGS_FILENAME;
     logger = Logger<SimTime, ActivityLog>("Activity Engine", INFO, log_file, false);
     veh_logger = Logger<SimTime, VehicleLog>("Activity Engine", INFO, log_file, false);
     other_veh_logger = Logger<SimTime, GenericLog>("Activity Engine", INFO, log_file, false);
@@ -81,7 +81,7 @@ void ActivityEngine::run(Vehicles &vehicles)
         start_generating_discrete_events(sim_time, vehicles);
     }
 
-    cout << setw(20) << "[*****SYSTEM*****]" << real_formatted_time_now() << " Activity Engine Finished." << endl;
+    cout << setw(20) << "[*****SYSTEM*****]" << real_formatted_time_now() << " Activity Engine Completed." << endl;
 }
 
 void ActivityEngine::start_generating_discrete_events(SimTime &sim_time, Vehicles &vehicles)
