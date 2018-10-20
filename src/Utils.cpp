@@ -55,7 +55,7 @@ unsigned int safe_int_convert(const char *int_str, const char *err_msg)
         return static_cast<unsigned int>(tmp);
     else {
         stringstream ss;
-        ss << err_msg << "\nExiting..." << endl;
+        ss << setw(20) << "[*****READ ERROR*****]" << real_formatted_time_now() << " " << err_msg << "\nExiting..." << endl;
         perror(ss.str().c_str());
         exit(1);
     }
