@@ -300,13 +300,12 @@ typedef struct Event {
 
 } Event;
 
+/*
+ * Custom compare method for the FUTURE EVENT LIST
+ * */
 struct event_compare {
     bool operator()(const Event &lhs, const Event &rhs) {
-        if (rhs.time.tm_hour == lhs.time.tm_hour) {
-            return (rhs.time.tm_min == lhs.time.tm_min) ? rhs.time.tm_sec < lhs.time.tm_sec :
-                   rhs.time.tm_min < lhs.time.tm_min;
-        }
-        return rhs.time.tm_hour < lhs.time.tm_hour;
+        return (rhs.time.compare(lhs.time) == -1);
     }
 };
 
@@ -314,9 +313,7 @@ template<typename T>
 double mean(vector<T>& vector1) {
     T sum = 0;
     unsigned int count = (int) vector1.size();
-    for (int i = 0; i < count; i++) {
-        sum += vector1[i];
-    }
+    sum += accumulate(next(vector1.begin()), vector1.end(), vector1[0]);
     return (sum / count);
 };
 
