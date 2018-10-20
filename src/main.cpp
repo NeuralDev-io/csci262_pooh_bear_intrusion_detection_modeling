@@ -233,9 +233,11 @@ void read_stats_file(ifstream &fin, char *stats_file, Vehicles &vehicles_dict, A
     speed_lim = strtof(speed_lim_str.c_str(), &unused_end);
     road_len = strtof(road_len_str.c_str(), &unused_end);
 
-    cout << flush << setw(20) << "[*****SYSTEM*****]" << left << setw(27) << " Vehicles Monitored: " << veh_monitored << '\n'
+    cout << flush << setw(20) << "[*****SYSTEM*****]" << left << setw(27) << " Vehicles Monitored: " << veh_monitored
+         << '\n'
          << setw(20) << "[*****SYSTEM*****]" << left << setw(27) << " Road Length: " << road_len << '\n'
-         << setw(20) << "[*****SYSTEM*****]" << left << setw(27) << " Parking Spots Available: " << parking_spots << '\n'
+         << setw(20) << "[*****SYSTEM*****]" << left << setw(27) << " Parking Spots Available: " << parking_spots
+         << '\n'
          << setw(20) << "[*****SYSTEM*****]" << left << setw(27) << " Speed Limit: " << speed_lim << " km/h\n\n";
 
     activity_engine.set_statistics(g_days, veh_monitored, road_len, speed_lim, parking_spots);
