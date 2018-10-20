@@ -91,8 +91,43 @@ int main(int argc, char * argv[])
     activity_engine.run(vehicles_dict);
 
     /* FIXME: Not sure, just take a look at it. */
-    // AnalysisEngine analysis_engine;
-    // analysis_engine.run(vehicles_dict);
+    AnalysisEngine analysis_engine;
+    analysis_engine.run(vehicles_dict);
+
+    char command;
+
+    /*do {
+        cout << "\n" << setw(20) << "[*****SYSTEM*****]" << real_formatted_time_now() << "\n"
+             << "Do you want to continue by inputting a new Statistics file for simulation? [y/N]: ";
+        cin >> command;
+        command = static_cast<char>(tolower(command));
+
+        if (strncmp(&command, "y", sizeof(command)) == 0) {
+            cout << "Statistics filename: ";
+            char user_stats[BUFFER_SZ];
+            cin >> user_stats;
+
+            ifstream another_fin;
+            ActivityEngine live_activity_engine(user_stats);
+            read_stats_file(another_fin, user_stats, vehicles_dict, live_activity_engine);
+            live_activity_engine.run(vehicles_dict);
+
+            AnalysisEngine live_analysis_engine;
+            live_analysis_engine.run(vehicles_dict);
+
+        } else if (strncmp(&command, "n", sizeof(command)) == 0) {
+            fp = fopen("Exit_ascii", "r");
+            c = getc(fp);
+            cout << "\n\n";
+            while (c != EOF) {
+                cout << c;
+                c = getc(fp);
+            }
+            cout << endl << endl;
+            fclose(fp);
+            break;
+        }
+    } while (strncmp(&command, "n", sizeof(command)) != 0);*/
 
     return 0;
 }
