@@ -277,8 +277,9 @@ void Logger<T, S>::_log(LEVEL level, T &time, S log_struct)
         cout << time.formatted_time_date() << DELIMITER << get("LOGGER")
              << DELIMITER << _level_to_name(level) << DELIMITER << log_struct << endl;
     } else if (level > 30) {  // level is either ERROR or CRITICAL
-        cout << "[*****IMPORTANT*****] " << time.formatted_time_date() << '\t' << get("LOGGER")
-             << '\t' << _level_to_name(level) << '\t' << log_struct << endl;
+        cout << setw(20) << "[*****ALERT*****]" << time.formatted_time_date() << " " << get("LOGGER")
+             << "\t\t" << _level_to_name(level) << " LOG ==> \t [***** "
+             << log_struct << " *****]" << endl;
     }
 
     if (get("FILENAME") != "false")

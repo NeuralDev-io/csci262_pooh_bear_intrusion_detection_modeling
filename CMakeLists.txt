@@ -21,7 +21,7 @@ set(TRAFFIC_VERSION 0.2-dev)
 set(dir ${CMAKE_CURRENT_SOURCE_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${dir}/src/")
 set(SOURCE_FILES src/main.cpp src/ActivityEngine.cpp src/ActivityEngine.h src/Vehicles.cpp src/Vehicles.h
-        src/Logger.h src/Utils.cpp src/Utils.h src/AnalysisEngine.h src/AnalysisEngine.cpp)
+        src/Logger.h src/Utils.cpp src/Utils.h src/AnalysisEngine.h src/AnalysisEngine.cpp src/Config.h)
 
 add_executable(Traffic ${SOURCE_FILES})
 target_link_libraries(Traffic ${PYTHON_LIBRARIES})

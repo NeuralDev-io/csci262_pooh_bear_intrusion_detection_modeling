@@ -24,6 +24,7 @@
 #include <iomanip>
 #include <fstream>
 #include <iostream>
+#include "Config.h"
 using namespace std;
 
 typedef double simtime_t;
@@ -257,17 +258,16 @@ typedef struct VehicleStats {
     int n_parking = 0;
     vector<simtime_t> ts_parking_ls;
     vector<simtime_t> ts_parking_duration;
-    vector<pair<simtime_t, double> > ts_parking_times;
     double arrival_speed, avg_speed = 0;
     double prob_parking, prob_side_exit, prob_end_exit = 0;
     double estimated_travel_delta = 0;  // TODO:
-    bool side_exit_flag = false;
+    bool depart_side_flag, permit_speeding_flag = false;
 
     // default constructor for VehicleStats
     VehicleStats() : veh_name(""), registration_id(""), arrival_time(SimTime()),
                      departure_time(SimTime()), arrival_speed(0),
                      prob_parking(0), prob_side_exit(0), prob_end_exit(0),
-                     avg_speed(0), side_exit_flag(false), n_parking(0),
+                     avg_speed(0), depart_side_flag(false), n_parking(0),
                      estimated_travel_delta(0), arrival_timestamp(0),
                      departure_timestamp(0) { }
 } VehicleStats;
@@ -300,13 +300,12 @@ typedef struct Event {
 
 } Event;
 
+/*
+ * Custom compare method for the FUTURE EVENT LIST
+ * */
 struct event_compare {
     bool operator()(const Event &lhs, const Event &rhs) {
-        if (rhs.time.tm_hour == lhs.time.tm_hour) {
-            return (rhs.time.tm_min == lhs.time.tm_min) ? rhs.time.tm_sec < lhs.time.tm_sec :
-                   rhs.time.tm_min < lhs.time.tm_min;
-        }
-        return rhs.time.tm_hour < lhs.time.tm_hour;
+        return (rhs.time.compare(lhs.time) == -1);
     }
 };
 
@@ -314,9 +313,7 @@ template<typename T>
 double mean(vector<T>& vector1) {
     T sum = 0;
     unsigned int count = (int) vector1.size();
-    for (int i = 0; i < count; i++) {
-        sum += vector1[i];
-    }
+    sum += accumulate(next(vector1.begin()), vector1.end(), vector1[0]);
     return (sum / count);
 };
 
@@ -341,8 +338,5 @@ string event_name(EVENT_TYPE);
 EVENT_TYPE event_type(string evt_name);
 long long int fact(int x);
 bool is_dir_exists(const char *pathname);
-double exponential_probability(float lambda, int t);
-double poisson_probability(float mu, int X);
-void generate_distribution_csv(default_random_engine randomEngine);
 
 #endif //POOH_BEAR_INTRUSION_DETECTION_SYSTEM_HELPER_H
