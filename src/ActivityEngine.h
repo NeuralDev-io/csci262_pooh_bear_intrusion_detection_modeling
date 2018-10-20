@@ -103,7 +103,6 @@ private:
     void process_departure_events(SimTime &sim_time, VehicleType &veh_type, VehicleStats *veh_stats);
     void simulate_events();
     long double biased_expovariate(double rate_param, double lower_bound, double upper_bound);
-    unsigned long time_seed;
     mt19937_64 mersenne_twister_engine;
     unsigned n_vehicles_monitored, n_parking_spots, simulate_days;
     float road_length, speed_limit;

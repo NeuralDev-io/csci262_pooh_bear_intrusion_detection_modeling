@@ -14,11 +14,17 @@
 #ifndef POOH_BEAR_INTRUSION_DETECTION_SYSTEM_SIMULATIONCONFIGURATION_H
 #define POOH_BEAR_INTRUSION_DETECTION_SYSTEM_SIMULATIONCONFIGURATION_H
 
+#include <chrono>
 
-#include <cmath>
+// const auto SYSTEM_SEED = static_cast<unsigned long>(std::chrono::system_clock::now().time_since_epoch().count());
+const unsigned long SYSTEM_SEED = 0;
 
-bool DEBUG_MODE = true;
-const double T_ARRIVAL_LIMIT = (22.0F * 60 * 60) - 1.0F;       // Set the limit for time last car to arrive
-const double T_DAY_LIMIT = (23.5 * 60.0F * 60.0F) - 1.0F;      // Set the limit for last time for events to occur
+// bool DEBUG_MODE = true;
+const double T_ARRIVAL_LIMIT = (22.5F * 60 * 60);           // Set the limit for time last car to arrive
+const double T_PARKING_LIMIT = (23.5F * 60 * 60);           // Set the limit for time last car to park
+const double T_DAY_LIMIT = (24.0 * 60.0F * 60.0F) - 1.0F;   // Set the limit for last time for events to occur
+const double DEPART_SIDE_PROBABILITY = 0.08;                // Set the probability for the bernoulli distribution
+const double DEPART_SIDE_UPPER_BOUND = 0.02;                // Upper bound value to be used in biased expovariate function
+const double PARKING_PROBABILITY = 0.08;                    // Set the probability for parking for the binomial distribution
 
 #endif //POOH_BEAR_INTRUSION_DETECTION_SYSTEM_SIMULATIONCONFIGURATION_H
