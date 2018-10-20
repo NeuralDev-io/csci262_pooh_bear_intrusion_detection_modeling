@@ -278,7 +278,7 @@ void ActivityEngine::process_departure_events(SimTime &sim_time, VehicleType &ve
     } else {
         /* Event ==> DEPART_END */
         SimTime depart_end_time(sim_time);
-        simtime_t t_depart_end = 0;
+        simtime_t ts_depart_end = 0;
         // estimate of when they would exit at end of road if they were going at arrival speeds
         double estimated_travel_delta = (road_length / veh_stats->arrival_speed) * 3600;
         // check if parking time needs to be added
@@ -292,19 +292,22 @@ void ActivityEngine::process_departure_events(SimTime &sim_time, VehicleType &ve
             // a time the vehicle will depart.
             normal_distribution<double> depart_end_random(estimated_t_depart_end, 2);
             // TODO: should probably check if this time is after 24:00
-            t_depart_end = depart_end_random(mersenne_twister_engine);
+            ts_depart_end = depart_end_random(mersenne_twister_engine);
             // while (t_depart_end > T_DAY_LIMIT || t_depart_end < veh_stats->ts_parking_ls[veh_stats->n_parking - 1])
-            //     t_depart_end = depart_end_random(mersenne_twister_engine);
-            depart_end_time.mktime(t_depart_end);
+            //     ts_depart_end = depart_end_random(mersenne_twister_engine);
+            depart_end_time.mktime(ts_depart_end);
         } else {
             // TODO: Method 1
-            simtime_t estimated_t_depart_end = veh_stats->arrival_time.tm_timestamp + estimated_travel_delta;
-            normal_distribution<double> depart_end_random(estimated_t_depart_end, 3);
-            t_depart_end = depart_end_random(mersenne_twister_engine);
+            // simtime_t estimated_t_depart_end = veh_stats->arrival_time.tm_timestamp + estimated_travel_delta;
+            // normal_distribution<double> depart_end_random(estimated_t_depart_end, 3);
+            // ts_depart_end = depart_end_random(mersenne_twister_engine);
             // TODO: Method 2
-            // normal_distribution<double> depart_end_random(estimated_travel_delta, 3);
-            // t_depart_end = depart_end_random(mersenne_twister_engine) + veh_stats->arrival_time.tm_timestamp;
-            depart_end_time.mktime(t_depart_end);
+            normal_distribution<double> depart_end_random(estimated_travel_delta, 3);
+            ts_depart_end = depart_end_random(mersenne_twister_engine) + veh_stats->arrival_time.tm_timestamp;
+            // TODO: Method 3
+            // exponential_distribution<double> depart_end_expovariate(1/(T_DAY_LIMIT - veh_stats->arrival_time.tm_timestamp));
+            // ts_depart_end = veh_stats->arrival_time.tm_timestamp + depart_end_expovariate(mersenne_twister_engine);
+            depart_end_time.mktime(ts_depart_end);
         }
 
         veh_stats->estimated_travel_delta = estimated_travel_delta;
