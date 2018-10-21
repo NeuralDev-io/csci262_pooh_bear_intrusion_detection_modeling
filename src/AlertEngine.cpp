@@ -16,10 +16,14 @@
 
 #include "AlertEngine.h"
 
-AlertEngine::AlertEngine(string log_file, string data_file) : log_file(move(log_file)), data_file(move(data_file)),
-                                                              volume_anomaly_ctr_threshold(0), speed_anomaly_ctr_threshold(0)
+AlertEngine::AlertEngine(string user_stats, string log_filename) : log_file(log_filename), user_stats_file(user_stats),
+                                                               volume_anomaly_threshold(0), speed_anomaly_threshold(0)
 {
-    alert_logger = Logger<SimTime, AlertLog>("Alert Engine", INFO, log_file, true);
+    // FIXME: passed in value not
+    alert_logger = Logger<SimTime, AlertLog>("Alert Engine", INFO, log_filename, false);
+
+    // TODO: EXTRACT FOR DATA
+    // log_file.substring(5, log_file.length() - 5);
 }
 
 void AlertEngine::run(Vehicles &vehicles, int &days)
@@ -32,6 +36,20 @@ void AlertEngine::run(Vehicles &vehicles, int &days)
     stringstream console_msg;
     console_msg << "Alert Engine started and logging to: " << pwd << dir_slash << "logs" << dir_slash
                 << log_file << endl;
+
+    // calculating the threshold values
+    auto iter = vehicles.get_vehicles_dict()->begin();
+    for (; iter != vehicles.get_vehicles_dict()->end(); ++iter) {
+        volume_anomaly_threshold += (*iter).second.vol_weight;
+        speed_anomaly_threshold += (*iter).second.speed_weight;
+    }
+    volume_anomaly_threshold *= 2;
+    speed_anomaly_threshold *= 2;
+
+    cout << endl;
+    console_log("SYSTEM", "Threshold values: ");
+    cout << left << setw(27) << "Volume Anomaly Threshold: " << volume_anomaly_threshold << '\n'
+         << left << setw(27) << "Speed Anomaly Threshold: " << speed_anomaly_threshold << endl;
 
     stringstream log_msg;
     log_msg << "Started Alert Engine" << DELIMITER << "Number of days=" << days;
@@ -48,19 +66,15 @@ void AlertEngine::run(Vehicles &vehicles, int &days)
 
 void AlertEngine::read_data(SimTime &sim_time, Vehicles &vehicles)
 {
-    string filename = "data/" + data_file;
+    string filename = "data/" + data_baseline;
     ifstream fin(filename, ios::in);
 
     if (!fin.good()) {
-        console_log("FILE ERROR", "Failed to open data file: " + data_file);
+        console_log("FILE ERROR", "Failed to open data file: " + data_baseline);
         return;
     }
 
-    // TODO: read data as follows:
-    // Header: day,date(only),vehicle_type,volume_mean,speed_mean
-    // Data:   1,<01-01-2018>,Bus,3,50.22
-
-    // header line
+    // header line - dont need
     string header;
     getline(fin, header);
 
@@ -68,19 +82,27 @@ void AlertEngine::read_data(SimTime &sim_time, Vehicles &vehicles)
         string veh_name, date_str, day_str, vol_mean_str, speed_mean_str;
         double volume_mean, speed_mean;
         int day;
+
         getline(fin, day_str, DELIMITER);
+
+        if (day_str.empty() || fin.fail() || fin.bad())
+            break;
+
         getline(fin, date_str, DELIMITER);
-        SimTime date(date_str);
+        SimTime date;
+        date.tm_mday = stoi(date_str.substr(1,2));
+        date.tm_mon = stoi(date_str.substr(4,2));
+        date.tm_year = stoi(date_str.substr(7,4));
+
         getline(fin, veh_name, DELIMITER);
         getline(fin, vol_mean_str, DELIMITER);
-        getline(fin, speed_mean_str, DELIMITER);
+        getline(fin, speed_mean_str);
 
-        day = stoi(day_str);
+        day = safe_int_convert(day_str.c_str(), "Integer required.");
         volume_mean = stod(vol_mean_str);
         speed_mean = stod(speed_mean_str);
 
         // TODO: check for next day
-
 
         // get the volume weight from the vehicles type dictionary.
         double volume_weight, speed_weight;
@@ -95,12 +117,12 @@ void AlertEngine::read_data(SimTime &sim_time, Vehicles &vehicles)
         if (iter != data_map.end()) {  // date, already in the map --> update
             VehicleTypeStats vehicle = { veh_name, volume_mean, speed_mean, volume_weight, speed_weight };
             (*iter).second.vehicles_ls.push_back(vehicle);
-            // TODO: probably need to do some weights calculations. Confirm with dalts first.
+        //     // TODO: probably need to do some weights calculations. Confirm with dalts first.
         } else {  // date, not in the map  --> create
-            AlertStats alert_stats = { SimTime(sim_time) };
+            DailyAlertStats alert_stats = { SimTime(sim_time) };
             VehicleTypeStats vehicle = { veh_name, volume_mean, speed_mean, volume_weight, speed_weight };
             alert_stats.vehicles_ls.push_back(vehicle);
-            data_map.insert(pair<SimTime, AlertStats>(SimTime(sim_time), alert_stats));
+            data_map.insert(pair<SimTime, DailyAlertStats>(SimTime(sim_time), alert_stats));
         }
     }
 }

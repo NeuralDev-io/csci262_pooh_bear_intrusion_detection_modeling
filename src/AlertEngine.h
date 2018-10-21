@@ -28,22 +28,23 @@ typedef struct VehicleTypeStats {
     double volume_mean, speed_mean = 0;
     double volume_weight, speed_weight = 0;
 
-    VehicleTypeStats(string veh_name, double volume_mean, double speed_mean,
-                     double volume_weight, double speed_weight) : veh_type(move(veh_name)), volume_mean(volume_mean),
-                                                                  speed_mean(speed_mean), volume_weight(volume_weight),
-                                                                  speed_weight(speed_weight) { }
+    VehicleTypeStats(string veh_name, double volume_mean,
+                     double speed_mean, double volume_weight,
+                     double speed_weight) : veh_type(veh_name), volume_mean(volume_mean),
+                                            speed_mean(speed_mean), volume_weight(volume_weight),
+                                            speed_weight(speed_weight) { }
 } VehicleTypeStats;
 
 
-typedef struct AlertStats {
+typedef struct DailyAlertStats {
     SimTime day = init_time_date();
     double daily_volume_anomaly_ctr = 0;
     double daily_speed_anomaly_ctr = 0;
     vector<VehicleTypeStats> vehicles_ls;
 
-    AlertStats(SimTime day) : day(day), daily_volume_anomaly_ctr(0), daily_speed_anomaly_ctr(0),
+    DailyAlertStats(SimTime day) : day(day), daily_volume_anomaly_ctr(0), daily_speed_anomaly_ctr(0),
                               vehicles_ls(vector<VehicleTypeStats>()) { }
-} AlertStats;
+} DailyAlertStats;
 
 
 typedef struct AlertLog {
@@ -62,17 +63,17 @@ typedef struct AlertLog {
 
 class AlertEngine {
 public:
-    explicit AlertEngine(string log_file, string data_file);
+    AlertEngine(string user_stats, string log_filename);
     void run(Vehicles &vehicles, int &days);
 private:
     void read_data(SimTime &sim_time, Vehicles &vehicles);
     void process_data(SimTime &sim_time, Vehicles &vehicles);
     Logger<SimTime, AlertLog> alert_logger;
-    map<SimTime, AlertStats> data_map;
-    string log_file;
-    string data_file;
-    double volume_anomaly_ctr_threshold;
-    double speed_anomaly_ctr_threshold;
+    map<SimTime, DailyAlertStats> data_map;
+    string log_file, data_baseline, user_stats_file;
+    const string stats_baseline = "stats_baseline";
+    double volume_anomaly_threshold;
+    double speed_anomaly_threshold;
 };
 
 #endif //POOH_BEAR_INTRUSION_DETECTION_SYSTEM_ALERTENGINE_H

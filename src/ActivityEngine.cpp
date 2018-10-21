@@ -32,7 +32,7 @@ ActivityEngine::ActivityEngine() : n_vehicles_monitored(0), n_parking_spots(0), 
  * @param log_file: a string of the filename to be used. Must be consistent with Analysis Engine so it is easy to read.
  * */
 ActivityEngine::ActivityEngine(string log_file) : n_vehicles_monitored(0), n_parking_spots(0), road_length(0),
-                                                  speed_limit(0), simulate_days(0), log_file(move(log_file))
+                                                  speed_limit(0), simulate_days(0), log_file(log_file)
 {
     logger = Logger<SimTime, ActivityLog>("Activity Engine", INFO, log_file, false);
     veh_logger = Logger<SimTime, VehicleLog>("Activity Engine", INFO, log_file, false);
@@ -243,8 +243,17 @@ void ActivityEngine::process_departure_events(SimTime &sim_time, VehicleType &ve
     if (veh_stats->depart_side_flag) {
         /* Event ==> DEPART_SIDE_ROAD */
         SimTime depart_side_time(sim_time);
-        double exit_interval = T_DAY_LIMIT - veh_stats->arrival_timestamp;
+        double exit_interval;
         simtime_t ts_depart_side = veh_stats->arrival_timestamp;  // can only exit after arrival time
+
+        if (veh_stats->n_parking != 0) {
+            double total_parking_duration = accumulate(next(veh_stats->ts_parking_duration.begin()),
+                    veh_stats->ts_parking_duration.end(), veh_stats->ts_parking_duration[0]);
+            exit_interval = T_DAY_LIMIT - ( total_parking_duration + veh_stats->arrival_time.tm_timestamp);
+            ts_depart_side += total_parking_duration;
+        } else {
+            exit_interval = T_DAY_LIMIT - veh_stats->arrival_timestamp;
+        }
 
         while (ts_depart_side < T_DAY_LIMIT) {
             long double test = biased_expovariate(1/exit_interval, 0, DEPART_SIDE_UPPER_BOUND);
@@ -252,11 +261,6 @@ void ActivityEngine::process_departure_events(SimTime &sim_time, VehicleType &ve
                 ts_depart_side += test;
                 break;
             }
-        }
-
-        if (veh_stats->n_parking != 0) {
-            ts_depart_side += accumulate(next(veh_stats->ts_parking_duration.begin()), veh_stats->ts_parking_duration.end(),
-                    veh_stats->ts_parking_duration[0]);
         }
 
         depart_side_time.mktime(ts_depart_side);

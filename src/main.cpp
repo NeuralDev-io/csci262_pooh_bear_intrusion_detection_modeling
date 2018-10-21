@@ -97,51 +97,71 @@ int main(int argc, char * argv[])
     /* FIXME: Not sure, just take a look at it. */
     AnalysisEngine analysis_engine;
     analysis_engine.run(vehicles_dict);
+    analysis_engine.generate_stats_baseline();
+    // TODO: generate_baseline()
+
+    // TODO: debug
+    // generate log file name
+    stringstream log_filename;
+    log_filename << "logs_" << ++FILENAME_COUNTER;
+    char test_stats[] = "Stats_Test.txt";
+    ActivityEngine test_activity_engine(log_filename.str());
+    read_stats_file(fin, test_stats, vehicles_dict, test_activity_engine);
+    test_activity_engine.run(vehicles_dict);
+    AnalysisEngine test_analysis_engine(log_filename.str());
+    test_analysis_engine.run(vehicles_dict);
+    AlertEngine test_alert_engine(test_stats, log_filename.str());
+    int test_days = 5;
+    test_alert_engine.run(vehicles_dict, test_days);
 
     char command;
 
-    do {
-        console_log("SYSTEM", "Alert Engine Phase");
-        cout << "Do you want to continue by inputting a new Statistics file for simulation? [y/N]: ";
-        cin >> command;
-        command = static_cast<char>(tolower(command));
-
-        if (strncmp(&command, "y", sizeof(command)) == 0) {
-            cout << "Statistics filename: ";
-            char user_stats[BUFFER_SZ];
-            cin >> user_stats;
-
-            cout << "Number of days: ";
-            char user_days_str[sizeof(int)];
-            cin >> user_days_str;
-            unsigned user_days = safe_int_convert(user_days_str, "Incorrect number used for number of days");
-
-            // generate log file name
-            stringstream log_filename;
-            log_filename << "logs_" << ++FILENAME_COUNTER;
-
-            ifstream another_fin;
-            ActivityEngine live_activity_engine(user_stats);
-            read_stats_file(another_fin, user_stats, vehicles_dict, live_activity_engine);
-            live_activity_engine.run(vehicles_dict);  // note number of days set in reading file
-
-            AnalysisEngine live_analysis_engine;
-            live_analysis_engine.run(vehicles_dict);
-
-        } else if (strncmp(&command, "n", sizeof(command)) == 0) {
-            /* EXIT MESSAGE */
-            fp = fopen("Exit_ascii", "r");  // using C file io for efficiency
-            c = getc(fp);
-            cout << "\n\n";
-            while (c != EOF) {
-                cout << c;
-                c = getc(fp);
-            }
-            cout << endl << endl;
-            fclose(fp);
-            break;
-        }
-    } while (strncmp(&command, "y", sizeof(command)) == 0);
+    // do {
+    //     console_log("SYSTEM", "Alert Engine Phase");
+    //     cout << "Do you want to continue by inputting a new Statistics file for simulation? [y/N]: ";
+    //     cin >> command;
+    //     command = static_cast<char>(tolower(command));
+    //
+    //     if (strncmp(&command, "y", sizeof(command)) == 0) {
+    //         cout << "Statistics filename: ";
+    //         char user_stats[BUFFER_SZ];
+    //         cin >> user_stats;
+    //
+    //         cout << "Number of days: ";
+    //         char user_days_str[sizeof(int)];
+    //         cin >> user_days_str;
+    //         unsigned user_days = safe_int_convert(user_days_str, "Incorrect number used for number of days");
+    //
+    //         // generate log file name
+    //         stringstream log_filename;
+    //         log_filename << "logs_" << ++FILENAME_COUNTER;
+    //
+    //         ifstream another_fin;
+    //         // TODO: DECLARED LOG FILE NAME
+    //         // ActivityEngine live_activity_engine();
+    //         // read_stats_file(another_fin, user_stats, vehicles_dict, live_activity_engine);
+    //         // live_activity_engine.run(vehicles_dict);  // note number of days set in reading file
+    //
+    //         AnalysisEngine live_analysis_engine;
+    //         live_analysis_engine.run(vehicles_dict);
+    //
+    //         // AlertEngine live_alert_engine(user_stats, "data_");
+    //         // live_alert_engine.run(vehicles_dict, user_days);*//*
+    //
+    //     } else if (strncmp(&command, "n", sizeof(command)) == 0) {
+    //         /* EXIT MESSAGE */
+    //         fp = fopen("Exit_ascii", "r");  // using C file io for efficiency
+    //         c = getc(fp);
+    //         cout << "\n\n";
+    //         while (c != EOF) {
+    //             cout << c;
+    //             c = getc(fp);
+    //         }
+    //         cout << endl << endl;
+    //         fclose(fp);
+    //         break;
+    //     }
+    // } while (strncmp(&command, "y", sizeof(command)) == 0);
 
     return 0;
 }
@@ -178,8 +198,8 @@ void read_vehicles_file(ifstream &fin, char *vehicles_file, Vehicles &vehicles_d
     fin.open(vehicles_file, ifstream::in);
     if (!fin.good()) {
         stringstream ss;
-        ss << setw(20) << "[*****FILE ERROR*****]" << real_formatted_time_now()
-           << "Unable to read Vehicles file from: " << vehicles_file << "\nExiting...\n" << flush;
+        ss << "Unable to read Vehicles file from: " << vehicles_file << "\nExiting...";
+        console_log("FILE ERROR", ss.str());
         perror(ss.str().c_str());
         exit(1);
     }
@@ -226,8 +246,8 @@ void read_stats_file(ifstream &fin, char *stats_file, Vehicles &vehicles_dict, A
     fin.open(stats_file, ifstream::in);
     if (!fin.good()) {
         stringstream ss;
-        ss << setw(20) << "[*****FILE ERROR*****]" << real_formatted_time_now()
-           << " Unable to read Stats file from: " << stats_file << "\nExiting...\n" << flush;
+        ss << "Unable to read Stats file from: " << stats_file << "\nExiting...";
+        console_log("FILE ERROR", ss.str());
         perror(ss.str().c_str());
         exit(1);
     }
@@ -287,4 +307,5 @@ void read_stats_file(ifstream &fin, char *stats_file, Vehicles &vehicles_dict, A
         if (!vehicles_dict.add_stats(name, num_mean, num_stddev, speed_mean, speed_stddev))
             console_log("SYSTEM", "Vehicle type " + name + " cannot be found.");
     }
+    fin.close();
 }

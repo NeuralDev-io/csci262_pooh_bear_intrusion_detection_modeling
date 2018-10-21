@@ -91,16 +91,17 @@ typedef struct SimTime {
     }
 
     /*
-     * Constructor using a formatted string of time and date
-     * Format: '<DD-MM-YYYY HH:MM:ss>'
+     * @brief: constructor using a formatted string of time and date
+     *
+     * @param time_date_str: a c++ string with format '<DD-MM-YYYY HH:MM:ss>'
      */
-    explicit SimTime(const string &time_str) {
-        this->tm_mday = stoi(time_str.substr(1,2));
-        this->tm_mon = stoi(time_str.substr(4,2));
-        this->tm_year = stoi(time_str.substr(7,4));
-        this->tm_hour = stoi(time_str.substr(12,2));
-        this->tm_min = stoi(time_str.substr(15,2));
-        this->tm_sec = stoi(time_str.substr(18,2));
+    explicit SimTime(const string &time_date_str) {
+        this->tm_mday = stoi(time_date_str.substr(1,2));
+        this->tm_mon = stoi(time_date_str.substr(4,2));
+        this->tm_year = stoi(time_date_str.substr(7,4));
+        this->tm_hour = stoi(time_date_str.substr(12,2));
+        this->tm_min = stoi(time_date_str.substr(15,2));
+        this->tm_sec = stoi(time_date_str.substr(18,2));
     }
 
     /*
