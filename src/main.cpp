@@ -20,6 +20,7 @@
 #include "Vehicles.h"
 #include "ActivityEngine.h"
 #include "AnalysisEngine.h"
+#include "AlertEngine.h"
 using namespace std;
 
 #define BUFFER_SZ 100
@@ -31,6 +32,8 @@ using namespace std;
     char OS[] = "win";
 #elif _WIN64
     char OS[] = "win";
+#else
+    char OS[] = "linux";
 #endif
 
 /* STRUCT DEFINITION */
@@ -69,15 +72,13 @@ int main(int argc, char * argv[])
     /* WELCOME HEADER */
     FILE *fp = fopen("Welcome_ascii", "r");  // using C file io for efficiency
     char c = getc(fp);
-    cout << "\n\n";
+    cout << "\n";
     while (c != EOF) {
         cout << c;
         c = getc(fp);
     }
     cout << endl << endl;
     fclose(fp);
-    cout << "Authors: Dinh Che (codeninja55) <andrew@codeninja55.me> "
-         << "& Duong Le (daltonle) <duong.daltonle@gmail.com>\n" << endl;
 
     // vehicles_dict is a Vehicles wrapper object for a hash map dictionary of VehicleType structs.
     // key: name of the type. value: VehicleType structure
