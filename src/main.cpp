@@ -116,6 +116,10 @@ int main(int argc, char * argv[])
             cin >> user_days_str;
             unsigned user_days = safe_int_convert(user_days_str, "Incorrect number used for number of days");
 
+            // generate log file name
+            stringstream log_filename;
+            log_filename << "logs_" << ++FILENAME_COUNTER;
+
             ifstream another_fin;
             ActivityEngine live_activity_engine(user_stats);
             read_stats_file(another_fin, user_stats, vehicles_dict, live_activity_engine);
