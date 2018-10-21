@@ -94,16 +94,21 @@ int main(int argc, char * argv[])
 
     activity_engine.run(vehicles_dict);
 
-    /* FIXME: Not sure, just take a look at it. */
     AnalysisEngine analysis_engine;
     analysis_engine.run(vehicles_dict);
     analysis_engine.generate_stats_baseline();
-    // TODO: generate_baseline()
+
+    // generate vehicles_dict for baseline data
+    Vehicles vehicles_dict_baseline;
+    char stats_baseline[] = "data/stats_baseline";
+    read_vehicles_file(fin, vehicles_file, vehicles_dict_baseline);
+    read_stats_file(fin, stats_baseline, vehicles_dict_baseline, activity_engine);
 
     // TODO: debug
     // generate log file name
     stringstream log_filename;
     log_filename << "logs_" << ++FILENAME_COUNTER;
+
     char test_stats[] = "Stats_Test.txt";
     ActivityEngine test_activity_engine(log_filename.str());
     read_stats_file(fin, test_stats, vehicles_dict, test_activity_engine);
@@ -111,8 +116,8 @@ int main(int argc, char * argv[])
     AnalysisEngine test_analysis_engine(log_filename.str());
     test_analysis_engine.run(vehicles_dict);
     AlertEngine test_alert_engine(test_stats, log_filename.str());
-    int test_days = 5;
-    test_alert_engine.run(vehicles_dict, test_days);
+    int test_days = 3;
+    test_alert_engine.run(vehicles_dict_baseline);
 
     char command;
 
@@ -137,16 +142,15 @@ int main(int argc, char * argv[])
     //         log_filename << "logs_" << ++FILENAME_COUNTER;
     //
     //         ifstream another_fin;
-    //         // TODO: DECLARED LOG FILE NAME
-    //         // ActivityEngine live_activity_engine();
-    //         // read_stats_file(another_fin, user_stats, vehicles_dict, live_activity_engine);
-    //         // live_activity_engine.run(vehicles_dict);  // note number of days set in reading file
+    //         ActivityEngine live_activity_engine();
+    //         read_stats_file(another_fin, user_stats, vehicles_dict, live_activity_engine);
+    //         live_activity_engine.run(vehicles_dict);  // note number of days set in reading file
     //
     //         AnalysisEngine live_analysis_engine;
     //         live_analysis_engine.run(vehicles_dict);
     //
-    //         // AlertEngine live_alert_engine(user_stats, "data_");
-    //         // live_alert_engine.run(vehicles_dict, user_days);*//*
+    //         AlertEngine live_alert_engine(user_stats, "data_");
+    //         live_alert_engine.run(vehicles_dict, user_days);
     //
     //     } else if (strncmp(&command, "n", sizeof(command)) == 0) {
     //         /* EXIT MESSAGE */

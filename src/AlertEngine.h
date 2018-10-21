@@ -25,14 +25,12 @@ using namespace std;
 
 typedef struct VehicleTypeStats {
     string veh_type = "";
-    double volume_mean, speed_mean = 0;
-    double volume_weight, speed_weight = 0;
+    unsigned volume = 0;
+    double speed_mean = 0;
 
-    VehicleTypeStats(string veh_name, double volume_mean,
-                     double speed_mean, double volume_weight,
-                     double speed_weight) : veh_type(veh_name), volume_mean(volume_mean),
-                                            speed_mean(speed_mean), volume_weight(volume_weight),
-                                            speed_weight(speed_weight) { }
+    VehicleTypeStats(string veh_name, unsigned volume,
+                     double speed_mean) : veh_type(veh_name), volume(volume),
+                                            speed_mean(speed_mean) { }
 } VehicleTypeStats;
 
 
@@ -64,13 +62,14 @@ typedef struct AlertLog {
 class AlertEngine {
 public:
     AlertEngine(string user_stats, string log_filename);
-    void run(Vehicles &vehicles, int &days);
+    void run(Vehicles &vehicles);
 private:
-    void read_data(SimTime &sim_time, Vehicles &vehicles);
-    void process_data(SimTime &sim_time, Vehicles &vehicles);
+    void calculate_thresholds(Vehicles &vehicles);
+    void read_data();
+    void process_data(Vehicles &vehicles);
     Logger<SimTime, AlertLog> alert_logger;
     map<SimTime, DailyAlertStats> data_map;
-    string log_file, data_baseline, user_stats_file;
+    string log_file, data_file, user_stats_file;
     const string stats_baseline = "stats_baseline";
     double volume_anomaly_threshold;
     double speed_anomaly_threshold;
