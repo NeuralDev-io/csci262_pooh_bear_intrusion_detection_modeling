@@ -64,13 +64,13 @@ public:
     AnalysisEngine();   // default
     AnalysisEngine(string log_file);
     void run(Vehicles &vehicles_dict);
+    void generate_stats_baseline();
 private:
     void import_vehicles(Vehicles&);
     void read_log();
     void process_log(Vehicles&);
     void add_speeding(VehicleStats&);
     void end_day();
-    void generate_stats_baseline();
     map<string, DailyStats> today_stats;
     map<string, AnalysisStats> total_stats;
     map<string, VehicleStats> curr_vehicles;    // current vehicles on the road

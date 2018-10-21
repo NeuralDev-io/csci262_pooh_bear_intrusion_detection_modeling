@@ -296,7 +296,7 @@ void Logger<T, S>::_add_record(LEVEL level, T &time, S &log_struct)
     fout.open(get("FILENAME").c_str(), ios::out | ios::app);
 
     if (!fout.good())
-        cout << "<" << real_formatted_time_now() << "> [*****FILE ERROR*****] Failed to open log file " << get("FILENAME") << endl;
+        console_log("FILE ERROR", "Failed to open log file " + get("FILENAME") + " for logging.");
 
     fout << time.formatted_time_date() << DELIMITER << get("LOGGER") << DELIMITER
     << _level_to_name(level) << DELIMITER << log_struct << endl;

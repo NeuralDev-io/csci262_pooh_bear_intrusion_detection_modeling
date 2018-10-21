@@ -337,7 +337,7 @@ void AnalysisEngine::generate_stats_baseline()
              << fixed << setprecision(2) << mean<unsigned long>(iter->second.volume_dist) << ":"
              << fixed << setprecision(2) << std_dev<unsigned long>(iter->second.volume_dist) << ":"
              << fixed << setprecision(2) << mean<double>(iter->second.speed_dist) << ":"
-             << fixed << setprecision(2) << std_dev<double>(iter->second.speed_dist) << endl;
+             << fixed << setprecision(2) << std_dev<double>(iter->second.speed_dist) << ":" << endl;
     }
     fout.close();
 }

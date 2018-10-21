@@ -39,7 +39,7 @@ void Vehicles::insert(VehicleType &v)
  * */
 bool Vehicles::add_stats(string name, float num_mean, float num_stdev, float speed_mean, float speed_stddev)
 {
-    map<string, VehicleType>::iterator iter = vehicles_dict.find(name);
+    auto iter = vehicles_dict.find(name);
 
     if (iter != vehicles_dict.end()) {
         (*iter).second.num_mean = num_mean;
