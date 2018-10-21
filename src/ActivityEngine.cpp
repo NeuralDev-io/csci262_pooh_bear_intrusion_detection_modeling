@@ -15,20 +15,10 @@
 #include "ActivityEngine.h"
 #include <cassert>
 
-#ifdef __linux__
-char dir_slash = '/';
-#elif _linux_
-char dir_slash = '/';
-#elif _WIN32
-char dir_slash = '\\';
-#elif _WIN64
-char dir_slash = '\\';
-#endif
-
 ActivityEngine::ActivityEngine() : n_vehicles_monitored(0), n_parking_spots(0), road_length(0), speed_limit(0), simulate_days(0)
 {
     // Set the last param to true if you want to output log to stdout
-    log_file = "logs_baseline";
+    log_file =  LOGS_FILENAME;
     logger = Logger<SimTime, ActivityLog>("Activity Engine", INFO, log_file, false);
     veh_logger = Logger<SimTime, VehicleLog>("Activity Engine", INFO, log_file, false);
     other_veh_logger = Logger<SimTime, GenericLog>("Activity Engine", INFO, log_file, false);
@@ -42,9 +32,8 @@ ActivityEngine::ActivityEngine() : n_vehicles_monitored(0), n_parking_spots(0), 
  * @param log_file: a string of the filename to be used. Must be consistent with Analysis Engine so it is easy to read.
  * */
 ActivityEngine::ActivityEngine(string log_file) : n_vehicles_monitored(0), n_parking_spots(0), road_length(0),
-                                                  speed_limit(0), simulate_days(0)
+                                                  speed_limit(0), simulate_days(0), log_file(log_file)
 {
-    log_file = log_file;
     logger = Logger<SimTime, ActivityLog>("Activity Engine", INFO, log_file, false);
     veh_logger = Logger<SimTime, VehicleLog>("Activity Engine", INFO, log_file, false);
     other_veh_logger = Logger<SimTime, GenericLog>("Activity Engine", INFO, log_file, false);
@@ -57,8 +46,9 @@ void ActivityEngine::run(Vehicles &vehicles)
 
     char pwd[100];
     getcwd(pwd, sizeof(pwd));
-    cout << setw(20) << "[*****SYSTEM*****]" << real_formatted_time_now() << "Activity Engine Started and logging to: "
-         << pwd << dir_slash << "logs" << dir_slash << log_file << endl;
+    stringstream console_msg;
+    console_msg << "Activity Engine Started and logging to: " << pwd << dir_slash << "logs" << dir_slash << log_file;
+    console_log("SYSTEM", console_msg.str());
 
     // log for the number of Days specified at the initial running of Traffic
     stringstream msg;
@@ -74,14 +64,13 @@ void ActivityEngine::run(Vehicles &vehicles)
         msg.str(string());
         msg << "Generating Discrete Events for " << sim_time.formatted_date();
         logger.info(sim_time, ActivityLog("NOTICE", "Activity Log", msg.str()));
-        cout << setw(20) <<  "[*****SYSTEM*****]" << real_formatted_time_now() << " " << msg.str() << endl;
-
+        console_log("SYSTEM", msg.str());
         simulate_events();
         sim_time.next_day();
         start_generating_discrete_events(sim_time, vehicles);
     }
 
-    cout << setw(20) << "[*****SYSTEM*****]" << real_formatted_time_now() << " Activity Engine Finished." << endl;
+    console_log("SYSTEM", "Activity Engine Completed.");
 }
 
 void ActivityEngine::start_generating_discrete_events(SimTime &sim_time, Vehicles &vehicles)
@@ -254,8 +243,17 @@ void ActivityEngine::process_departure_events(SimTime &sim_time, VehicleType &ve
     if (veh_stats->depart_side_flag) {
         /* Event ==> DEPART_SIDE_ROAD */
         SimTime depart_side_time(sim_time);
-        double exit_interval = T_DAY_LIMIT - veh_stats->arrival_timestamp;
+        double exit_interval;
         simtime_t ts_depart_side = veh_stats->arrival_timestamp;  // can only exit after arrival time
+
+        if (veh_stats->n_parking != 0) {
+            double total_parking_duration = accumulate(next(veh_stats->ts_parking_duration.begin()),
+                    veh_stats->ts_parking_duration.end(), veh_stats->ts_parking_duration[0]);
+            exit_interval = T_DAY_LIMIT - ( total_parking_duration + veh_stats->arrival_time.tm_timestamp);
+            ts_depart_side += total_parking_duration;
+        } else {
+            exit_interval = T_DAY_LIMIT - veh_stats->arrival_timestamp;
+        }
 
         while (ts_depart_side < T_DAY_LIMIT) {
             long double test = biased_expovariate(1/exit_interval, 0, DEPART_SIDE_UPPER_BOUND);
@@ -263,11 +261,6 @@ void ActivityEngine::process_departure_events(SimTime &sim_time, VehicleType &ve
                 ts_depart_side += test;
                 break;
             }
-        }
-
-        if (veh_stats->n_parking != 0) {
-            ts_depart_side += accumulate(next(veh_stats->ts_parking_duration.begin()), veh_stats->ts_parking_duration.end(),
-                    veh_stats->ts_parking_duration[0]);
         }
 
         depart_side_time.mktime(ts_depart_side);

@@ -39,7 +39,7 @@ void Vehicles::insert(VehicleType &v)
  * */
 bool Vehicles::add_stats(string name, float num_mean, float num_stdev, float speed_mean, float speed_stddev)
 {
-    map<string, VehicleType>::iterator iter = vehicles_dict.find(name);
+    auto iter = vehicles_dict.find(name);
 
     if (iter != vehicles_dict.end()) {
         (*iter).second.num_mean = num_mean;
@@ -49,15 +49,6 @@ bool Vehicles::add_stats(string name, float num_mean, float num_stdev, float spe
         return true;
     }
     return false;
-}
-
-/*
- * @brief: A getter method for size of vehicles_dict.
- *
- * @return: an int which represents the size of the vehicles_dict.
- * */
-int Vehicles::size() {
-    return n_vehicles;
 }
 
 /*
@@ -90,10 +81,10 @@ void Vehicles::print()
          <<"|"<<setw(17)<<"-"
          <<setfill(' ')<<"|"<<left<<endl;
 
-    map<string, VehicleType>::iterator iter = vehicles_dict.begin();
+    auto iter = vehicles_dict.begin();
     for (; iter != vehicles_dict.end(); iter++) {
         string parking = ((*iter).second.parking_flag) ? "Yes" : "No";
-        cout <<"|"<<right<<setw(4)<< (*iter).second.id <<" | "<<left<<setw(15)<< (*iter).first
+        cout <<setprecision(4)<<"|"<<right<<setw(4)<< (*iter).second.id <<" | "<<left<<setw(15)<< (*iter).first
              <<" | "<<setw(7)<< parking <<" | "<<setw(11)<< (*iter).second.reg_format
              <<" | "<<right<<setw(13)<< (*iter).second.vol_weight <<" | "<<setw(12)<< (*iter).second.speed_weight
              <<" | "<<setw(11)<<setprecision(4)<<(*iter).second.num_mean<<" | "<<setw(16)<<(*iter).second.num_stddev

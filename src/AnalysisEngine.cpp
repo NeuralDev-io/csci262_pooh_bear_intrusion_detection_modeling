@@ -12,10 +12,10 @@ AnalysisEngine::AnalysisEngine(): curr_vehicles(map<string, VehicleStats>()),
                                   today_stats(map<string, DailyStats>()),
                                   activity_logs(queue<string>())
 {
-    logger = Logger<SimTime, AnalysisLog>("Analysis Engine", INFO, "logs_baseline", true);
+    logger = Logger<SimTime, AnalysisLog>("Analysis Engine", INFO, "logs_baseline", false);
     log_file = "logs_baseline";
     data_file = "data_baseline";
-    stats_file = "stats_baseline";
+    speeding_file = "speeding_baseline";
 }
 
 AnalysisEngine::AnalysisEngine(string log_file1): curr_vehicles(map<string, VehicleStats>()),
@@ -26,28 +26,30 @@ AnalysisEngine::AnalysisEngine(string log_file1): curr_vehicles(map<string, Vehi
                                                  today_stats(map<string, DailyStats>()),
                                                  activity_logs(queue<string>())
 {
-    logger = Logger<SimTime, AnalysisLog>("Analysis Engine", INFO, log_file1, true);
+    logger = Logger<SimTime, AnalysisLog>("Analysis Engine", INFO, log_file1, false);
     log_file = log_file1;
     data_file = "data_" + log_file1.substr(5, log_file1.length() - 5);
-    stats_file = "stats_" + log_file1.substr(5, log_file1.length() - 5);
+    speeding_file = "speeding_" + log_file1.substr(5, log_file1.length() - 5);
 }
 
 void AnalysisEngine::run(Vehicles &vehicles_dict)
 {
     SimTime sim_time = init_time_date();
 
-    cout << "[*****SYSTEM*****] Analysis Engine started: " << real_formatted_time_now() << "\n" << flush;
+    // console log start of Analysis Engine
+    char pwd[100];
+    getcwd(pwd, sizeof(pwd));
+    cout << setw(20) << "[*****SYSTEM*****]" << real_formatted_time_now() << " Analysis Engine Started and logging to: "
+         << pwd << dir_slash << "logs" << dir_slash << log_file << endl;
 
     // log start of Analysis Engine
-    stringstream msg;
-    msg << "Started Analysis Engine";
-    logger.info(sim_time, AnalysisLog( "NOTICE", "Analysis Log", msg.str() ));
+    logger.info(sim_time, AnalysisLog( "NOTICE", "Analysis Log", "Started Analysis Engine" ));
 
     import_vehicles(vehicles_dict);
     read_log();
-    process_log();
+    process_log(vehicles_dict);
 
-    cout << "[*****SYSTEM*****] Analysis Engine finished: " << real_formatted_time_now() << "\n" << flush;
+    cout << setw(20) << "[*****SYSTEM*****]" << real_formatted_time_now() << " Analysis Engine finished." << endl;
 }
 
 void AnalysisEngine::import_vehicles(Vehicles &vehicles_dict)
@@ -56,7 +58,7 @@ void AnalysisEngine::import_vehicles(Vehicles &vehicles_dict)
     auto iter_end = vehicles_dict.get_vehicles_dict()->end();
 
     for (; iter != iter_end; ++iter) {
-        // initialise stats
+        // add keys for stats maps
         total_stats.insert(pair<string, AnalysisStats>((*iter).first, AnalysisStats((*iter).first)));
         today_stats.insert(pair<string, DailyStats>((*iter).first, DailyStats((*iter).first)));
         n_vehicles++;
@@ -104,23 +106,63 @@ void AnalysisEngine::read_log()
     fin.close();
 }
 
-void AnalysisEngine::process_log()
+void AnalysisEngine::process_log(Vehicles& vehicles)
 {
     string tmp;
     SimTime prev_time;
     size_t start_pos;
     size_t end_pos;
 
+    // write header to data file and speeding file
+    ofstream fout_data, fout_speeding;
+    string filename = "data/" + data_file;
+    string filename_speeding = "data/" + speeding_file;
+    fout_data.open(filename, ios::out | ios::app);
+    fout_speeding.open(filename_speeding, ios::out | ios::app);
+
+    if (!fout_data.good()) {
+        console_log("FILE ERROR", "Failed to open data output file.");
+    }
+    if (!fout_speeding.good())
+        console_log("FILE ERROR", "Failed to open speeding output file.");
+
+    fout_data << "day" << DELIMITER << "date" << DELIMITER << "vehicle_type"
+         << DELIMITER << "volume" << DELIMITER << "speed_mean" << endl;
+    fout_data.close();
+    fout_speeding << "day" << DELIMITER << "vehicle_type" << DELIMITER << "registration" << DELIMITER
+                  << "speed" << DELIMITER << "arrival_time" << DELIMITER
+                  << "departure_time" << endl;
+    fout_speeding.close();
+
+    // process log
+    if (!activity_logs.empty()) {
+        stringstream msg;
+        msg << "Analysing day " << (day_count+1) << ".";
+        console_log("SYSTEM", msg.str());
+    }
     while (!activity_logs.empty()) {
         tmp = activity_logs.front();
         activity_logs.pop();
 
         start_pos = tmp.find(DELIMITER);
         SimTime curr_time(tmp.substr(0, start_pos)); // time
+        // initialise first date of simulation
+        if (prev_time.compare_date(SimTime()) == 0) {
+            auto iter = today_stats.begin();
+            auto iter_end = today_stats.end();
+
+            for (; iter != iter_end; iter++) {
+                (*iter).second.date = curr_time;
+            }
+        }
         // test if the simulation has gone to the next day
         if (curr_time.compare_date(prev_time) > 0
             && prev_time.compare(SimTime()) != 0) {
             end_day();
+            // console log
+            stringstream msg;
+            msg << "Analysing day " << (day_count+1) << ".";
+            console_log("SYSTEM", msg.str());
         }
         prev_time = curr_time;
 
@@ -139,6 +181,11 @@ void AnalysisEngine::process_log()
         end_pos = tmp.find(DELIMITER, ++start_pos);
         veh_stats.veh_name = tmp.substr(start_pos, end_pos - start_pos); // vehicle name
         start_pos = end_pos;
+
+        auto iter = vehicles.get_vehicles_dict()->find(veh_stats.veh_name);
+        if (iter != vehicles.get_vehicles_dict()->end()) {
+            veh_stats.permit_speeding_flag = ((*iter).second.speed_weight == 0);
+        }
 
         end_pos = tmp.find(DELIMITER, ++start_pos);
         veh_stats.registration_id = tmp.substr(start_pos, end_pos - start_pos); // vehicle registration id
@@ -168,46 +215,61 @@ void AnalysisEngine::process_log()
         } else if (evt_type == DEPART_END_ROAD) {
             auto iter = curr_vehicles.find(veh_stats.registration_id);
             if (iter != curr_vehicles.end()) {
-                veh_stats.departure_time = curr_time;
+                (*iter).second.departure_time = curr_time;
                 // check speeding
-                double avg_speed = road_length / curr_time.diff(veh_stats.arrival_time) * 3600;
+                double avg_speed = road_length / curr_time.diff((*iter).second.arrival_time) * 3600;
                 if (avg_speed > speed_limit) {
-                    veh_stats.avg_speed = avg_speed;
-                    add_speeding(veh_stats);
+                    (*iter).second.avg_speed = avg_speed;
+                    add_speeding((*iter).second);
                 }
             }
             curr_vehicles.erase(veh_stats.registration_id);
         }
     }
 
-    end_analysis();
+    end_day();
 }
 
 void AnalysisEngine::add_speeding(VehicleStats &veh_stats)
 {
     speeding_tickets.push_back(veh_stats);
 
-    // log warning
+    // console log
+    stringstream msg_console;
+    msg_console << "Speeding detected: " << veh_stats.veh_name << DELIMITER
+        << veh_stats.registration_id << DELIMITER << veh_stats.avg_speed << " kmh";
+    console_log("ALERT", msg_console.str());
+    // log
     stringstream msg;
     msg << veh_stats.veh_name << DELIMITER << veh_stats.registration_id
         << DELIMITER << fixed << setprecision(2) << veh_stats.avg_speed
         << DELIMITER << veh_stats.arrival_time.formatted_time_date()
         << DELIMITER << veh_stats.departure_time.formatted_time_date();
-    logger.warning(veh_stats.departure_time, AnalysisLog( "SPEEDING", "Analysis Log", msg.str() ));
+    if (veh_stats.permit_speeding_flag)
+        logger.warning(veh_stats.departure_time, AnalysisLog( "SPEEDING", "Analysis Log", msg.str() ));
+    else logger.critical(veh_stats.departure_time, AnalysisLog( "SPEEDING", "Analysis Log", msg.str() ));
 }
 
 void AnalysisEngine::end_day()
 {
-    ofstream fout;
+    day_count++;
+    ofstream fout_data, fout_speeding;
     string filename = "data/" + data_file;
-    fout.open(filename, ios::out | ios::app);
+    string filename_speeding = "data/" + speeding_file;
+    fout_data.open(filename, ios::out | ios::app);
+    fout_speeding.open(filename_speeding, ios::out | ios::app);
 
-    if (!fout.good()) {
-        cout << "[*****FILE ERROR*****] " << "<" << real_formatted_time_now()
-             << "> Failed to open output file. Data of day " << (day_count+1) << " not recorded." << endl;
+    if (!fout_data.good()) {
+        stringstream msg;
+        msg << "Failed to open output file. Data of day " <<(day_count) << " not recorded.";
+        console_log("FILE ERROR", msg.str());
+    }
+    if (!fout_speeding.good()) {
+        stringstream msg;
+        msg << "Failed to open output file. Speeding tickets of day " <<(day_count) << " not recorded.";
+        console_log("FILE ERROR", msg.str());
     }
 
-    fout << "Day " << (day_count+1) << ": " << today_stats.begin()->second.date.formatted_time_date() << endl;
     auto iter = today_stats.begin();
     auto iter_end = today_stats.end();
 
@@ -222,8 +284,9 @@ void AnalysisEngine::end_day()
             (*iter_total).second.volume_dist.push_back( (*iter).second.volume );
 
             // write to data file
-            fout << "\t" << (*iter).second.veh_name << DELIMITER << "Volume=" << (*iter).second.volume
-                 << DELIMITER << "Speed mean=" << fixed << setprecision(2) << speed_mean << endl;
+            fout_data << day_count << DELIMITER << iter->second.date.formatted_date() << DELIMITER
+                 << (*iter).second.veh_name << DELIMITER << (*iter).second.volume
+                 << DELIMITER << fixed << setprecision(2) << speed_mean << endl;
             (*iter).second.volume = 0; // reset volume
         }
 
@@ -231,26 +294,25 @@ void AnalysisEngine::end_day()
         (*iter).second.date.next_day();
         iter++;
     }
-    day_count++;
 
     // report speeding
-    if (!speeding_tickets.empty())
-        fout << "\tSPEEDING TICKETS:" << endl;
     while (!speeding_tickets.empty()) {
         VehicleStats veh_stats = speeding_tickets[0]; // extract the first ticket
 
         // write ticket to file
         stringstream msg;
-        msg << "\t" << veh_stats.veh_name << DELIMITER << veh_stats.registration_id
+        msg << day_count << DELIMITER << veh_stats.veh_name
+            << DELIMITER << veh_stats.registration_id
             << DELIMITER << fixed << setprecision(2) << veh_stats.avg_speed
             << DELIMITER << veh_stats.arrival_time.formatted_time_date()
             << DELIMITER << veh_stats.departure_time.formatted_time_date();
-        fout << msg.str() << endl;
+        fout_speeding << msg.str() << endl;
 
         // delete ticket
         speeding_tickets.erase(speeding_tickets.begin());
     }
-    fout.close();
+    fout_speeding.close();
+    fout_data.close();
 
     // log
     SimTime sim_time = init_time_date();
@@ -259,10 +321,8 @@ void AnalysisEngine::end_day()
     logger.info(sim_time, AnalysisLog( "NOTICE", "Analysis Log", msg.str() ));
 }
 
-void AnalysisEngine::end_analysis()
+void AnalysisEngine::generate_stats_baseline()
 {
-    end_day(); // end the current day
-
     ofstream fout;
     string filename = "data/" + stats_file;
     fout.open(filename, ios::out);
@@ -277,7 +337,7 @@ void AnalysisEngine::end_analysis()
              << fixed << setprecision(2) << mean<unsigned long>(iter->second.volume_dist) << ":"
              << fixed << setprecision(2) << std_dev<unsigned long>(iter->second.volume_dist) << ":"
              << fixed << setprecision(2) << mean<double>(iter->second.speed_dist) << ":"
-             << fixed << setprecision(2) << std_dev<double>(iter->second.speed_dist) << endl;
+             << fixed << setprecision(2) << std_dev<double>(iter->second.speed_dist) << ":" << endl;
     }
     fout.close();
 }

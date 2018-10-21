@@ -14,7 +14,7 @@
 #include <queue>
 #include "Utils.h"
 #include "Vehicles.h"
-#include "Logger.h"
+#include "Logger.cpp"
 using namespace std;
 
 typedef struct AnalysisStats {
@@ -64,13 +64,13 @@ public:
     AnalysisEngine();   // default
     AnalysisEngine(string log_file);
     void run(Vehicles &vehicles_dict);
+    void generate_stats_baseline();
 private:
     void import_vehicles(Vehicles&);
     void read_log();
-    void process_log();
+    void process_log(Vehicles&);
     void add_speeding(VehicleStats&);
     void end_day();
-    void end_analysis();
     map<string, DailyStats> today_stats;
     map<string, AnalysisStats> total_stats;
     map<string, VehicleStats> curr_vehicles;    // current vehicles on the road
@@ -80,7 +80,8 @@ private:
     unsigned n_vehicles, n_parking_spots;
     Logger<SimTime, AnalysisLog> logger;
     queue<string> activity_logs;
-    string log_file, data_file, stats_file;
+    string log_file, data_file, speeding_file;
+    const string stats_file = "stats_baseline";
 };
 
 #endif //POOH_BEAR_INTRUSION_DETECTION_SYSTEM_ANALYSISENGINE_H

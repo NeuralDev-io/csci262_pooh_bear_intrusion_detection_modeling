@@ -24,10 +24,35 @@
 #include <iomanip>
 #include <fstream>
 #include <iostream>
-#include "Config.h"
 using namespace std;
 
+#ifdef __linux__
+static const char dir_slash = '/';
+#elif _linux_
+static const char dir_slash = '/';
+#elif _WIN32
+static const char dir_slash = '\\';
+#elif _WIN64
+static const char dir_slash = '\\';
+#else
+static const char dir_slash = '/';
+#endif
+
 typedef double simtime_t;
+
+// const auto SYSTEM_SEED = static_cast<unsigned long>(std::chrono::system_clock::now().time_since_epoch().count());
+const unsigned long SYSTEM_SEED = 0;
+
+// bool DEBUG_MODE = true;
+const static std::string LOGS_FILENAME = "logs_baseline";
+const double T_ARRIVAL_LIMIT = (22.5F * 60 * 60);           // Set the limit for time last car to arrive
+const double T_PARKING_LIMIT = (23.5F * 60 * 60);           // Set the limit for time last car to park
+const double T_DAY_LIMIT = (24.0 * 60.0F * 60.0F) - 1.0F;   // Set the limit for last time for events to occur
+const double DEPART_SIDE_PROBABILITY = 0.08;                // Set the probability for the bernoulli distribution
+const double DEPART_SIDE_UPPER_BOUND = 0.02;                // Upper bound value to be used in biased expovariate function
+const double PARKING_PROBABILITY = 0.08;                    // Set the probability for parking for the binomial distribution
+
+static int FILENAME_COUNTER = 0;
 
 /*
  * SimTime structure to hold the time values. Based heavily on C stdlib tm struct.
@@ -46,6 +71,40 @@ typedef struct SimTime {
     SimTime(const SimTime &ST) = default;  // trivial copy constructor
 
     /*
+     * @brief: overloaded operator to be used in ordered containers.
+     * */
+    friend bool operator<(const SimTime &lhs, const SimTime &rhs)
+    {
+        if (rhs.tm_year == lhs.tm_year) {
+            if (rhs.tm_mon == lhs.tm_mon) {
+                if (rhs.tm_mday == lhs.tm_mday) {
+                    if (rhs.tm_hour == lhs.tm_hour) {
+                        (rhs.tm_min == lhs.tm_min) ? rhs.tm_sec < lhs.tm_sec : rhs.tm_min < lhs.tm_min;
+                    }
+                    return rhs.tm_hour < lhs.tm_hour;
+                }
+                return rhs.tm_mday < lhs.tm_mday;
+            }
+            return rhs.tm_mon < lhs.tm_mon;
+        }
+        return rhs.tm_year < lhs.tm_year;
+    }
+
+    /*
+     * @brief: constructor using a formatted string of time and date
+     *
+     * @param time_date_str: a c++ string with format '<DD-MM-YYYY HH:MM:ss>'
+     */
+    explicit SimTime(const string &time_date_str) {
+        this->tm_mday = stoi(time_date_str.substr(1,2));
+        this->tm_mon = stoi(time_date_str.substr(4,2));
+        this->tm_year = stoi(time_date_str.substr(7,4));
+        this->tm_hour = stoi(time_date_str.substr(12,2));
+        this->tm_min = stoi(time_date_str.substr(15,2));
+        this->tm_sec = stoi(time_date_str.substr(18,2));
+    }
+
+    /*
      * @brief: takes a timestamp value and converts it to a SimTime time.
      *
      * @param timestamp: double value to be converted to a SimTIme struct.
@@ -55,19 +114,6 @@ typedef struct SimTime {
         this->tm_min = static_cast<int>(lround(timestamp)) / 60 % 60;
         this->tm_sec = static_cast<int>(lround(timestamp)) % 60;
         this->tm_timestamp = timestamp;
-    }
-
-    /*
-     * Constructor using a formatted string of time and date
-     * Format: '<DD-MM-YYYY HH:MM:ss>'
-     */
-    explicit SimTime(const string &time_str) {
-        this->tm_mday = stoi(time_str.substr(1,2));
-        this->tm_mon = stoi(time_str.substr(4,2));
-        this->tm_year = stoi(time_str.substr(7,4));
-        this->tm_hour = stoi(time_str.substr(12,2));
-        this->tm_min = stoi(time_str.substr(15,2));
-        this->tm_sec = stoi(time_str.substr(18,2));
     }
 
     /*
@@ -313,6 +359,7 @@ template<typename T>
 double mean(vector<T>& vector1) {
     T sum = 0;
     unsigned int count = (int) vector1.size();
+    if (count == 0) return 0;
     sum += accumulate(next(vector1.begin()), vector1.end(), vector1[0]);
     return (sum / count);
 };
@@ -322,6 +369,7 @@ double std_dev(vector<T>& vector1)
 {
     T sum = 0;
     unsigned int count = (int) vector1.size();
+    if (count == 0) return 0;
     sum += accumulate(next(vector1.begin()), vector1.end(), vector1[0]);
     double mean = sum / count;
     sum = 0 ;
@@ -338,5 +386,6 @@ string event_name(EVENT_TYPE);
 EVENT_TYPE event_type(string evt_name);
 long long int fact(int x);
 bool is_dir_exists(const char *pathname);
+void console_log(string type, string msg);
 
 #endif //POOH_BEAR_INTRUSION_DETECTION_SYSTEM_HELPER_H

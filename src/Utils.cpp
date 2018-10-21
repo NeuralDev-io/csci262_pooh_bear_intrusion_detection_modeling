@@ -55,7 +55,8 @@ unsigned int safe_int_convert(const char *int_str, const char *err_msg)
         return static_cast<unsigned int>(tmp);
     else {
         stringstream ss;
-        ss << err_msg << "\nExiting..." << endl;
+        ss << err_msg << "\nExiting...";
+        console_log("READ ERROR", ss.str());
         perror(ss.str().c_str());
         exit(1);
     }
@@ -100,6 +101,7 @@ string event_name(EVENT_TYPE ev) {
             return "VEHICLE_MOVE";
         case UNKNOWN:
             return "UNKNOWN";
+        default: return "";
     }
 }
 
@@ -148,4 +150,16 @@ bool is_dir_exists(const char *pathname)
         return false;
     else
         return (info.st_mode & S_IFDIR) != 0;
+}
+
+/*
+ * @brief: a consistent way to log out system messages.
+ *
+ * @param type: the type of message.
+ * @param msg: the message to output.
+ * */
+void console_log(string type, string msg)
+{
+    string type_name = "[*****" + type + "*****] ";
+    cout << setw(20) << type_name << real_formatted_time_now() << " " << msg << endl;
 }

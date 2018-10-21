@@ -274,13 +274,16 @@ template<typename T, typename S>
 void Logger<T, S>::_log(LEVEL level, T &time, S log_struct)
 {
     if (get("STDOUT") == "true") {
-        cout << time.formatted_time_date() << DELIMITER << get("LOGGER")
-             << DELIMITER << _level_to_name(level) << DELIMITER << log_struct << endl;
-    } else if (level > 30) {  // level is either ERROR or CRITICAL
-        cout << setw(20) << "[*****ALERT*****]" << time.formatted_time_date() << " " << get("LOGGER")
-             << "\t\t" << _level_to_name(level) << " LOG ==> \t [***** "
+        cout << setw(20) << "[*****LOGGER*****]" << real_formatted_time_now() << " " << get("LOGGER")
+             << " " << _level_to_name(level) << " LOG MESSAGE ==> [***** " << time.formatted_time_date()
              << log_struct << " *****]" << endl;
     }
+    // NOT USING THIS IN THIS PROGRAM. Maintain for use with other templates
+    /*else if (level > 30) {  // level is either ERROR or CRITICAL
+        cout << setw(20) << "[*****LOGGER*****]" << real_formatted_time_now() << " " << get("LOGGER")
+             << " " << _level_to_name(level) << " LOG MESSAGE ==> [***** " << time.formatted_time_date()
+             << log_struct << " *****]" << endl;
+    }*/
 
     if (get("FILENAME") != "false")
         _add_record(level, time, log_struct);
@@ -293,7 +296,7 @@ void Logger<T, S>::_add_record(LEVEL level, T &time, S &log_struct)
     fout.open(get("FILENAME").c_str(), ios::out | ios::app);
 
     if (!fout.good())
-        cout << "<" << real_formatted_time_now() << "> [*****FILE ERROR*****] Failed to open log file " << get("FILENAME") << endl;
+        console_log("FILE ERROR", "Failed to open log file " + get("FILENAME") + " for logging.");
 
     fout << time.formatted_time_date() << DELIMITER << get("LOGGER") << DELIMITER
     << _level_to_name(level) << DELIMITER << log_struct << endl;
