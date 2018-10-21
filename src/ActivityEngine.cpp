@@ -48,7 +48,7 @@ void ActivityEngine::run(Vehicles &vehicles)
     getcwd(pwd, sizeof(pwd));
     stringstream console_msg;
     console_msg << "Activity Engine Started and logging to: " << pwd << dir_slash << "logs" << dir_slash << log_file;
-    console_log("[*****SYSTEM*****]", console_msg.str());
+    console_log("SYSTEM", console_msg.str());
 
     // log for the number of Days specified at the initial running of Traffic
     stringstream msg;
@@ -64,14 +64,13 @@ void ActivityEngine::run(Vehicles &vehicles)
         msg.str(string());
         msg << "Generating Discrete Events for " << sim_time.formatted_date();
         logger.info(sim_time, ActivityLog("NOTICE", "Activity Log", msg.str()));
-        cout << setw(20) <<  "[*****SYSTEM*****]" << real_formatted_time_now() << " " << msg.str() << endl;
-
+        console_log("SYSTEM", msg.str());
         simulate_events();
         sim_time.next_day();
         start_generating_discrete_events(sim_time, vehicles);
     }
 
-    console_log("[*****SYSTEM*****]", "Activity Engine Completed.");
+    console_log("SYSTEM", "Activity Engine Completed.");
 }
 
 void ActivityEngine::start_generating_discrete_events(SimTime &sim_time, Vehicles &vehicles)
