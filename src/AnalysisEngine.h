@@ -67,7 +67,7 @@ public:
 private:
     void import_vehicles(Vehicles&);
     void read_log();
-    void process_log();
+    void process_log(Vehicles&);
     void add_speeding(VehicleStats&);
     void end_day();
     void end_analysis();
@@ -80,7 +80,7 @@ private:
     unsigned n_vehicles, n_parking_spots;
     Logger<SimTime, AnalysisLog> logger;
     queue<string> activity_logs;
-    string log_file, data_file, stats_file;
+    string log_file, data_file, stats_file, speeding_file;
 };
 
 #endif //POOH_BEAR_INTRUSION_DETECTION_SYSTEM_ANALYSISENGINE_H

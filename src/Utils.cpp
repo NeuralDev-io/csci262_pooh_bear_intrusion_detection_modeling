@@ -159,5 +159,6 @@ bool is_dir_exists(const char *pathname)
  * */
 void console_log(string type, string msg)
 {
-    cout << setw(20) << type << real_formatted_time_now() << " " << msg << endl;
+    string type_name = "[*****" + type + "*****] ";
+    cout << setw(20) << type_name << real_formatted_time_now() << " " << msg << endl;
 }
