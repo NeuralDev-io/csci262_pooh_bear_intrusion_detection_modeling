@@ -150,3 +150,14 @@ bool is_dir_exists(const char *pathname)
     else
         return (info.st_mode & S_IFDIR) != 0;
 }
+
+/*
+ * @brief: a consistent way to log out system messages.
+ *
+ * @param type: the type of message.
+ * @param msg: the message to output.
+ * */
+void console_log(string type, string msg)
+{
+    cout << setw(20) << type << real_formatted_time_now() << " " << msg << endl;
+}

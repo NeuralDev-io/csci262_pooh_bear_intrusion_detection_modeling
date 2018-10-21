@@ -12,7 +12,7 @@ AnalysisEngine::AnalysisEngine(): curr_vehicles(map<string, VehicleStats>()),
                                   today_stats(map<string, DailyStats>()),
                                   activity_logs(queue<string>())
 {
-    logger = Logger<SimTime, AnalysisLog>("Analysis Engine", INFO, "logs_baseline", true);
+    logger = Logger<SimTime, AnalysisLog>("Analysis Engine", INFO, "logs_baseline", false);
     log_file = "logs_baseline";
     data_file = "data_baseline";
     stats_file = "stats_baseline";
@@ -26,7 +26,7 @@ AnalysisEngine::AnalysisEngine(string log_file1): curr_vehicles(map<string, Vehi
                                                  today_stats(map<string, DailyStats>()),
                                                  activity_logs(queue<string>())
 {
-    logger = Logger<SimTime, AnalysisLog>("Analysis Engine", INFO, log_file1, true);
+    logger = Logger<SimTime, AnalysisLog>("Analysis Engine", INFO, log_file1, false);
     log_file = log_file1;
     data_file = "data_" + log_file1.substr(5, log_file1.length() - 5);
     stats_file = "stats_" + log_file1.substr(5, log_file1.length() - 5);
@@ -36,7 +36,10 @@ void AnalysisEngine::run(Vehicles &vehicles_dict)
 {
     SimTime sim_time = init_time_date();
 
-    cout << "[*****SYSTEM*****] Analysis Engine started: " << real_formatted_time_now() << "\n" << flush;
+    char pwd[100];
+    getcwd(pwd, sizeof(pwd));
+    cout << setw(20) << "[*****SYSTEM*****]" << real_formatted_time_now() << " Analysis Engine Started and logging to: "
+         << pwd << dir_slash << "logs" << dir_slash << log_file << endl;
 
     // log start of Analysis Engine
     stringstream msg;
@@ -47,7 +50,7 @@ void AnalysisEngine::run(Vehicles &vehicles_dict)
     read_log();
     process_log();
 
-    cout << "[*****SYSTEM*****] Analysis Engine finished: " << real_formatted_time_now() << "\n" << flush;
+    cout << setw(20) << "[*****SYSTEM*****]" << real_formatted_time_now() << " Analysis Engine finished." << endl;
 }
 
 void AnalysisEngine::import_vehicles(Vehicles &vehicles_dict)
@@ -117,8 +120,8 @@ void AnalysisEngine::process_log()
     fout.open(filename);
 
     if (!fout.good()) {
-        cout << "[*****FILE ERROR*****] " << "<" << real_formatted_time_now()
-             << "> Failed to open output file." << endl;
+        cout << setw(20) << "[*****FILE ERROR*****]" << real_formatted_time_now()
+             << " Failed to open output file." << endl;
     }
 
     fout << "day" << DELIMITER << "date" << DELIMITER << "vehicle_type"
@@ -192,12 +195,12 @@ void AnalysisEngine::process_log()
         } else if (evt_type == DEPART_END_ROAD) {
             auto iter = curr_vehicles.find(veh_stats.registration_id);
             if (iter != curr_vehicles.end()) {
-                veh_stats.departure_time = curr_time;
+                (*iter).second.departure_time = curr_time;
                 // check speeding
-                double avg_speed = road_length / curr_time.diff(veh_stats.arrival_time) * 3600;
+                double avg_speed = road_length / curr_time.diff((*iter).second.arrival_time) * 3600;
                 if (avg_speed > speed_limit) {
-                    veh_stats.avg_speed = avg_speed;
-                    add_speeding(veh_stats);
+                    (*iter).second.avg_speed = avg_speed;
+                    add_speeding((*iter).second);
                 }
             }
             curr_vehicles.erase(veh_stats.registration_id);
@@ -211,13 +214,13 @@ void AnalysisEngine::add_speeding(VehicleStats &veh_stats)
 {
     speeding_tickets.push_back(veh_stats);
 
-    // log warning
+    // log
     stringstream msg;
     msg << veh_stats.veh_name << DELIMITER << veh_stats.registration_id
         << DELIMITER << fixed << setprecision(2) << veh_stats.avg_speed
         << DELIMITER << veh_stats.arrival_time.formatted_time_date()
         << DELIMITER << veh_stats.departure_time.formatted_time_date();
-    logger.warning(veh_stats.departure_time, AnalysisLog( "SPEEDING", "Analysis Log", msg.str() ));
+    logger.critical(veh_stats.departure_time, AnalysisLog( "SPEEDING", "Analysis Log", msg.str() ));
 }
 
 void AnalysisEngine::end_day()
@@ -227,8 +230,8 @@ void AnalysisEngine::end_day()
     fout.open(filename, ios::out | ios::app);
 
     if (!fout.good()) {
-        cout << "[*****FILE ERROR*****] " << "<" << real_formatted_time_now()
-             << "> Failed to open output file. Data of day " << (day_count+1) << " not recorded." << endl;
+        cout << setw(20) << "[*****FILE ERROR*****]" << real_formatted_time_now()
+             << " Failed to open output file. Data of day " << (day_count+1) << " not recorded." << endl;
     }
 
     auto iter = today_stats.begin();
