@@ -383,5 +383,6 @@ string event_name(EVENT_TYPE);
 EVENT_TYPE event_type(string evt_name);
 long long int fact(int x);
 bool is_dir_exists(const char *pathname);
+void console_log(string type, string msg);
 
 #endif //POOH_BEAR_INTRUSION_DETECTION_SYSTEM_HELPER_H
