@@ -52,6 +52,8 @@ const double DEPART_SIDE_PROBABILITY = 0.08;                // Set the probabili
 const double DEPART_SIDE_UPPER_BOUND = 0.02;                // Upper bound value to be used in biased expovariate function
 const double PARKING_PROBABILITY = 0.08;                    // Set the probability for parking for the binomial distribution
 
+static int FILENAME_COUNTER = 0;
+
 /*
  * SimTime structure to hold the time values. Based heavily on C stdlib tm struct.
  * REF: http://www.cplusplus.com/reference/ctime/tm/

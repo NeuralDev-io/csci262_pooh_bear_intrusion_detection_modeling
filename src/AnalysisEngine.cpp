@@ -15,7 +15,6 @@ AnalysisEngine::AnalysisEngine(): curr_vehicles(map<string, VehicleStats>()),
     logger = Logger<SimTime, AnalysisLog>("Analysis Engine", INFO, "logs_baseline", false);
     log_file = "logs_baseline";
     data_file = "data_baseline";
-    stats_file = "stats_baseline";
     speeding_file = "speeding_baseline";
 }
 
@@ -30,7 +29,6 @@ AnalysisEngine::AnalysisEngine(string log_file1): curr_vehicles(map<string, Vehi
     logger = Logger<SimTime, AnalysisLog>("Analysis Engine", INFO, log_file1, false);
     log_file = log_file1;
     data_file = "data_" + log_file1.substr(5, log_file1.length() - 5);
-    stats_file = "stats_" + log_file1.substr(5, log_file1.length() - 5);
     speeding_file = "speeding_" + log_file1.substr(5, log_file1.length() - 5);
 }
 
@@ -229,7 +227,7 @@ void AnalysisEngine::process_log(Vehicles& vehicles)
         }
     }
 
-    end_analysis();
+    end_day();
 }
 
 void AnalysisEngine::add_speeding(VehicleStats &veh_stats)
@@ -323,10 +321,8 @@ void AnalysisEngine::end_day()
     logger.info(sim_time, AnalysisLog( "NOTICE", "Analysis Log", msg.str() ));
 }
 
-void AnalysisEngine::end_analysis()
+void AnalysisEngine::generate_stats_baseline()
 {
-    end_day(); // end the current day
-
     ofstream fout;
     string filename = "data/" + stats_file;
     fout.open(filename, ios::out);
