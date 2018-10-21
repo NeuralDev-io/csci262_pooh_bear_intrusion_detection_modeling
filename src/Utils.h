@@ -313,6 +313,7 @@ template<typename T>
 double mean(vector<T>& vector1) {
     T sum = 0;
     unsigned int count = (int) vector1.size();
+    if (count == 0) return 0;
     sum += accumulate(next(vector1.begin()), vector1.end(), vector1[0]);
     return (sum / count);
 };
@@ -322,6 +323,7 @@ double std_dev(vector<T>& vector1)
 {
     T sum = 0;
     unsigned int count = (int) vector1.size();
+    if (count == 0) return 0;
     sum += accumulate(next(vector1.begin()), vector1.end(), vector1[0]);
     double mean = sum / count;
     sum = 0 ;
