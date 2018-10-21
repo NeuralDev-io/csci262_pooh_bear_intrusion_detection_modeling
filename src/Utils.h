@@ -48,9 +48,9 @@ const static std::string LOGS_FILENAME = "logs_baseline";
 const double T_ARRIVAL_LIMIT = (22.5F * 60 * 60);           // Set the limit for time last car to arrive
 const double T_PARKING_LIMIT = (23.5F * 60 * 60);           // Set the limit for time last car to park
 const double T_DAY_LIMIT = (24.0 * 60.0F * 60.0F) - 1.0F;   // Set the limit for last time for events to occur
-const double DEPART_SIDE_PROBABILITY = 0.08;                // Set the probability for the bernoulli distribution
+const double DEPART_SIDE_PROBABILITY = 0.1;                // Set the probability for the bernoulli distribution
 const double DEPART_SIDE_UPPER_BOUND = 0.02;                // Upper bound value to be used in biased expovariate function
-const double PARKING_PROBABILITY = 0.08;                    // Set the probability for parking for the binomial distribution
+const double PARKING_PROBABILITY = 0.15;                    // Set the probability for parking for the binomial distribution
 
 static int FILENAME_COUNTER = 0;
 
@@ -305,14 +305,12 @@ typedef struct VehicleStats {
     vector<simtime_t> ts_parking_ls;
     vector<simtime_t> ts_parking_duration;
     double arrival_speed, avg_speed = 0;
-    double prob_parking, prob_side_exit, prob_end_exit = 0;
     double estimated_travel_delta = 0;  // TODO:
     bool depart_side_flag, permit_speeding_flag = false;
 
     // default constructor for VehicleStats
     VehicleStats() : veh_name(""), registration_id(""), arrival_time(SimTime()),
                      departure_time(SimTime()), arrival_speed(0),
-                     prob_parking(0), prob_side_exit(0), prob_end_exit(0),
                      avg_speed(0), depart_side_flag(false), n_parking(0),
                      estimated_travel_delta(0), arrival_timestamp(0),
                      departure_timestamp(0) { }
