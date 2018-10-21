@@ -24,4 +24,3 @@ set(SOURCE_FILES src/main.cpp src/ActivityEngine.cpp src/ActivityEngine.h src/Ve
         src/Logger.h src/Utils.cpp src/Utils.h src/AnalysisEngine.h src/AnalysisEngine.cpp src/Config.h src/AlertEngine.cpp src/AlertEngine.h)
 
 add_executable(Traffic ${SOURCE_FILES})
-target_link_libraries(Traffic ${PYTHON_LIBRARIES})

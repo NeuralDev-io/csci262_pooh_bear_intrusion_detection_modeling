@@ -100,6 +100,7 @@ string event_name(EVENT_TYPE ev) {
             return "VEHICLE_MOVE";
         case UNKNOWN:
             return "UNKNOWN";
+        default: return "";
     }
 }
 
