@@ -27,7 +27,7 @@
 #include <chrono>
 #include "Utils.h"
 #include "Vehicles.h"
-#include "Logger.h"
+#include "Logger.cpp"
 using namespace std;
 
 /*
