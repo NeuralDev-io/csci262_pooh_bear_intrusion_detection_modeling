@@ -71,14 +71,10 @@ void Vehicles::print()
     cout <<"| "<<right<<setw(3)<<"ID"<<" | "<<left<<setw(15)<<"Name"
          <<" | "<<setw(7)<<"Parking"<<" | "<<setw(11)<<"Reg. Format"
          <<" | "<<right<<setw(13)<<"Volume Weight"<<" | "<<setw(12)<<"Speed Weight"
-         <<" | "<<setw(11)<<"Number Mean"<<" | "<<setw(16)<<"Number Std. Dev."
-         <<" | "<<setw(10)<<"Speed Mean"<<" | "<<setw(15)<<"Speed Std. Dev."<<" |"
-         <<left<<endl;
+         <<" |"<<left<<endl;
 
     cout <<"|"<<setfill('-')<<setw(5)<<"-"<<"|"<<setw(17)<< "-"<<"|"<<setw(9)<<"-"
          <<"|"<<setw(13)<<"-"<<"|"<<setw(15)<<"-"<<"|"<<setw(14)<<"-"
-         <<"|"<<setw(13)<<"-"<<"|"<<setw(18)<<"-"<<"|"<<setw(12)<<"-"
-         <<"|"<<setw(17)<<"-"
          <<setfill(' ')<<"|"<<left<<endl;
 
     auto iter = vehicles_dict.begin();
@@ -87,8 +83,6 @@ void Vehicles::print()
         cout <<setprecision(4)<<"|"<<right<<setw(4)<< (*iter).second.id <<" | "<<left<<setw(15)<< (*iter).first
              <<" | "<<setw(7)<< parking <<" | "<<setw(11)<< (*iter).second.reg_format
              <<" | "<<right<<setw(13)<< (*iter).second.vol_weight <<" | "<<setw(12)<< (*iter).second.speed_weight
-             <<" | "<<setw(11)<<setprecision(4)<<(*iter).second.num_mean<<" | "<<setw(16)<<(*iter).second.num_stddev
-             <<" | "<<setw(10)<<setprecision(4)<<(*iter).second.speed_mean<<" | "<<setw(15)<<(*iter).second.speed_stddev
              <<" |"<<left<<endl;
     }
     cout<<endl;
