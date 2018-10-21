@@ -111,12 +111,36 @@ void AnalysisEngine::process_log()
     size_t start_pos;
     size_t end_pos;
 
+    // write header to data file
+    ofstream fout;
+    string filename = "data/" + data_file;
+    fout.open(filename);
+
+    if (!fout.good()) {
+        cout << "[*****FILE ERROR*****] " << "<" << real_formatted_time_now()
+             << "> Failed to open output file." << endl;
+    }
+
+    fout << "day" << DELIMITER << "date" << DELIMITER << "vehicle_type"
+         << DELIMITER << "volume" << DELIMITER << "speed_mean" << endl;
+    fout.close();
+
+    // process log
     while (!activity_logs.empty()) {
         tmp = activity_logs.front();
         activity_logs.pop();
 
         start_pos = tmp.find(DELIMITER);
         SimTime curr_time(tmp.substr(0, start_pos)); // time
+        // initialise first date of silmulation
+        if (prev_time.compare_date(SimTime()) == 0) {
+            auto iter = today_stats.begin();
+            auto iter_end = today_stats.end();
+
+            for (; iter != iter_end; iter++) {
+                (*iter).second.date = curr_time;
+            }
+        }
         // test if the simulation has gone to the next day
         if (curr_time.compare_date(prev_time) > 0
             && prev_time.compare(SimTime()) != 0) {
@@ -207,7 +231,6 @@ void AnalysisEngine::end_day()
              << "> Failed to open output file. Data of day " << (day_count+1) << " not recorded." << endl;
     }
 
-    fout << "Day " << (day_count+1) << ": " << today_stats.begin()->second.date.formatted_time_date() << endl;
     auto iter = today_stats.begin();
     auto iter_end = today_stats.end();
 
@@ -222,8 +245,9 @@ void AnalysisEngine::end_day()
             (*iter_total).second.volume_dist.push_back( (*iter).second.volume );
 
             // write to data file
-            fout << "\t" << (*iter).second.veh_name << DELIMITER << "Volume=" << (*iter).second.volume
-                 << DELIMITER << "Speed mean=" << fixed << setprecision(2) << speed_mean << endl;
+            fout << (day_count+1) << DELIMITER << iter->second.date.formatted_date() << DELIMITER
+                 << (*iter).second.veh_name << DELIMITER << (*iter).second.volume
+                 << DELIMITER << fixed << setprecision(2) << speed_mean << endl;
             (*iter).second.volume = 0; // reset volume
         }
 
