@@ -99,14 +99,14 @@ int main(int argc, char * argv[])
     analysis_engine.generate_stats_baseline();
 
     // generate vehicles_dict for baseline data
-    Vehicles vehicles_dict_baseline;
+    /*Vehicles vehicles_dict_baseline;
     char stats_baseline[] = "data/stats_baseline";
     read_vehicles_file(fin, vehicles_file, vehicles_dict_baseline);
-    read_stats_file(fin, stats_baseline, vehicles_dict_baseline, activity_engine);
+    read_stats_file(fin, stats_baseline, vehicles_dict_baseline, activity_engine);*/
 
     // TODO: debug
     // generate log file name
-    stringstream log_filename;
+    /*stringstream log_filename;
     log_filename << "logs_" << ++FILENAME_COUNTER;
 
     char test_stats[] = "Stats_Test.txt";
@@ -117,7 +117,8 @@ int main(int argc, char * argv[])
     test_analysis_engine.run(vehicles_dict);
     AlertEngine test_alert_engine(test_stats, log_filename.str());
     int test_days = 3;
-    test_alert_engine.run(vehicles_dict_baseline);
+    test_alert_engine.run(vehicles_dict_baseline);*/
+
     // stringstream log_filename;
     // log_filename << "logs_" << ++FILENAME_COUNTER;
     // char test_stats[] = "Stats_Test.txt";

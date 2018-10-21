@@ -78,15 +78,20 @@ typedef struct GenericLog {
     string log_name = "Vehicle Log";
     string veh_name = "";
     string veh_registration = "NA";
+    string additional_msg = "";  // must pass delimiter
 
     GenericLog(EVENT_TYPE ev_type, string log_name, string veh_name,
                string veh_registration) : ev_type(ev_type), log_name(std::move(log_name)),
                                           veh_name(veh_name), veh_registration(veh_registration) { }
+    GenericLog(EVENT_TYPE ev_type, string log_name, string veh_name,
+               string veh_registration, string additional_msg) : ev_type(ev_type), log_name(std::move(log_name)),
+                                                                 veh_name(veh_name), veh_registration(veh_registration),
+                                                                 additional_msg(additional_msg) { }
 
     friend ostream& operator<<(ostream& os, GenericLog const& log)
     {
         return os << log.log_name << DELIMITER << event_name(log.ev_type) << DELIMITER
-                  << log.veh_name << DELIMITER << log.veh_registration;
+                  << log.veh_name << DELIMITER << log.veh_registration << log.additional_msg;
     }
 } GenericLog;
 
