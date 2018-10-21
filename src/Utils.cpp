@@ -55,7 +55,8 @@ unsigned int safe_int_convert(const char *int_str, const char *err_msg)
         return static_cast<unsigned int>(tmp);
     else {
         stringstream ss;
-        ss << setw(20) << "[*****READ ERROR*****]" << real_formatted_time_now() << " " << err_msg << "\nExiting..." << endl;
+        ss << err_msg << "\nExiting...";
+        console_log("READ ERROR", ss.str());
         perror(ss.str().c_str());
         exit(1);
     }
@@ -159,5 +160,6 @@ bool is_dir_exists(const char *pathname)
  * */
 void console_log(string type, string msg)
 {
-    cout << setw(20) << type << real_formatted_time_now() << " " << msg << endl;
+    string type_name = "[*****" + type + "*****] ";
+    cout << setw(20) << type_name << real_formatted_time_now() << " " << msg << endl;
 }

@@ -89,7 +89,7 @@ int main(int argc, char * argv[])
     read_stats_file(fin, stats_file, vehicles_dict, activity_engine);
 
     // TODO: debug
-    cout << "[*****SYSTEM*****]" << left << setw(27) << " Vehicle Types " << endl;
+    console_log("SYSTEM", "Vehicle Types");
     vehicles_dict.print();
 
     activity_engine.run(vehicles_dict);
@@ -101,8 +101,8 @@ int main(int argc, char * argv[])
     char command;
 
     do {
-        cout << "\n" << setw(20) << "[*****SYSTEM*****]" << real_formatted_time_now() << "\n"
-             << "Do you want to continue by inputting a new Statistics file for simulation? [y/N]: ";
+        console_log("SYSTEM", "Alert Engine Phase");
+        cout << "Do you want to continue by inputting a new Statistics file for simulation? [y/N]: ";
         cin >> command;
         command = static_cast<char>(tolower(command));
 
@@ -243,12 +243,13 @@ void read_stats_file(ifstream &fin, char *stats_file, Vehicles &vehicles_dict, A
     speed_lim = strtof(speed_lim_str.c_str(), &unused_end);
     road_len = strtof(road_len_str.c_str(), &unused_end);
 
-    cout << left << setw(20) << "[*****SYSTEM*****]" << left << setw(27) << " Vehicles Monitored: " << veh_monitored
-         << '\n'
-         << setw(20) << "[*****SYSTEM*****]" << left << setw(27) << " Road Length: " << road_len << '\n'
-         << setw(20) << "[*****SYSTEM*****]" << left << setw(27) << " Parking Spots Available: " << parking_spots
-         << '\n'
-         << setw(20) << "[*****SYSTEM*****]" << left << setw(27) << " Speed Limit: " << speed_lim << " km/h\n\n";
+    stringstream stats_message;
+    stats_message << "Input from " << stats_file;
+    console_log("SYSTEM", stats_message.str());
+    cout << left << setw(27) << "Vehicles Monitored: " << veh_monitored << '\n'
+         << left << setw(27) << "Road Length: " << road_len << '\n'
+         << left << setw(27) << "Parking Spots Available: " << parking_spots << '\n'
+         << left << setw(27) << "Speed Limit: " << speed_lim << " km/h\n\n";
 
     activity_engine.set_statistics(g_days, veh_monitored, road_len, speed_lim, parking_spots);
 
@@ -280,6 +281,6 @@ void read_stats_file(ifstream &fin, char *stats_file, Vehicles &vehicles_dict, A
         // check to see if vehicle type stats was added successfully
         // TODO: should log this to a file
         if (!vehicles_dict.add_stats(name, num_mean, num_stddev, speed_mean, speed_stddev))
-            cout << "Vehicle type " << name << " cannot be found." << endl;
+            console_log("SYSTEM", "Vehicle type " + name + " cannot be found.");
     }
 }

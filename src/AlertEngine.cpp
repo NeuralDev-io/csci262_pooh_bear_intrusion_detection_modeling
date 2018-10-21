@@ -29,11 +29,13 @@ void AlertEngine::run(Vehicles &vehicles, int &days)
 
     char pwd[100];
     getcwd(pwd, sizeof(pwd));
-    cout << setw(20) << "[*****SYSTEM*****]" << real_formatted_time_now() << " Alert Engine started and logging to: "
-         << pwd << dir_slash << "logs" << dir_slash << log_file << endl;
-    stringstream msg;
-    msg << "Started Alert Engine" << DELIMITER << "Number of days=" << days;
-    alert_logger.info(sim_time, AlertLog(msg.str()));
+    stringstream console_msg;
+    console_msg << "Alert Engine started and logging to: " << pwd << dir_slash << "logs" << dir_slash
+                << log_file << endl;
+
+    stringstream log_msg;
+    log_msg << "Started Alert Engine" << DELIMITER << "Number of days=" << days;
+    alert_logger.info(sim_time, AlertLog(log_msg.str()));
 
     read_data(sim_time, vehicles);
     /*for (i = 0; i < days; i++ ) {
@@ -46,13 +48,11 @@ void AlertEngine::run(Vehicles &vehicles, int &days)
 
 void AlertEngine::read_data(SimTime &sim_time, Vehicles &vehicles)
 {
-    stringstream filename;
-    filename << "data/" << data_file;
-    ifstream fin(filename.str(), ios::in);
+    string filename = "data/" + data_file;
+    ifstream fin(filename, ios::in);
 
     if (!fin.good()) {
-        cout << setw(20) << "[*****FILE ERROR*****]" << real_formatted_time_now() << " Failed to open data file: "
-             << data_file << endl;
+        console_log("FILE ERROR", "Failed to open data file: " + data_file);
         return;
     }
 
