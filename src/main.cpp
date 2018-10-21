@@ -3,8 +3,8 @@
 * Pooh Bear Intrusion Detection System main.cpp
 * Purpose: main() driver for implementation of specifications
 *
-* @version 0.6-dev
-* @date 2018.10.06
+* @version 0.7-dev
+* @date 2018.10.21
 *
 * @authors Dinh Che (codeninja55) & Duong Le (daltonle)
 * Emails andrew at codeninja55.me & duong.daltonle at gmail.com
@@ -20,6 +20,7 @@
 #include "Vehicles.h"
 #include "ActivityEngine.h"
 #include "AnalysisEngine.h"
+#include "AlertEngine.h"
 using namespace std;
 
 #define BUFFER_SZ 100
@@ -31,6 +32,8 @@ using namespace std;
     char OS[] = "win";
 #elif _WIN64
     char OS[] = "win";
+#else
+    char OS[] = "linux";
 #endif
 
 /* STRUCT DEFINITION */
@@ -66,9 +69,10 @@ int main(int argc, char * argv[])
         g_days = safe_int_convert(days_str, "Incorrect number used for number of days");
     }
 
-    FILE *fp = fopen("Welcome_ascii", "r");
+    /* WELCOME HEADER */
+    FILE *fp = fopen("Welcome_ascii", "r");  // using C file io for efficiency
     char c = getc(fp);
-    cout << "\n\n";
+    cout << "\n";
     while (c != EOF) {
         cout << c;
         c = getc(fp);
@@ -96,7 +100,7 @@ int main(int argc, char * argv[])
 
     char command;
 
-    /*do {
+    do {
         cout << "\n" << setw(20) << "[*****SYSTEM*****]" << real_formatted_time_now() << "\n"
              << "Do you want to continue by inputting a new Statistics file for simulation? [y/N]: ";
         cin >> command;
@@ -107,16 +111,22 @@ int main(int argc, char * argv[])
             char user_stats[BUFFER_SZ];
             cin >> user_stats;
 
+            cout << "Number of days: ";
+            char user_days_str[sizeof(int)];
+            cin >> user_days_str;
+            unsigned user_days = safe_int_convert(user_days_str, "Incorrect number used for number of days");
+
             ifstream another_fin;
             ActivityEngine live_activity_engine(user_stats);
             read_stats_file(another_fin, user_stats, vehicles_dict, live_activity_engine);
-            live_activity_engine.run(vehicles_dict);
+            live_activity_engine.run(vehicles_dict);  // note number of days set in reading file
 
             AnalysisEngine live_analysis_engine;
             live_analysis_engine.run(vehicles_dict);
 
         } else if (strncmp(&command, "n", sizeof(command)) == 0) {
-            fp = fopen("Exit_ascii", "r");
+            /* EXIT MESSAGE */
+            fp = fopen("Exit_ascii", "r");  // using C file io for efficiency
             c = getc(fp);
             cout << "\n\n";
             while (c != EOF) {
@@ -127,7 +137,7 @@ int main(int argc, char * argv[])
             fclose(fp);
             break;
         }
-    } while (strncmp(&command, "n", sizeof(command)) != 0);*/
+    } while (strncmp(&command, "y", sizeof(command)) == 0);
 
     return 0;
 }
@@ -233,9 +243,11 @@ void read_stats_file(ifstream &fin, char *stats_file, Vehicles &vehicles_dict, A
     speed_lim = strtof(speed_lim_str.c_str(), &unused_end);
     road_len = strtof(road_len_str.c_str(), &unused_end);
 
-    cout << flush << setw(20) << "[*****SYSTEM*****]" << left << setw(27) << " Vehicles Monitored: " << veh_monitored << '\n'
+    cout << left << setw(20) << "[*****SYSTEM*****]" << left << setw(27) << " Vehicles Monitored: " << veh_monitored
+         << '\n'
          << setw(20) << "[*****SYSTEM*****]" << left << setw(27) << " Road Length: " << road_len << '\n'
-         << setw(20) << "[*****SYSTEM*****]" << left << setw(27) << " Parking Spots Available: " << parking_spots << '\n'
+         << setw(20) << "[*****SYSTEM*****]" << left << setw(27) << " Parking Spots Available: " << parking_spots
+         << '\n'
          << setw(20) << "[*****SYSTEM*****]" << left << setw(27) << " Speed Limit: " << speed_lim << " km/h\n\n";
 
     activity_engine.set_statistics(g_days, veh_monitored, road_len, speed_lim, parking_spots);

@@ -1,7 +1,7 @@
 6 5 60 20
-Bus:5:1:40:10:
-Motorbike:20:3:55:5:
-Red car:200:4:50:4:
-Elephant:10:1:10:10:
-Taxi:100:2:53:7:
-Emergency:5:0.5:60:10:
+Bus:7:2:50:6:
+Motorbike:70:3:53:10:
+Red car:200:4:57:6:
+Elephant:10:1:8:10:
+Taxi:100:6:52:7:
+Emergency:5:2.5:65:10:

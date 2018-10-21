@@ -15,16 +15,6 @@
 #include "ActivityEngine.h"
 #include <cassert>
 
-#ifdef __linux__
-char dir_slash = '/';
-#elif _linux_
-char dir_slash = '/';
-#elif _WIN32
-char dir_slash = '\\';
-#elif _WIN64
-char dir_slash = '\\';
-#endif
-
 ActivityEngine::ActivityEngine() : n_vehicles_monitored(0), n_parking_spots(0), road_length(0), speed_limit(0), simulate_days(0)
 {
     // Set the last param to true if you want to output log to stdout
@@ -42,9 +32,8 @@ ActivityEngine::ActivityEngine() : n_vehicles_monitored(0), n_parking_spots(0), 
  * @param log_file: a string of the filename to be used. Must be consistent with Analysis Engine so it is easy to read.
  * */
 ActivityEngine::ActivityEngine(string log_file) : n_vehicles_monitored(0), n_parking_spots(0), road_length(0),
-                                                  speed_limit(0), simulate_days(0)
+                                                  speed_limit(0), simulate_days(0), log_file(move(log_file))
 {
-    log_file = log_file;
     logger = Logger<SimTime, ActivityLog>("Activity Engine", INFO, log_file, false);
     veh_logger = Logger<SimTime, VehicleLog>("Activity Engine", INFO, log_file, false);
     other_veh_logger = Logger<SimTime, GenericLog>("Activity Engine", INFO, log_file, false);
@@ -57,7 +46,7 @@ void ActivityEngine::run(Vehicles &vehicles)
 
     char pwd[100];
     getcwd(pwd, sizeof(pwd));
-    cout << setw(20) << "[*****SYSTEM*****]" << real_formatted_time_now() << "Activity Engine Started and logging to: "
+    cout << setw(20) << "[*****SYSTEM*****]" << real_formatted_time_now() << " Activity Engine Started and logging to: "
          << pwd << dir_slash << "logs" << dir_slash << log_file << endl;
 
     // log for the number of Days specified at the initial running of Traffic
