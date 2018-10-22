@@ -51,8 +51,8 @@ const double T_DAY_LIMIT = (24.0 * 60.0F * 60.0F) - 1.0F;   // Set the limit for
 const double DEPART_SIDE_PROBABILITY = 0.1;                // Set the probability for the bernoulli distribution
 const double AVG_PARKING_N = 4.0;
 const double PARKING_PROBABILITY = 0.4;                    // Set the probability for parking for the binomial distribution
-const double AVG_PARKING_DURATION = (15.0 * 60);
-const double AVG_PARKING_EVENT = (20.0 * 60);
+const double AVG_PARKING_DURATION = (5.0 * 60);
+const double AVG_PARKING_EVENT = (5.0 * 60);
 
 static int FILENAME_COUNTER = 0;
 

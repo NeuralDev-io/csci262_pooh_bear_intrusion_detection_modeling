@@ -252,7 +252,7 @@ void ActivityEngine::process_parking_events(SimTime &sim_time, bool parking_flag
                 if (ts_vehicle_move < veh->ts_parking_ls[i+1]) break;
             }
 
-            veh->ts_parking_duration.push_back(ts_vehicle_move - veh->ts_parking_ls[i]);
+            veh->parking_duration.push_back(ts_vehicle_move - veh->ts_parking_ls[i]);
             veh->ts_vehicle_move_ls.push_back(ts_vehicle_move);
 
             // add the vehicle move event to the FEL
@@ -280,7 +280,7 @@ void ActivityEngine::process_departure_events(SimTime &sim_time, VehicleType &ve
         if ( veh->n_parking > 0 ) {
             double tot_parking_duration = accumulate(next(veh->parking_duration.begin()),
                     veh->parking_duration.end(), veh->parking_duration[0]);
-            veh->estimated_travel_delta += tot_parking_duration;
+            ts_depart_side += tot_parking_duration;
         }
 
         normal_distribution<double> depart_side_random(veh->estimated_travel_delta, 15);
@@ -297,17 +297,17 @@ void ActivityEngine::process_departure_events(SimTime &sim_time, VehicleType &ve
         SimTime depart_end_time(sim_time);
         simtime_t ts_depart_end = veh->arrival_timestamp;
 
-        // check if parking time needs to be added
-        if (veh->n_parking > 0) {
-            double tot_moving_duration = accumulate(next(veh->veh_move_duration.begin()),
-                                                     veh->veh_move_duration.end(), veh->veh_move_duration[0]);
-
-            veh->estimated_travel_delta += tot_moving_duration;
-        }
         // using the estimated departure time as a mean,with 2 standard deviation difference, randomly select
         // a time the vehicle will depart.
         normal_distribution<double> depart_end_random(veh->estimated_travel_delta, 3);
         ts_depart_end += depart_end_random(mersenne_twister_engine);
+
+        // check if parking time needs to be added
+        if ( veh->n_parking > 0 ) {
+            double tot_parking_duration = accumulate(next(veh->parking_duration.begin()),
+                                                     veh->parking_duration.end(), veh->parking_duration[0]);
+            ts_depart_end += tot_parking_duration;
+        }
 
         depart_end_time.mktime(ts_depart_end);
         veh->departure_time = depart_end_time;
