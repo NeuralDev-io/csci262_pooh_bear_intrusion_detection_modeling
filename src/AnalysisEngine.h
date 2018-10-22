@@ -68,9 +68,9 @@ public:
 private:
     void import_vehicles(Vehicles&);
     void read_log();
-    void process_log(Vehicles&);
+    void process_log(Vehicles&, SimTime&);
     void add_speeding(VehicleStats&);
-    void end_day();
+    void end_day(SimTime &sim_time);
     map<string, DailyStats> today_stats;
     map<string, AnalysisStats> total_stats;
     map<string, VehicleStats> curr_vehicles;    // current vehicles on the road

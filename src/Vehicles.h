@@ -41,9 +41,9 @@ public:
     void insert(VehicleType&);
     bool add_stats(string, float, float, float, float);
     void print();
-    int size();
     map<string, VehicleType> *get_vehicles_dict();
     static string generate_registration(string &reg_format, mt19937_64 &generator);
+    static void clear_unique_registration();
 private:
     unsigned n_vehicles;
     map<string, VehicleType> vehicles_dict;
