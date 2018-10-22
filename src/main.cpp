@@ -85,13 +85,23 @@ int main(int argc, char * argv[])
     console_log("SYSTEM", "Vehicle Types");
     vehicles_dict.print();
 
+    // ACTIVITY ENGINE
     ActivityEngine activity_engine;
     read_stats_file(fin, stats_file, vehicles_dict, activity_engine);
     activity_engine.run(vehicles_dict, simulate_days);
 
+    // ANALYSIS ENGINE
     AnalysisEngine analysis_engine;
     analysis_engine.run(vehicles_dict);
     analysis_engine.generate_stats_baseline();
+
+    // ALERT ENGINE
+    // generate a vehicles dictionary for the baseline data
+    Vehicles vehicles_dict_baseline;
+    char stats_baseline[] = "data/stats_baseline";
+    ifstream another_fin;
+    read_vehicles_file(another_fin, vehicles_file, vehicles_dict_baseline);
+    read_stats_file(another_fin, stats_baseline, vehicles_dict_baseline, activity_engine);
 
     char command;
 
@@ -115,18 +125,11 @@ int main(int argc, char * argv[])
             stringstream log_filename;
             log_filename << "logs_" << ++FILENAME_COUNTER;
 
-            Vehicles vehicles_dict_baseline;
-            char stats_baseline[] = "data/stats_baseline";
-
-            ifstream another_fin;
-            read_vehicles_file(another_fin, vehicles_file, vehicles_dict_baseline);
-
             ActivityEngine live_activity_engine(log_filename.str());
-            // read_stats_file(another_fin, stats_baseline, vehicles_dict_baseline, live_activity_engine);
-            read_stats_file(another_fin, user_stats, vehicles_dict_baseline, live_activity_engine);
+            read_stats_file(another_fin, user_stats, vehicles_dict, live_activity_engine);
             live_activity_engine.run(vehicles_dict, user_days);  // note number of days set in reading file
 
-            AnalysisEngine live_analysis_engine;
+            AnalysisEngine live_analysis_engine(log_filename.str());
             live_analysis_engine.run(vehicles_dict);
 
             AlertEngine live_alert_engine(user_stats, log_filename.str());
