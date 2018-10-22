@@ -155,6 +155,7 @@ All events for the Activity Engine are stored in a Future Events List (FEL) prio
   $$
 
 
+
   This process is consistent with other models to generate “arrival times.” The probability of the event occurs as the next interval over time (in this case) of an event occurring according to its rate of occurrence. 
 
   The arrival times are stored in a vector list which is then processed to generate further discrete events and information for the Analysis and Alert engines. 
@@ -179,13 +180,16 @@ All events for the Activity Engine are stored in a Future Events List (FEL) prio
 
 After the events are generated and stored in the priority, the activity engine processes this FEL and log events to `dir/logs/logs_suffix` using the custom `Logger` module and custom `VehiclesLog`, `GenericLog`, and `ActivityLog` structures.
 
-### Errors
+### Errors/Alarms
 
-Errors may happen during the execution of the Activity Engine. The table below lists the possible errors and the actions that will be performed by the system if they occur.
+Errors may happen during the execution of the Activity engine. The table below lists the possible errors and the actions that will be performed by the system if they occur or to prevent them from occuring.
 
-| Errors                                                       | Actions                                                      |
+| Errors/Alarms                                                | Actions                                                      |
 | :----------------------------------------------------------- | :----------------------------------------------------------- |
 | The time of an arrival event exceeds the time limit of arrival events (23:00) | A vector of 1000 timestamps is created. If there are N vehicles arriving that day, the first N eligible timestamps will be chosen. |
+| The same vehicle (same registration ID) appearing twice on the road in the same day | A set of registration IDs is kept for each day to make sure the new generated ID is not a duplicate. This set is reset when the day ends. |
+| A vehicle parking event happens after that vehicle has left the road, or before the vehicle arrives | Time constraint is carefully calculated when generating events to make sure these logical errors cannot happen. |
+| Multiple vehicles park at the same spot                      | At the moment, the system allows multiple vehicles to park at the same spot. |
 | File errors (cannot open log file)                           | The system will reports the error to the console. If this error occurs, the system may still be able to run but data is likely to be lost. |
 
 ## Analysis Engine
