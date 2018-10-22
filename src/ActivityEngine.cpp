@@ -157,42 +157,6 @@ void ActivityEngine::start_generating_discrete_events(SimTime &sim_time, Vehicle
             process_parking_events(sim_time, (*iter).second.parking_flag, veh);
             process_departure_events(sim_time, (*iter).second, veh);
 
-            // TODO: debug
-            cout << fixed << setprecision(2) << "Arrival <" << veh->arrival_time.tm_timestamp << " secs>: "
-                 << veh->arrival_time.formatted_time() << " ==> " << veh->veh_name << " "
-                 << veh->registration_id << " (" << veh->arrival_speed << " kmh)" << endl;
-
-            if (veh->n_parking > 0) {
-                cout << "Parking: ";
-                for (i = 0; i < veh->n_parking; i++) {
-                    SimTime parking_time;
-                    parking_time.mktime(veh->ts_parking_ls[i]);
-                    cout << "[ " << parking_time.formatted_time() <<" | " << veh->ts_parking_ls[i] << " ] >> ";
-                }
-
-                cout << "\nParking durations: ";
-                for (i = 0; i < veh->n_parking; i++) {
-                    cout << "[ " << veh->parking_duration[i]
-                         << " ] >> ";
-                }
-
-                cout << "\nParking move: ";
-                for (i = 0; i < veh->ts_vehicle_move_ls.size(); i++) {
-                    SimTime veh_move_time;
-                    veh_move_time.mktime(veh->ts_vehicle_move_ls[i]);
-                    cout << "[ " << veh_move_time.formatted_time() << " | " << veh->ts_vehicle_move_ls[i]
-                         << " ] >> ";
-                }
-                cout << endl;
-            }
-
-            if (veh->depart_side_flag)
-                cout << "\nSide Exit: " << veh->departure_time.formatted_time() << " ==> " << veh->registration_id << endl;
-
-            cout << "Departure <"<< veh->departure_time.tm_timestamp << " secs>: "
-                 << veh->departure_time.formatted_time() << " ==> "
-                 << veh->registration_id << " [Est. Delta: " << veh->estimated_travel_delta << "] ("
-                 << veh->avg_speed << " kmh)" << endl;
         }
     }
 }

@@ -19,7 +19,6 @@
 AlertEngine::AlertEngine(string user_stats, string log_filename) : log_file(log_filename), user_stats_file(user_stats),
                                                                volume_anomaly_threshold(0), speed_anomaly_threshold(0)
 {
-    // FIXME: passed in value not
     alert_logger = Logger<SimTime, AlertLog>("Alert Engine", INFO, log_filename, false);
     data_file = "data_" + log_file.substr(5, log_file.length() - 5);
 }
@@ -42,9 +41,6 @@ void AlertEngine::run(Vehicles &vehicles)
     calculate_thresholds(vehicles);
     read_data();
     process_data(vehicles);
-
-    // TODO: For each day generated, report on whether there are intrusions detected.
-
 }
 
 void AlertEngine::calculate_thresholds(Vehicles& vehicles)

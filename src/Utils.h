@@ -3,8 +3,8 @@
 * Pooh Bear Intrusion Detection System Helper.h
 * Purpose: main() driver for implementation of specifications
 *
-* @version 0.6-dev
-* @date 2018.10.06
+* @version 1.0-beta
+* @date 2018.10.22
 *
 * @authors Dinh Che (codeninja55) & Duong Le (daltonle)
 * Emails andrew at codeninja55.me & duong.daltonle at gmail.com
@@ -40,13 +40,14 @@ static const char dir_slash = '/';
 
 typedef double simtime_t;
 
+/* CONFIGURATIONS */
+/* Can be used to change the statistical model. */
 // const auto SYSTEM_SEED = static_cast<unsigned long>(std::chrono::system_clock::now().time_since_epoch().count());
 const unsigned long SYSTEM_SEED = 0;
 
 // bool DEBUG_MODE = true;
 const static std::string LOGS_FILENAME = "logs_baseline";
 const double T_ARRIVAL_LIMIT = (22.5F * 60 * 60);           // Set the limit for time last car to arrive
-const double T_PARKING_LIMIT = (23.5F * 60 * 60);           // Set the limit for time last car to park
 const double T_DAY_LIMIT = (24.0 * 60.0F * 60.0F) - 1.0F;   // Set the limit for last time for events to occur
 const double DEPART_SIDE_PROBABILITY = 0.1;                // Set the probability for the bernoulli distribution
 const double AVG_PARKING_N = 4.0;
@@ -307,11 +308,9 @@ typedef struct VehicleStats {
     vector<simtime_t> ts_parking_ls;
     vector<simtime_t> parking_duration;
     vector<simtime_t> ts_vehicle_move_ls;
-    vector<simtime_t> veh_move_duration;
-
     double arrival_speed, avg_speed = 0;
-    double estimated_travel_delta = 0;  // TODO:
-    double estimated_depart_timestamp = 0;  // TODO:
+    double estimated_travel_delta = 0;
+    double estimated_depart_timestamp = 0;
     bool depart_side_flag, permit_speeding_flag = false;
 
     // default constructor for VehicleStats
