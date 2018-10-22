@@ -155,7 +155,7 @@ void ActivityEngine::start_generating_discrete_events(SimTime &sim_time, Vehicle
             veh->estimated_depart_timestamp = estimate_departure_time(*veh, ts_arrival);
 
             process_parking_events(sim_time, (*iter).second.parking_flag, veh);
-            // process_departure_events(sim_time, (*iter).second, veh_stats);
+            process_departure_events(sim_time, (*iter).second, veh);
 
             // TODO: debug
             cout << fixed << setprecision(2) << "Arrival <" << veh->arrival_time.tm_timestamp << " secs>: "
@@ -172,7 +172,7 @@ void ActivityEngine::start_generating_discrete_events(SimTime &sim_time, Vehicle
 
                 cout << "\nParking durations: ";
                 for (i = 0; i < veh->n_parking; i++) {
-                    cout << "[ " << veh->ts_parking_duration[i]
+                    cout << "[ " << veh->parking_duration[i]
                          << " ] >> ";
                 }
 
@@ -189,10 +189,10 @@ void ActivityEngine::start_generating_discrete_events(SimTime &sim_time, Vehicle
             if (veh->depart_side_flag)
                 cout << "\nSide Exit: " << veh->departure_time.formatted_time() << " ==> " << veh->registration_id << endl;
 
-            /*cout << "Departure <"<< veh->departure_time.tm_timestamp << " secs>: "
+            cout << "Departure <"<< veh->departure_time.tm_timestamp << " secs>: "
                  << veh->departure_time.formatted_time() << " ==> "
                  << veh->registration_id << " [Est. Delta: " << veh->estimated_travel_delta << "] ("
-                 << veh->avg_speed << " kmh)" << endl;*/
+                 << veh->avg_speed << " kmh)" << endl;
         }
     }
 }
@@ -264,7 +264,7 @@ void ActivityEngine::process_parking_events(SimTime &sim_time, bool parking_flag
     }
 }
 
-void ActivityEngine::process_departure_events(SimTime &sim_time, VehicleType &veh_type, VehicleStats *veh_stats)
+void ActivityEngine::process_departure_events(SimTime &sim_time, VehicleType &veh_type, VehicleStats *veh)
 {
     /*
      * If the vehicle is due to exit via a side road, generate an exit timestamp.
@@ -273,76 +273,47 @@ void ActivityEngine::process_departure_events(SimTime &sim_time, VehicleType &ve
      * close to 1 and then divide that by a very small lambda. This means the vehicle will be biased
      * to exit the road very soon.
      * */
-    if (veh_stats->depart_side_flag) {
+    if (veh->depart_side_flag) {
         /* Event ==> DEPART_SIDE_ROAD */
+        simtime_t ts_depart_side = veh->arrival_timestamp;  // can only exit after arrival time
+
+        if ( veh->n_parking > 0 ) {
+            double tot_parking_duration = accumulate(next(veh->parking_duration.begin()),
+                    veh->parking_duration.end(), veh->parking_duration[0]);
+            veh->estimated_travel_delta += tot_parking_duration;
+        }
+
+        normal_distribution<double> depart_side_random(veh->estimated_travel_delta, 15);
+        ts_depart_side += depart_side_random(mersenne_twister_engine);
+
         SimTime depart_side_time(sim_time);
-        double exit_interval;
-        simtime_t ts_depart_side = veh_stats->arrival_timestamp;  // can only exit after arrival time
-
-        // if (veh->n_parking != 0) {
-        //     double total_parking_duration = accumulate(next(veh->ts_parking_duration.begin()),
-        //             veh->ts_parking_duration.end(), veh->ts_parking_duration[0]);
-        //     exit_interval = T_DAY_LIMIT - ( total_parking_duration + veh->arrival_time.tm_timestamp);
-        //     ts_depart_side += total_parking_duration;
-        // } else {
-        //     exit_interval = T_DAY_LIMIT - veh->arrival_timestamp;
-        // }
-        //
-        // while (ts_depart_side < T_DAY_LIMIT) {
-        //     long double test = biased_expovariate(1/exit_interval, 0, DEPART_SIDE_UPPER_BOUND);
-        //     if (ts_depart_side + test < T_DAY_LIMIT) {
-        //         ts_depart_side += test;
-        //         break;
-        //     }
-        // }
-
-
-
         depart_side_time.mktime(ts_depart_side);
-        veh_stats->departure_time = depart_side_time;
-        veh_stats->departure_timestamp = ts_depart_side;
-        Event exit_event(DEPART_SIDE_ROAD, depart_side_time, veh_stats);
-        future_event_list.push(exit_event);
+        veh->departure_time = depart_side_time;
+        veh->departure_timestamp = ts_depart_side;
+        Event depart_side_event(DEPART_SIDE_ROAD, depart_side_time, veh);
+        future_event_list.push(depart_side_event);
     } else {
         /* Event ==> DEPART_END */
         SimTime depart_end_time(sim_time);
-        simtime_t ts_depart_end = 0;
-        // estimate of when they would exit at end of road if they were going at arrival speeds
-        double estimated_travel_delta = (road_length / veh_stats->arrival_speed) * 3600;
-        // check if parking time needs to be added
-        if (veh_stats->n_parking != 0) {
-            simtime_t estimated_t_depart_end = veh_stats->arrival_time.tm_timestamp
-                                               + accumulate(next(veh_stats->ts_parking_duration.begin()),
-                                                            veh_stats->ts_parking_duration.end(),
-                                                            veh_stats->ts_parking_duration[0])
-                                               + estimated_travel_delta;
-            // using the estimated departure time as a mean,with 2 standard deviation difference, randomly select
-            // a time the vehicle will depart.
-            normal_distribution<double> depart_end_random(estimated_t_depart_end, 2);
-            // TODO: should probably check if this time is after 24:00
-            ts_depart_end = depart_end_random(mersenne_twister_engine);
-            // while (t_depart_end > T_DAY_LIMIT || t_depart_end < veh_stats->ts_parking_ls[veh_stats->n_parking - 1])
-            //     ts_depart_end = depart_end_random(mersenne_twister_engine);
-            depart_end_time.mktime(ts_depart_end);
-        } else {
-            // TODO: Method 1
-            // simtime_t estimated_t_depart_end = veh_stats->arrival_time.tm_timestamp + estimated_travel_delta;
-            // normal_distribution<double> depart_end_random(estimated_t_depart_end, 3);
-            // ts_depart_end = depart_end_random(mersenne_twister_engine);
-            // TODO: Method 2
-            normal_distribution<double> depart_end_random(estimated_travel_delta, 3);
-            ts_depart_end = depart_end_random(mersenne_twister_engine) + veh_stats->arrival_time.tm_timestamp;
-            // TODO: Method 3
-            // exponential_distribution<double> depart_end_expovariate(1/(T_DAY_LIMIT - veh_stats->arrival_time.tm_timestamp));
-            // ts_depart_end = veh_stats->arrival_time.tm_timestamp + depart_end_expovariate(mersenne_twister_engine);
-            depart_end_time.mktime(ts_depart_end);
-        }
+        simtime_t ts_depart_end = veh->arrival_timestamp;
 
-        veh_stats->estimated_travel_delta = estimated_travel_delta;
-        veh_stats->departure_time = depart_end_time;
-        veh_stats->avg_speed = (road_length * 3600) /
-                               (veh_stats->departure_time.tm_timestamp - veh_stats->arrival_time.tm_timestamp);
-        Event depart_end_event(DEPART_END_ROAD, depart_end_time, veh_stats);
+        // check if parking time needs to be added
+        if (veh->n_parking > 0) {
+            double tot_moving_duration = accumulate(next(veh->veh_move_duration.begin()),
+                                                     veh->veh_move_duration.end(), veh->veh_move_duration[0]);
+
+            veh->estimated_travel_delta += tot_moving_duration;
+        }
+        // using the estimated departure time as a mean,with 2 standard deviation difference, randomly select
+        // a time the vehicle will depart.
+        normal_distribution<double> depart_end_random(veh->estimated_travel_delta, 3);
+        ts_depart_end += depart_end_random(mersenne_twister_engine);
+
+        depart_end_time.mktime(ts_depart_end);
+        veh->departure_time = depart_end_time;
+        veh->avg_speed = (road_length * 3600) /
+                               (veh->departure_time.tm_timestamp - veh->arrival_time.tm_timestamp);
+        Event depart_end_event(DEPART_END_ROAD, depart_end_time, veh);
         future_event_list.push(depart_end_event);
     }
 }
@@ -352,44 +323,44 @@ void ActivityEngine::simulate_events()
     while (!future_event_list.empty()) {
         Event ev = future_event_list.top();  // returns a reference to the top event but does not remove it
 
-        // TODO: check if time is after limit. Then discard
-        // if (ev.time.tm_timestamp > T_DAY_LIMIT) {
-        //     future_event_list.pop();
-        //     continue;
-        // }
-
-        switch(ev.ev_type) {
-            case ARRIVAL:
-                veh_logger.info(ev.time, VehicleLog(ARRIVAL, "Vehicle Log", ev.stats->veh_name, ev.stats->registration_id,
-                        ev.stats->arrival_speed ));
-                break;
-            case DEPART_SIDE_ROAD:
-                other_veh_logger.info(ev.time, GenericLog(DEPART_SIDE_ROAD, "Vehicle Log", ev.stats->veh_name,
-                        ev.stats->registration_id));
-                break;
-            case PARKING_START:
-                other_veh_logger.info(ev.time, GenericLog(PARKING_START, "Vehicle Log", ev.stats->veh_name,
-                        ev.stats->registration_id));
-                break;
-            case VEHICLE_MOVE:
-                other_veh_logger.info(ev.time, GenericLog(VEHICLE_MOVE, "Vehicle Log", ev.stats->veh_name,
-                        ev.stats->registration_id));
-                break;
-            case DEPART_END_ROAD:
-                if (ev.stats->avg_speed > speed_limit && !ev.stats->permit_speeding_flag) {
-                    veh_logger.critical(ev.time, VehicleLog(DEPART_END_ROAD, "Vehicle Log", ev.stats->veh_name,
-                                                        ev.stats->registration_id, ev.stats->avg_speed));
-                } else if (ev.stats->avg_speed > speed_limit && ev.stats->permit_speeding_flag) {
-                    veh_logger.warning(ev.time, VehicleLog(DEPART_END_ROAD, "Vehicle Log", ev.stats->veh_name,
-                                                           ev.stats->registration_id, ev.stats->avg_speed));
-                } else {
-                    veh_logger.info(ev.time, VehicleLog(DEPART_END_ROAD, "Vehicle Log", ev.stats->veh_name,
-                                                        ev.stats->registration_id, ev.stats->avg_speed));
-                }
-                break;
-            case UNKNOWN: break;
+        // check if time is after limit. Then discard
+        if (ev.time.tm_timestamp > T_DAY_LIMIT) {
+            future_event_list.pop();
+            continue;
+        } else {
+            switch(ev.ev_type) {
+                case ARRIVAL:
+                    veh_logger.info(ev.time, VehicleLog(ARRIVAL, "Vehicle Log", ev.stats->veh_name, ev.stats->registration_id,
+                                                        ev.stats->arrival_speed ));
+                    break;
+                case DEPART_SIDE_ROAD:
+                    other_veh_logger.info(ev.time, GenericLog(DEPART_SIDE_ROAD, "Vehicle Log", ev.stats->veh_name,
+                                                              ev.stats->registration_id));
+                    break;
+                case PARKING_START:
+                    other_veh_logger.info(ev.time, GenericLog(PARKING_START, "Vehicle Log", ev.stats->veh_name,
+                                                              ev.stats->registration_id));
+                    break;
+                case VEHICLE_MOVE:
+                    other_veh_logger.info(ev.time, GenericLog(VEHICLE_MOVE, "Vehicle Log", ev.stats->veh_name,
+                                                              ev.stats->registration_id));
+                    break;
+                case DEPART_END_ROAD:
+                    if (ev.stats->avg_speed > speed_limit && !ev.stats->permit_speeding_flag) {
+                        veh_logger.critical(ev.time, VehicleLog(DEPART_END_ROAD, "Vehicle Log", ev.stats->veh_name,
+                                                                ev.stats->registration_id, ev.stats->avg_speed));
+                    } else if (ev.stats->avg_speed > speed_limit && ev.stats->permit_speeding_flag) {
+                        veh_logger.warning(ev.time, VehicleLog(DEPART_END_ROAD, "Vehicle Log", ev.stats->veh_name,
+                                                               ev.stats->registration_id, ev.stats->avg_speed));
+                    } else {
+                        veh_logger.info(ev.time, VehicleLog(DEPART_END_ROAD, "Vehicle Log", ev.stats->veh_name,
+                                                            ev.stats->registration_id, ev.stats->avg_speed));
+                    }
+                    break;
+                case UNKNOWN: break;
+            }
+            future_event_list.pop();  // returns void, but must remove from queue
         }
-        future_event_list.pop();  // returns void, but must remove from queue
     }
 }
 
@@ -401,11 +372,12 @@ double ActivityEngine::estimate_departure_delta(VehicleStats &veh, double speed)
 double ActivityEngine::estimate_departure_time(VehicleStats &veh, simtime_t start_timestamp)
 {
     double depart_avg = 0;
-    int variance = (veh.depart_side_flag) ? 10 : 5;
+    // ensure there is more variation if the vehicles is leaving the side of the road.
+    int variance = (veh.depart_side_flag) ? 15 : 5;
 
     // run the random estimation of exit times a few iterations and get their average
     normal_distribution<double> est_depart_random(veh.estimated_travel_delta, variance);
-    for (int i = 0; i <= 10; i++) {
+    for (int i = 0; i <= 5; i++) {
         double test = 0;
         do {
             test = est_depart_random(mersenne_twister_engine);
@@ -413,7 +385,7 @@ double ActivityEngine::estimate_departure_time(VehicleStats &veh, simtime_t star
 
         depart_avg += test;
     }
-    return start_timestamp + (depart_avg / 10);
+    return start_timestamp + (depart_avg / 5);
 }
 
 /*

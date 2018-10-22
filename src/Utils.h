@@ -49,12 +49,10 @@ const double T_ARRIVAL_LIMIT = (22.5F * 60 * 60);           // Set the limit for
 const double T_PARKING_LIMIT = (23.5F * 60 * 60);           // Set the limit for time last car to park
 const double T_DAY_LIMIT = (24.0 * 60.0F * 60.0F) - 1.0F;   // Set the limit for last time for events to occur
 const double DEPART_SIDE_PROBABILITY = 0.1;                // Set the probability for the bernoulli distribution
-const double DEPART_SIDE_UPPER_BOUND = 0.02;                // Upper bound value to be used in biased expovariate function
-const double AVG_PARKING_N = 7.5;
+const double AVG_PARKING_N = 4.0;
 const double PARKING_PROBABILITY = 0.4;                    // Set the probability for parking for the binomial distribution
-const double AVG_PARKING_DURATION = (10.0 * 60);
-const double AVG_PARKING_EVENT = (25.0 * 60);
-const double MIN_PARKING_EVENT = (5.0 * 60);
+const double AVG_PARKING_DURATION = (15.0 * 60);
+const double AVG_PARKING_EVENT = (20.0 * 60);
 
 static int FILENAME_COUNTER = 0;
 
@@ -307,9 +305,10 @@ typedef struct VehicleStats {
     simtime_t arrival_timestamp, departure_timestamp = 0;
     int n_parking = 0;
     vector<simtime_t> ts_parking_ls;
-    vector<simtime_t> ts_parking_duration;
+    vector<simtime_t> parking_duration;
     vector<simtime_t> ts_vehicle_move_ls;
-    
+    vector<simtime_t> veh_move_duration;
+
     double arrival_speed, avg_speed = 0;
     double estimated_travel_delta = 0;  // TODO:
     double estimated_depart_timestamp = 0;  // TODO:
