@@ -3,8 +3,8 @@
 * Pooh Bear Intrusion Detection System ActivityEngine.h
 * Purpose: Header file for ActivityEngine class.
 *
-* @version 0.6-dev
-* @date 2018.10.06
+* @version 1.0-beta
+* @date 2018.10.22
 *
 * @authors Dinh Che (codeninja55) & Duong Le (daltonle)
 * Emails andrew at codeninja55.me & duong.daltonle at gmail.com
@@ -99,20 +99,19 @@ class ActivityEngine {
 public:
     ActivityEngine(); // default
     explicit ActivityEngine(string log_file);
-    void set_statistics(unsigned days, unsigned vehicles_monitored, float road_len,
+    void set_statistics(unsigned vehicles_monitored, float road_len,
                         float speed_lim, unsigned parking_spots);
-    void run(Vehicles&);  // run the activity engine simulation
+    void run(Vehicles&, int);  // run the activity engine simulation
 private:
     void start_generating_discrete_events(SimTime &sim_time, Vehicles &vehicles);
     void process_parking_events(SimTime &sim_time, bool parking_flag, VehicleStats *veh);
     void process_departure_events(SimTime &sim_time, VehicleType &veh_type, VehicleStats *veh);
     void simulate_events();
-    long double biased_expovariate(double rate_param, double lower_bound, double upper_bound);
     double estimate_departure_time(VehicleStats &veh, simtime_t start_timestamp);
-    double estimate_departure_delta(VehicleStats &veh, double speed);
+    double estimate_departure_delta(double speed);
     mt19937_64 mersenne_twister_engine;
     mt19937_64 registration_generator;
-    unsigned n_vehicles_monitored, n_parking_spots, simulate_days;
+    unsigned n_vehicles_monitored, n_parking_spots;
     float road_length, speed_limit;
     string log_file;
     Logger<SimTime, ActivityLog> logger;

@@ -73,7 +73,7 @@ void AnalysisEngine::read_log()
     fin.open(filename.str());
 
     if (!fin.good()) {
-        cout << "<" << real_formatted_time_now() << "> [*****FILE ERROR*****] Failed to open log file." << endl;
+        console_log("FILE ERROR", "Failed to open log file.");
         return;
     }
 
