@@ -124,10 +124,10 @@ int main(int argc, char * argv[])
             ActivityEngine live_activity_engine(log_filename.str());
             // read_stats_file(another_fin, stats_baseline, vehicles_dict_baseline, live_activity_engine);
             read_stats_file(another_fin, user_stats, vehicles_dict_baseline, live_activity_engine);
-            live_activity_engine.run(vehicles_dict_baseline, user_days);  // note number of days set in reading file
+            live_activity_engine.run(vehicles_dict, user_days);  // note number of days set in reading file
 
             AnalysisEngine live_analysis_engine;
-            live_analysis_engine.run(vehicles_dict_baseline);
+            live_analysis_engine.run(vehicles_dict);
 
             AlertEngine live_alert_engine(user_stats, log_filename.str());
             live_alert_engine.run(vehicles_dict_baseline);

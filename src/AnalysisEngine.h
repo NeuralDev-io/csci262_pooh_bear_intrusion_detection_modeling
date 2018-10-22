@@ -1,6 +1,16 @@
-//
-// Created by lnduo on 17/10/18.
-//
+/*********************************************************************************
+* CSCI262 (Spring 2018) - Assignment 03
+* Pooh Bear Intrusion Detection System AnalysisEngine.h
+* Purpose: Header file for AnalysisEngine class.
+*
+* @version 1.0-beta
+* @date 2018.10.22
+*
+* @authors Dinh Che (codeninja55) & Duong Le (daltonle)
+* Emails andrew at codeninja55.me & duong.daltonle at gmail.com
+* Students Dinh Che (5721970 | dbac496) & Duong Le (5560536 | ndl991)
+*********************************************************************************/
+
 
 #include <utility>
 
