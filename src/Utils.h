@@ -51,6 +51,7 @@ const double T_DAY_LIMIT = (24.0 * 60.0F * 60.0F) - 1.0F;   // Set the limit for
 const double DEPART_SIDE_PROBABILITY = 0.1;                // Set the probability for the bernoulli distribution
 const double DEPART_SIDE_UPPER_BOUND = 0.02;                // Upper bound value to be used in biased expovariate function
 const double PARKING_PROBABILITY = 0.1;                    // Set the probability for parking for the binomial distribution
+const double AVG_PARKING_DURATION = (15.0 * 60 * 60);
 
 static int FILENAME_COUNTER = 0;
 

@@ -132,9 +132,6 @@ void ActivityEngine::start_generating_discrete_events(SimTime &sim_time, Vehicle
                 veh->arrival_speed = speed_normal_distrib(mersenne_twister_engine);
             } while (veh->arrival_speed < 0);
 
-            // given the arrival speed, estimate a likely time they will finish
-
-
             // add arrival event to queue
             SimTime arrival_time(sim_time);  // initializes the date to the right day of processing
             arrival_time.mktime(ts_arrival);  // make a time based on the timestamp
@@ -165,20 +162,20 @@ void ActivityEngine::start_generating_discrete_events(SimTime &sim_time, Vehicle
 
             if (veh->n_parking > 0) {
                 cout << "Parking: ";
-                for (i = 0; i < veh->ts_parking_ls.size() - 1; i++) {
+                for (i = 0; i < veh->ts_parking_ls.size(); i++) {
                     SimTime parking_time;
                     parking_time.mktime(veh->ts_parking_ls[i]);
                     cout << "[ " << parking_time.formatted_time() <<" | " << veh->ts_parking_ls[i] << " ] >> ";
                 }
                 cout << endl;
 
-                cout << "Parking durations: ";
-                for (i = 0; i < veh->ts_parking_ls.size() - 1; i++) {
-                    SimTime parking_dur_time;
-                    parking_dur_time.mktime(veh->ts_parking_ls[i] + veh->ts_parking_duration[i]);
-                    cout << "[ " << parking_dur_time.formatted_time() << " | " << veh->ts_parking_duration[i]
-                         << " ] >> ";
-                }
+                // cout << "Parking durations: ";
+                // for (i = 0; i < veh->ts_parking_ls.size() - 1; i++) {
+                //     SimTime parking_dur_time;
+                //     parking_dur_time.mktime(veh->ts_parking_ls[i] + veh->ts_parking_duration[i]);
+                //     cout << "[ " << parking_dur_time.formatted_time() << " | " << veh->ts_parking_duration[i]
+                //          << " ] >> ";
+                // }
                 cout << endl;
             }
 
@@ -363,6 +360,9 @@ void ActivityEngine::simulate_events()
 {
     while (!future_event_list.empty()) {
         Event ev = future_event_list.top();  // returns a reference to the top event but does not remove it
+
+        // TODO: check if time is after limit. Then discard
+
         switch(ev.ev_type) {
             case ARRIVAL:
                 veh_logger.info(ev.time, VehicleLog(ARRIVAL, "Vehicle Log", ev.stats->veh_name, ev.stats->registration_id,
@@ -418,7 +418,7 @@ long double ActivityEngine::estimate_departure_time(VehicleStats &veh, simtime_t
 
         depart_avg += test;
     }
-    return depart_avg / 10;
+    return start_timestamp + (depart_avg / 10);
 }
 
 /*
