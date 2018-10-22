@@ -104,10 +104,12 @@ public:
     void run(Vehicles&);  // run the activity engine simulation
 private:
     void start_generating_discrete_events(SimTime &sim_time, Vehicles &vehicles);
-    void process_parking_events(SimTime &sim_time, bool parking_flag, VehicleStats *veh_stats);
-    void process_departure_events(SimTime &sim_time, VehicleType &veh_type, VehicleStats *veh_stats);
+    void process_parking_events(SimTime &sim_time, bool parking_flag, VehicleStats *veh);
+    void process_departure_events(SimTime &sim_time, VehicleType &veh_type, VehicleStats *veh);
     void simulate_events();
     long double biased_expovariate(double rate_param, double lower_bound, double upper_bound);
+    long double estimate_departure_time(VehicleStats &veh, simtime_t start_timestamp);
+    long double estimate_departure_delta(VehicleStats &veh, double speed);
     mt19937_64 mersenne_twister_engine;
     unsigned n_vehicles_monitored, n_parking_spots, simulate_days;
     float road_length, speed_limit;

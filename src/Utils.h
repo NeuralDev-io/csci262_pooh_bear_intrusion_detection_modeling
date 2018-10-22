@@ -44,13 +44,13 @@ typedef double simtime_t;
 const unsigned long SYSTEM_SEED = 0;
 
 // bool DEBUG_MODE = true;
-const static std::string LOGS_FILENAME = "logs_baseline";
+const static std::string LOGS_FILENAME = "logs_baseline"; // NOLINT(cert-err58-cpp)
 const double T_ARRIVAL_LIMIT = (22.5F * 60 * 60);           // Set the limit for time last car to arrive
 const double T_PARKING_LIMIT = (23.5F * 60 * 60);           // Set the limit for time last car to park
 const double T_DAY_LIMIT = (24.0 * 60.0F * 60.0F) - 1.0F;   // Set the limit for last time for events to occur
 const double DEPART_SIDE_PROBABILITY = 0.1;                // Set the probability for the bernoulli distribution
 const double DEPART_SIDE_UPPER_BOUND = 0.02;                // Upper bound value to be used in biased expovariate function
-const double PARKING_PROBABILITY = 0.15;                    // Set the probability for parking for the binomial distribution
+const double PARKING_PROBABILITY = 0.1;                    // Set the probability for parking for the binomial distribution
 
 static int FILENAME_COUNTER = 0;
 
@@ -78,9 +78,8 @@ typedef struct SimTime {
         if (rhs.tm_year == lhs.tm_year) {
             if (rhs.tm_mon == lhs.tm_mon) {
                 if (rhs.tm_mday == lhs.tm_mday) {
-                    if (rhs.tm_hour == lhs.tm_hour) {
-                        (rhs.tm_min == lhs.tm_min) ? rhs.tm_sec < lhs.tm_sec : rhs.tm_min < lhs.tm_min;
-                    }
+                    if (rhs.tm_hour == lhs.tm_hour)
+                        return (rhs.tm_min == lhs.tm_min) ? rhs.tm_sec < lhs.tm_sec : rhs.tm_min < lhs.tm_min;
                     return rhs.tm_hour < lhs.tm_hour;
                 }
                 return rhs.tm_mday < lhs.tm_mday;
@@ -304,8 +303,9 @@ typedef struct VehicleStats {
     int n_parking = 0;
     vector<simtime_t> ts_parking_ls;
     vector<simtime_t> ts_parking_duration;
+    
     double arrival_speed, avg_speed = 0;
-    double estimated_travel_delta = 0;  // TODO:
+    double estimated_travel_delta, estimated_depart_timestamp = 0;  // TODO:
     bool depart_side_flag, permit_speeding_flag = false;
 
     // default constructor for VehicleStats
