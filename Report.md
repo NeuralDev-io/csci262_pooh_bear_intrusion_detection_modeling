@@ -1,6 +1,6 @@
 # Pooh Bear Intrusion Detection System
 
-CSCI262 System Security (Spring 2018) assignment 3 - intrusion detection system statistical modeling and simulation.
+CSCI262 System Security (Spring 2018) Assignment 3 - Honeypot Intrusion Detection System.
 
 | Authors                         | Contact                                                 |
 | ------------------------------- | ------------------------------------------------------- |
@@ -11,13 +11,42 @@ CSCI262 System Security (Spring 2018) assignment 3 - intrusion detection system 
 
 ### Overview
 
-Pooh Bear Intrusion Detection System (IDS) is a honeypot event modeller and IDS/auditor system written in C++11. The system reads in vehicles information and traffic statistics and produce events consistent with this data. The collection of generated events forms the baseline data for the system, which are analysed to generate the baseline statistics. In the last phase, "live data" is compared to the baseline statistics to identify anomalies in the system.
+Pooh Bear Intrusion Detection System (IDS), to be referred to as “System” or “The System” in this report is a honeypot event modeller and IDS/auditor system written in C++ using ANSI Standard 11. The system reads in vehicles information and traffic statistics and produce events consistent with this data. The collection of generated events forms the baseline data for the system, which are analysed to generate the baseline statistics. In the last phase, "live data" is compared to the baseline statistics to identify anomalies in the system.
 
 ### Files
 
-#### Directory
+#### Directory Structure
 
 Log files are stored in `dir/logs/` folder and data generated from the Analysis Engine is stored in `dir/data/`.
+
+```
+a3_pooh_bear_ids/
+    README.md
+    A3_REPORT.md
+    A3_REPORT.pdf
+    LICENSE
+    CMakeLists.txt
+    src/
+    	logs/
+    	data/
+    	start.sh
+    	Stats.txt
+    	Vehicles.txt
+    	Welcome_ascii
+    	Exit_ascii
+    	main.cpp
+    	Logger.cpp
+    	Vehicles.h
+    	Vehicles.cpp
+    	Utils.h
+    	Utils.cpp
+    	ActivityEngine.h
+    	ActivityEngine.cpp
+    	AnalysisEngine.h
+    	AnalysisEngine.cpp
+    	AlertEngine.h
+    	AlertEngine.cpp
+```
 
 #### Suffices
 
@@ -31,21 +60,28 @@ Initial input including vehicles information and traffic statistics are read fro
 
 ### Storing data
 
-A struct `VehicleType` stores information and statistics associated with each vehicle type, including:
+A struct `VehicleType` stores information and statistics associated with each vehicle type in a dictionar with `string name` as key, including:
 
 - Vehicle name
 - Registration format
 - Volume weight and speed weight
 - The mean and standard deviation of the volume and speed.
 
-Each time a new set of statistics is read, the data is stored in an instance of class `Vehicles`, which contains a `map` with the key being a `string` of vehicle name and the value being the `VehicleType` struct. This instance is referred to as a "vehicle dictionary" throughout the system and is used by both the Activity and Analysis engines.
+Each time a new set of statistics is read, the data is stored in an instance of class `Vehicles`, which contains a `map` with the key being a `string name` of vehicle name and the value being the `VehicleType` structure. This instance is referred to as a "vehicles dictionary" throughout the system and is used by both the Activity and Analysis engines.
 
 ### Data inconsistencies
 
-When data inconsistencies are found within a file or between input files, the system reports the inconsistency and aborts. Below are the inconsistencies that were handled by the system:
+When data inconsistencies are found within a file or between input files, the system reports the inconsistency and exits out of the current system and allows the user to enter a new file. Below are the inconsistencies that were handled by the system:
 
 - The number of vehicles being monitored is different to the number of vehicle statistics being listed.
 - Vehicle names are inconsistent between vehicles file and statistics file.
+- Inconsistencies with integers and doubles used in the file which cannot be converted within the system to an appropriate data type.
+
+Other consistencies that could occur which were not handled may include:
+
+* The use of a different delimiter to separate the numbers rather than `:` as required by the system.
+* The use of negative numbers.
+* The use of lowercase and uppercase in the vehicle type names which are different.
 
 ## Logging system
 
@@ -70,18 +106,23 @@ Time,Module,LEVEL,LogType,EVENT,AdditionalInformation
 
 where:
 
-- **Time** is a string of time with the format *\<dd-mm-yyyy hh:mm:ss\>*
+- **Time** is a string of time with the format `<DD-MM-YYYY HH:MM:ss>`
 - **Module** is the module that logged the event, e.g. "Analysis Engine", "Activity Engine", ...
 - **LEVEL** is the log level
-- **Log type** is the type of the log record, e.g. "Activity Log", "Vehicle Log", ...
-- **EVENT** is the event type, e.g. "ARRIVAL", "SPEEDING", "DEPART_END_ROAD", ...
-- **Additional information** is any information deemed necessary for the logged event, e.g. a message or the vehicle type, registration ID, ...
+- **Log type** is the type of the log record based on the type of information it refers to, e.g. "Activity Log", "Vehicle Log", etc.
+- **EVENT** is an enumerated type represented in the system as discrete events which consists of the following representations:
+  - `ARRIVAL` is the arrival of a vehicle into the simulation at the start of the road and only up to 23:00 on any given day.
+  - `PARK_START` is the time the vehicle has started parking on the side of the road.
+  - `VEHICLE_MOVE` is the time the vehicle has stopped parking and begun to move again.
+  - `DEPART_SIDE_ROAD` is the time the vehicle has departed via a side road and is discard by the system for reporting purposes.
+  - `DEPART_END_ROAD` is the time the vehicle has completely traversed the length of the road and an average speed is reocreded by the system for generating speeding tickets. The vehicle has now left the road system.
+- **Additional information** is any information deemed necessary for the logged event, e.g. a message or the vehicle type, registration ID, speed, etc...
 
 ## Activity Engine
 
 ### Event generation
 
-For each day and for each vehicle type, the Activity engine follows the folllowing process to generate discrete events of vehicles:
+For each day and for each vehicle type, the Activity engine follows the folllowing process to generate a discrete event simulation model of vehicles:
 
 - **Generate arrival events**
   Using the normal distribution, the number of occurences for the vehicle type can be calculated, which in turn produces the rate of occurence. Using the rate of occurence, the activity engine can generate the next arrival delta interval using an exponential distribution and the Poisson process. 
@@ -123,4 +164,6 @@ All activities of the Analysis engine are also continued to be logged in `dir/lo
 The Alert engine reads the `data` file associated with the "live data" and compare it to the baseline statistics (stored in `stats_baseline`). For each day, the Alert engine adds up the anomaly counters and compare them to the anomaly thresholds, then reports *"Volume/Speed anomaly detected"* or *"No volume/speed anomaly detected"* as appropirate.
 
 Activities of the Alert engine are also continued to be logged in `dir/logs/logs_suffix`.
+
+## References
 
