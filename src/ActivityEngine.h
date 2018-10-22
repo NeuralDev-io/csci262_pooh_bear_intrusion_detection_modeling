@@ -111,6 +111,7 @@ private:
     double estimate_departure_time(VehicleStats &veh, simtime_t start_timestamp);
     double estimate_departure_delta(VehicleStats &veh, double speed);
     mt19937_64 mersenne_twister_engine;
+    mt19937_64 registration_generator;
     unsigned n_vehicles_monitored, n_parking_spots, simulate_days;
     float road_length, speed_limit;
     string log_file;

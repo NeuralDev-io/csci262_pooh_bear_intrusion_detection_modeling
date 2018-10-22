@@ -23,6 +23,7 @@ ActivityEngine::ActivityEngine() : n_vehicles_monitored(0), n_parking_spots(0), 
     veh_logger = Logger<SimTime, VehicleLog>("Activity Engine", INFO, log_file, false);
     other_veh_logger = Logger<SimTime, GenericLog>("Activity Engine", INFO, log_file, false);
     mersenne_twister_engine.seed(SYSTEM_SEED);
+    registration_generator.seed(SYSTEM_SEED);
 }
 
 
@@ -38,6 +39,7 @@ ActivityEngine::ActivityEngine(string log_file) : n_vehicles_monitored(0), n_par
     veh_logger = Logger<SimTime, VehicleLog>("Activity Engine", INFO, log_file, false);
     other_veh_logger = Logger<SimTime, GenericLog>("Activity Engine", INFO, log_file, false);
     mersenne_twister_engine.seed(SYSTEM_SEED);
+    registration_generator.seed(SYSTEM_SEED);
 }
 
 void ActivityEngine::run(Vehicles &vehicles)
@@ -68,6 +70,7 @@ void ActivityEngine::run(Vehicles &vehicles)
         simulate_events();
         sim_time.next_day();
         start_generating_discrete_events(sim_time, vehicles);
+        Vehicles::clear_unique_registration();  // clear the set of unique registrations because same vehicles can come back
     }
 
     console_log("SYSTEM", "Activity Engine Completed.");
@@ -125,7 +128,7 @@ void ActivityEngine::start_generating_discrete_events(SimTime &sim_time, Vehicle
 
             auto *veh = new VehicleStats();
             veh->veh_name = (*iter).first;
-            veh->registration_id = Vehicles::generate_registration((*iter).second.reg_format, mersenne_twister_engine);
+            veh->registration_id = Vehicles::generate_registration((*iter).second.reg_format, registration_generator);
             veh->permit_speeding_flag = ((*iter).second.speed_weight == 0);
 
             /* Event ==> ARRIVAL */

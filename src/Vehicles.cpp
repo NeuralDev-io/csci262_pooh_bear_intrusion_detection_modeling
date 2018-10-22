@@ -110,3 +110,8 @@ string Vehicles::generate_registration(string &reg_format, mt19937_64 &generator
     pair<set<string>::iterator, bool> ret = UNIQUE_REGISTRATIONS.insert(str);
     return (ret.second) ? str : generate_registration(reg_format, generator);
 }
+
+void Vehicles::clear_unique_registration()
+{
+    UNIQUE_REGISTRATIONS.clear();
+}
