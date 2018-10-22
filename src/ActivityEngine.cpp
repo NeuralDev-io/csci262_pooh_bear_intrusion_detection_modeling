@@ -123,29 +123,29 @@ void ActivityEngine::start_generating_discrete_events(SimTime &sim_time, Vehicle
         // with a list of timestamps for this vehicle type, create vehicle stats
         for (simtime_t &ts_arrival : ts_arrivals_ls) {
 
-            auto *veh_stats = new VehicleStats();
-            veh_stats->veh_name = (*iter).first;
-            veh_stats->registration_id = Vehicles::generate_registration((*iter).second.reg_format, mersenne_twister_engine);
-            veh_stats->permit_speeding_flag = ((*iter).second.speed_weight == 0);
+            auto *veh = new VehicleStats();
+            veh->veh_name = (*iter).first;
+            veh->registration_id = Vehicles::generate_registration((*iter).second.reg_format, mersenne_twister_engine);
+            veh->permit_speeding_flag = ((*iter).second.speed_weight == 0);
 
             /* Event ==> ARRIVAL */
             // make sure it is non-negative because not possible
             do {
-                veh_stats->arrival_speed = speed_normal_distrib(mersenne_twister_engine);
-            } while (veh_stats->arrival_speed < 0);
+                veh->arrival_speed = speed_normal_distrib(mersenne_twister_engine);
+            } while (veh->arrival_speed < 0);
 
             // add arrival event to queue
             SimTime arrival_time(sim_time);  // initializes the date to the right day of processing
             arrival_time.mktime(ts_arrival);  // make a time based on the timestamp
-            veh_stats->arrival_time = arrival_time;
-            veh_stats->arrival_timestamp = ts_arrival;
+            veh->arrival_time = arrival_time;
+            veh->arrival_timestamp = ts_arrival;
 
-            Event arrival_event(ARRIVAL, arrival_time, veh_stats);
+            Event arrival_event(ARRIVAL, arrival_time, veh);
             future_event_list.push(arrival_event);
 
             // random binomial distribution true or false based on the probability of the event occurring
             bernoulli_distribution depart_side_random(DEPART_SIDE_PROBABILITY);
-            veh_stats->depart_side_flag = depart_side_random(mersenne_twister_engine);  // bernoulli implem returns bool
+            veh->depart_side_flag = depart_side_random(mersenne_twister_engine);  // bernoulli implem returns bool
 
             // calculate estimate depart time
             veh->estimated_travel_delta = estimate_departure_delta(*veh, veh->arrival_speed);
@@ -155,112 +155,108 @@ void ActivityEngine::start_generating_discrete_events(SimTime &sim_time, Vehicle
             // process_departure_events(sim_time, (*iter).second, veh_stats);
 
             // TODO: debug
-            cout << fixed << setprecision(2) << "Arrival <" << veh_stats->arrival_time.tm_timestamp << " secs>: "
-                 << veh_stats->arrival_time.formatted_time() << " ==> " << veh_stats->veh_name << " "
-                 << veh_stats->registration_id << " (" << veh_stats->arrival_speed << " kmh)" << endl;
+            cout << fixed << setprecision(2) << "Arrival <" << veh->arrival_time.tm_timestamp << " secs>: "
+                 << veh->arrival_time.formatted_time() << " ==> " << veh->veh_name << " "
+                 << veh->registration_id << " (" << veh->arrival_speed << " kmh)" << endl;
 
-            if (veh_stats->n_parking > 0) {
+            if (veh->n_parking > 0) {
                 cout << "Parking: ";
-                for (i = 0; i < veh->ts_parking_ls.size(); i++) {
+                for (i = 0; i < veh->n_parking; i++) {
                     SimTime parking_time;
-                    parking_time.mktime(veh_stats->ts_parking_ls[i]);
-                    cout << "[ " << parking_time.formatted_time() <<" | " << veh_stats->ts_parking_ls[i] << " ] >> ";
+                    parking_time.mktime(veh->ts_parking_ls[i]);
+                    cout << "[ " << parking_time.formatted_time() <<" | " << veh->ts_parking_ls[i] << " ] >> ";
                 }
-                cout << endl;
 
-                cout << "Parking durations: ";
-                for (i = 0; i < veh_stats->ts_parking_ls.size() - 1; i++) {
-                    SimTime parking_dur_time;
-                    parking_dur_time.mktime(veh_stats->ts_parking_ls[i] + veh_stats->ts_parking_duration[i]);
-                    cout << "[ " << parking_dur_time.formatted_time() << " | " << veh_stats->ts_parking_duration[i]
+                cout << "\nParking durations: ";
+                for (i = 0; i < veh->n_parking; i++) {
+                    cout << "[ " << veh->ts_parking_duration[i]
+                         << " ] >> ";
+                }
+
+                cout << "\nParking move: ";
+                for (i = 0; i < veh->ts_vehicle_move_ls.size(); i++) {
+                    SimTime veh_move_time;
+                    veh_move_time.mktime(veh->ts_vehicle_move_ls[i]);
+                    cout << "[ " << veh_move_time.formatted_time() << " | " << veh->ts_vehicle_move_ls[i]
                          << " ] >> ";
                 }
                 cout << endl;
             }
 
-            if (veh_stats->depart_side_flag)
-                cout << "Side Exit: " << veh_stats->departure_time.formatted_time() << " ==> " << veh_stats->registration_id << endl;
+            if (veh->depart_side_flag)
+                cout << "\nSide Exit: " << veh->departure_time.formatted_time() << " ==> " << veh->registration_id << endl;
 
-            /*cout << "Departure <"<< veh_stats->departure_time.tm_timestamp << " secs>: "
-                 << veh_stats->departure_time.formatted_time() << " ==> "
-                 << veh_stats->registration_id << " [Est. Delta: " << veh_stats->estimated_travel_delta << "] ("
-                 << veh_stats->avg_speed << " kmh)" << endl;*/
+            /*cout << "Departure <"<< veh->departure_time.tm_timestamp << " secs>: "
+                 << veh->departure_time.formatted_time() << " ==> "
+                 << veh->registration_id << " [Est. Delta: " << veh->estimated_travel_delta << "] ("
+                 << veh->avg_speed << " kmh)" << endl;*/
         }
     }
 }
 
-void ActivityEngine::process_parking_events(SimTime &sim_time, bool parking_flag, VehicleStats *veh_stats)
+void ActivityEngine::process_parking_events(SimTime &sim_time, bool parking_flag, VehicleStats *veh)
 {
     int i;
     /* Event ==> PARKING_START */
-
     // randomly generate the number of times a person will park and use the  poisson process to generate
     // inter-arrival times between parking events.
     if (parking_flag) {
-        // generate number of parking events based on a binomial distribution
-        binomial_distribution<int> parking_n_random(n_parking_spots, PARKING_PROBABILITY);
+        binomial_distribution<int> parking_n_random((int) AVG_PARKING_N, PARKING_PROBABILITY);
+
         int tmp_n_parking = 0;
-        // ensure at least 2 parking events are used because of the boundary of 2nd event required for at least 1 duration
-        while (tmp_n_parking < 1)
+        while (tmp_n_parking < 2)
             tmp_n_parking = parking_n_random(mersenne_twister_engine);
-        // veh->n_parking = tmp_n_parking - 1;
-        veh->n_parking = tmp_n_parking;
+        veh->n_parking = tmp_n_parking - 1;
 
-        simtime_t tmp_ts_parking, tmp_next_parking_delta;
-        tmp_ts_parking = tmp_next_parking_delta = 0;
-        double mean = 1 / (veh->estimated_depart_timestamp - veh->arrival_timestamp);
-        // random parking duration based on average rate
-        normal_distribution<double> parking_dur_random(AVG_PARKING_DURATION, 10);
+        simtime_t ts_parking;
+        double mean = 1 / AVG_PARKING_EVENT;
+        // double mean = tmp_n_parking / (T_DAY_LIMIT - veh->arrival_timestamp);
+        exponential_distribution<simtime_t> parking_expovariate(mean);
+        for (i = 0; i < 100; i++) {
+            ts_parking = veh->arrival_timestamp;
+            do {
+                double delta = parking_expovariate(mersenne_twister_engine);
+                ts_parking += delta;
+                if (ts_parking < T_DAY_LIMIT) veh->ts_parking_ls.push_back(ts_parking);
+                if (veh->ts_parking_ls.size() == tmp_n_parking) break;
+            } while (ts_parking < T_DAY_LIMIT);
 
-        for (i = 0; i < tmp_n_parking; i++) {
-            exponential_distribution<double> parking_random(mean);
-            // get the first parking timestamp
-            if (i == 0) {
-                while (tmp_ts_parking < veh->arrival_timestamp) {
-                    tmp_next_parking_delta = parking_random(mersenne_twister_engine);
-                    tmp_ts_parking = tmp_next_parking_delta + veh->arrival_timestamp;
-                }
-                veh->ts_parking_ls.push_back(tmp_ts_parking);
-            } else {
-                while (tmp_ts_parking < veh->ts_vehicle_move_ls[i-1]) {
-                    tmp_next_parking_delta = parking_random(mersenne_twister_engine);
-                    tmp_ts_parking = tmp_next_parking_delta + veh->ts_vehicle_move_ls[i-1];
-                }
-                veh->ts_parking_ls.push_back(tmp_ts_parking);
-            }
+            if (veh->ts_parking_ls.size() == tmp_n_parking)
+                break;
+            else
+                veh->ts_parking_ls.clear();
+        }
 
+        for (i = 0; i < veh->n_parking; i++) {
+            // add the parking start event to the FEL.
             SimTime parking_time(sim_time);
-            parking_time.mktime(veh_stats->ts_parking_ls[i]);
-            Event parking_event(PARKING_START, parking_time, veh_stats);
+            parking_time.mktime(veh->ts_parking_ls[i]);
+            Event parking_event(PARKING_START, parking_time, veh);
             future_event_list.push(parking_event);
 
-            // get the duration for parking
-            double tmp_parking_dur = 0;
-            while (tmp_parking_dur <= 0)
-                tmp_parking_dur = parking_dur_random(mersenne_twister_engine);
-            veh->ts_parking_duration.push_back(tmp_parking_dur);
+            /* PARKING DURATIONS */
+            exponential_distribution<simtime_t> duration_expovariate(1 / AVG_PARKING_DURATION);
 
-            // get a new speed after moving
-            normal_distribution<double> speed_random(veh->arrival_speed, 3);
-            double tmp_veh_move_speed = 0;
-            while (tmp_veh_move_speed <= 0)
-                tmp_veh_move_speed = speed_random(mersenne_twister_engine);
-            veh->speed_vehicle_move.push_back(tmp_veh_move_speed);
+            simtime_t ts_vehicle_move = 0;
+            for (int j = 0; j < 100; j++) {
+                ts_vehicle_move = veh->ts_parking_ls[i];
+                do {
+                    double veh_move_delta = duration_expovariate(mersenne_twister_engine);
+                    ts_vehicle_move += veh_move_delta;
+                    if (ts_vehicle_move < veh->ts_parking_ls[i+1])
+                        break;
+                } while (ts_vehicle_move < veh->ts_parking_ls[i+1]);
+                if (ts_vehicle_move < veh->ts_parking_ls[i+1]) break;
+            }
 
-            // get the next veh_move time
-            veh->ts_vehicle_move_ls.push_back(veh->ts_parking_ls[i] + tmp_parking_dur);
-            SimTime veh_move_time(sim_time);
-            veh_move_time.mktime(veh->ts_vehicle_move_ls[i]);
-            Event veh_move_event(VEHICLE_MOVE, veh_move_time, veh);
-            future_event_list.push(veh_move_event);
+            veh->ts_parking_duration.push_back(ts_vehicle_move - veh->ts_parking_ls[i]);
+            veh->ts_vehicle_move_ls.push_back(ts_vehicle_move);
 
-            // change the estimate depart time
-            veh->estimated_travel_delta = estimate_departure_delta(*veh, tmp_veh_move_speed);
-            veh->estimated_depart_timestamp = estimate_departure_time(*veh, veh->ts_vehicle_move_ls[i]);
-
-            // change the mean based on last veh move time and new speed
-            mean = 1 / (veh->estimated_depart_timestamp - veh->ts_vehicle_move_ls[i]);
-            tmp_ts_parking = tmp_next_parking_delta = 0;
+            // add the vehicle move event to the FEL
+            SimTime veh_move_time(parking_time);
+            veh_move_time.mktime(ts_vehicle_move);
+            Event vehicle_move_event(VEHICLE_MOVE, veh_move_time, veh);
+            future_event_list.push(vehicle_move_event);
         }
     }
 }
@@ -376,18 +372,18 @@ void ActivityEngine::simulate_events()
                 other_veh_logger.info(ev.time, GenericLog(VEHICLE_MOVE, "Vehicle Log", ev.stats->veh_name,
                         ev.stats->registration_id));
                 break;
-            // case DEPART_END_ROAD:
-            //     if (ev.stats->avg_speed > speed_limit && !ev.stats->permit_speeding_flag) {
-            //         veh_logger.critical(ev.time, VehicleLog(DEPART_END_ROAD, "Vehicle Log", ev.stats->veh_name,
-            //                                             ev.stats->registration_id, ev.stats->avg_speed));
-            //     } else if (ev.stats->avg_speed > speed_limit && ev.stats->permit_speeding_flag) {
-            //         veh_logger.warning(ev.time, VehicleLog(DEPART_END_ROAD, "Vehicle Log", ev.stats->veh_name,
-            //                                                ev.stats->registration_id, ev.stats->avg_speed));
-            //     } else {
-            //         veh_logger.info(ev.time, VehicleLog(DEPART_END_ROAD, "Vehicle Log", ev.stats->veh_name,
-            //                                             ev.stats->registration_id, ev.stats->avg_speed));
-            //     }
-            //     break;
+            case DEPART_END_ROAD:
+                if (ev.stats->avg_speed > speed_limit && !ev.stats->permit_speeding_flag) {
+                    veh_logger.critical(ev.time, VehicleLog(DEPART_END_ROAD, "Vehicle Log", ev.stats->veh_name,
+                                                        ev.stats->registration_id, ev.stats->avg_speed));
+                } else if (ev.stats->avg_speed > speed_limit && ev.stats->permit_speeding_flag) {
+                    veh_logger.warning(ev.time, VehicleLog(DEPART_END_ROAD, "Vehicle Log", ev.stats->veh_name,
+                                                           ev.stats->registration_id, ev.stats->avg_speed));
+                } else {
+                    veh_logger.info(ev.time, VehicleLog(DEPART_END_ROAD, "Vehicle Log", ev.stats->veh_name,
+                                                        ev.stats->registration_id, ev.stats->avg_speed));
+                }
+                break;
             case UNKNOWN: break;
         }
         future_event_list.pop();  // returns void, but must remove from queue
