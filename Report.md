@@ -40,9 +40,25 @@ Each time live data is inputed by a user, the log and data files generated from 
 
 ## Initial input
 
+Initial input including vehicles information and traffic statistics are read from files specified by user at the command line arguments. 
+
 ### Internal data storage
 
+A struct `VehicleType` stores information and statistics associated with each vehicle type, including:
+
+- Vehicle name
+- Registration format
+- Volume weight and speed weight
+- The mean and standard deviation of the volume and speed.
+
+Each time a new set of statistics is read, the data is stored in an instance of class `Vehicles`, which contains a `map` with the key being a `string` of vehicle name and the value being the `VehicleType` struct.
+
 ### Data inconsistencies
+
+When data inconsistencies are found within a file or between input files, the system reports the inconsistency and aborts. Below are the inconsistencies that were handled by the system:
+
+- The number of vehicles being monitored is different to the number of vehicle statistics being listed.
+- Vehicle names are inconsistent between vehicles file and statistics file.
 
 ## Activity Engine
 
