@@ -263,7 +263,7 @@ void ActivityEngine::process_departure_events(SimTime &sim_time, VehicleType &ve
 
         // using the estimated departure time as a mean,with 2 standard deviation difference, randomly select
         // a time the vehicle will depart.
-        normal_distribution<double> depart_end_random(veh->estimated_travel_delta, 3);
+        normal_distribution<double> depart_end_random(veh->estimated_travel_delta, 5);
         ts_depart_end += depart_end_random(mersenne_twister_engine);
 
         // check if parking time needs to be added

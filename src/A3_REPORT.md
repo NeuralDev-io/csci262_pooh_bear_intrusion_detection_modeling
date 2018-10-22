@@ -21,7 +21,6 @@ Log files are stored in `dir/logs/` folder and data generated from the Analysis 
 
 ```
 a3_pooh_bear_ids/
-....README.md
 ....A3_REPORT.md
 ....A3_REPORT.pdf
 ....start.sh
@@ -153,6 +152,7 @@ All events for the Activity Engine are stored in a Future Events List (FEL) prio
   $$
   p(x|\lambda) = \lambda e^{-\lambda x},~x > 0
   $$
+
 
 
   This process is consistent with other models to generate “arrival times.” The probability of the event occurs as the next interval over time (in this case) of an event occurring according to its rate of occurrence. 
