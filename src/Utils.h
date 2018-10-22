@@ -3,8 +3,8 @@
 * Pooh Bear Intrusion Detection System Helper.h
 * Purpose: main() driver for implementation of specifications
 *
-* @version 0.6-dev
-* @date 2018.10.06
+* @version 1.0-beta
+* @date 2018.10.22
 *
 * @authors Dinh Che (codeninja55) & Duong Le (daltonle)
 * Emails andrew at codeninja55.me & duong.daltonle at gmail.com
@@ -40,17 +40,20 @@ static const char dir_slash = '/';
 
 typedef double simtime_t;
 
+/* CONFIGURATIONS */
+/* Can be used to change the statistical model. */
 // const auto SYSTEM_SEED = static_cast<unsigned long>(std::chrono::system_clock::now().time_since_epoch().count());
 const unsigned long SYSTEM_SEED = 0;
 
 // bool DEBUG_MODE = true;
 const static std::string LOGS_FILENAME = "logs_baseline";
 const double T_ARRIVAL_LIMIT = (22.5F * 60 * 60);           // Set the limit for time last car to arrive
-const double T_PARKING_LIMIT = (23.5F * 60 * 60);           // Set the limit for time last car to park
 const double T_DAY_LIMIT = (24.0 * 60.0F * 60.0F) - 1.0F;   // Set the limit for last time for events to occur
-const double DEPART_SIDE_PROBABILITY = 0.08;                // Set the probability for the bernoulli distribution
-const double DEPART_SIDE_UPPER_BOUND = 0.02;                // Upper bound value to be used in biased expovariate function
-const double PARKING_PROBABILITY = 0.08;                    // Set the probability for parking for the binomial distribution
+const double DEPART_SIDE_PROBABILITY = 0.1;                // Set the probability for the bernoulli distribution
+const double AVG_PARKING_N = 4.0;
+const double PARKING_PROBABILITY = 0.4;                    // Set the probability for parking for the binomial distribution
+const double AVG_PARKING_DURATION = (5.0 * 60);
+const double AVG_PARKING_EVENT = (5.0 * 60);
 
 static int FILENAME_COUNTER = 0;
 
@@ -79,7 +82,7 @@ typedef struct SimTime {
             if (rhs.tm_mon == lhs.tm_mon) {
                 if (rhs.tm_mday == lhs.tm_mday) {
                     if (rhs.tm_hour == lhs.tm_hour) {
-                        (rhs.tm_min == lhs.tm_min) ? rhs.tm_sec < lhs.tm_sec : rhs.tm_min < lhs.tm_min;
+                        return (rhs.tm_min == lhs.tm_min) ? rhs.tm_sec < lhs.tm_sec : rhs.tm_min < lhs.tm_min;
                     }
                     return rhs.tm_hour < lhs.tm_hour;
                 }
@@ -303,19 +306,19 @@ typedef struct VehicleStats {
     simtime_t arrival_timestamp, departure_timestamp = 0;
     int n_parking = 0;
     vector<simtime_t> ts_parking_ls;
-    vector<simtime_t> ts_parking_duration;
+    vector<simtime_t> parking_duration;
+    vector<simtime_t> ts_vehicle_move_ls;
     double arrival_speed, avg_speed = 0;
-    double prob_parking, prob_side_exit, prob_end_exit = 0;
-    double estimated_travel_delta = 0;  // TODO:
+    double estimated_travel_delta = 0;
+    double estimated_depart_timestamp = 0;
     bool depart_side_flag, permit_speeding_flag = false;
 
     // default constructor for VehicleStats
     VehicleStats() : veh_name(""), registration_id(""), arrival_time(SimTime()),
                      departure_time(SimTime()), arrival_speed(0),
-                     prob_parking(0), prob_side_exit(0), prob_end_exit(0),
                      avg_speed(0), depart_side_flag(false), n_parking(0),
                      estimated_travel_delta(0), arrival_timestamp(0),
-                     departure_timestamp(0) { }
+                     departure_timestamp(0), estimated_depart_timestamp(0) { }
 } VehicleStats;
 
 enum EVENT_TYPE { UNKNOWN = 0, ARRIVAL = 1, DEPART_SIDE_ROAD, DEPART_END_ROAD, PARKING_START, VEHICLE_MOVE };

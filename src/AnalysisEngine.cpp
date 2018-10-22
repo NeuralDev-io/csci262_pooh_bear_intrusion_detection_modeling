@@ -47,7 +47,7 @@ void AnalysisEngine::run(Vehicles &vehicles_dict)
 
     import_vehicles(vehicles_dict);
     read_log();
-    process_log(vehicles_dict);
+    process_log(vehicles_dict, sim_time);
 
     cout << setw(20) << "[*****SYSTEM*****]" << real_formatted_time_now() << " Analysis Engine finished." << endl;
 }
@@ -73,7 +73,7 @@ void AnalysisEngine::read_log()
     fin.open(filename.str());
 
     if (!fin.good()) {
-        cout << "<" << real_formatted_time_now() << "> [*****FILE ERROR*****] Failed to open log file." << endl;
+        console_log("FILE ERROR", "Failed to open log file.");
         return;
     }
 
@@ -106,7 +106,7 @@ void AnalysisEngine::read_log()
     fin.close();
 }
 
-void AnalysisEngine::process_log(Vehicles& vehicles)
+void AnalysisEngine::process_log(Vehicles& vehicles, SimTime &sim_time)
 {
     string tmp;
     SimTime prev_time;
@@ -120,9 +120,8 @@ void AnalysisEngine::process_log(Vehicles& vehicles)
     fout_data.open(filename, ios::out | ios::app);
     fout_speeding.open(filename_speeding, ios::out | ios::app);
 
-    if (!fout_data.good()) {
+    if (!fout_data.good())
         console_log("FILE ERROR", "Failed to open data output file.");
-    }
     if (!fout_speeding.good())
         console_log("FILE ERROR", "Failed to open speeding output file.");
 
@@ -151,14 +150,13 @@ void AnalysisEngine::process_log(Vehicles& vehicles)
             auto iter = today_stats.begin();
             auto iter_end = today_stats.end();
 
-            for (; iter != iter_end; iter++) {
+            for (; iter != iter_end; iter++)
                 (*iter).second.date = curr_time;
-            }
         }
         // test if the simulation has gone to the next day
         if (curr_time.compare_date(prev_time) > 0
             && prev_time.compare(SimTime()) != 0) {
-            end_day();
+            end_day(sim_time);
             // console log
             stringstream msg;
             msg << "Analysing day " << (day_count+1) << ".";
@@ -227,7 +225,7 @@ void AnalysisEngine::process_log(Vehicles& vehicles)
         }
     }
 
-    end_day();
+    end_day(sim_time);
 }
 
 void AnalysisEngine::add_speeding(VehicleStats &veh_stats)
@@ -250,7 +248,7 @@ void AnalysisEngine::add_speeding(VehicleStats &veh_stats)
     else logger.critical(veh_stats.departure_time, AnalysisLog( "SPEEDING", "Analysis Log", msg.str() ));
 }
 
-void AnalysisEngine::end_day()
+void AnalysisEngine::end_day(SimTime &sim_time)
 {
     day_count++;
     ofstream fout_data, fout_speeding;
@@ -315,10 +313,10 @@ void AnalysisEngine::end_day()
     fout_data.close();
 
     // log
-    SimTime sim_time = init_time_date();
     stringstream msg;
     msg << "Analysis day " << day_count << " finished";
     logger.info(sim_time, AnalysisLog( "NOTICE", "Analysis Log", msg.str() ));
+    sim_time.next_day();
 }
 
 void AnalysisEngine::generate_stats_baseline()

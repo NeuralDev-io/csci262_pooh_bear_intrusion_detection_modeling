@@ -3,8 +3,8 @@
 * Pooh Bear Intrusion Detection System ActivityEngine.h
 * Purpose: Header file for ActivityEngine class.
 *
-* @version 0.6-dev
-* @date 2018.10.06
+* @version 1.0-beta
+* @date 2018.10.22
 *
 * @authors Dinh Che (codeninja55) & Duong Le (daltonle)
 * Emails andrew at codeninja55.me & duong.daltonle at gmail.com
@@ -78,15 +78,20 @@ typedef struct GenericLog {
     string log_name = "Vehicle Log";
     string veh_name = "";
     string veh_registration = "NA";
+    string additional_msg = "";  // must pass delimiter
 
     GenericLog(EVENT_TYPE ev_type, string log_name, string veh_name,
                string veh_registration) : ev_type(ev_type), log_name(std::move(log_name)),
                                           veh_name(veh_name), veh_registration(veh_registration) { }
+    GenericLog(EVENT_TYPE ev_type, string log_name, string veh_name,
+               string veh_registration, string additional_msg) : ev_type(ev_type), log_name(std::move(log_name)),
+                                                                 veh_name(veh_name), veh_registration(veh_registration),
+                                                                 additional_msg(additional_msg) { }
 
     friend ostream& operator<<(ostream& os, GenericLog const& log)
     {
         return os << log.log_name << DELIMITER << event_name(log.ev_type) << DELIMITER
-                  << log.veh_name << DELIMITER << log.veh_registration;
+                  << log.veh_name << DELIMITER << log.veh_registration << log.additional_msg;
     }
 } GenericLog;
 
@@ -94,17 +99,19 @@ class ActivityEngine {
 public:
     ActivityEngine(); // default
     explicit ActivityEngine(string log_file);
-    void set_statistics(unsigned days, unsigned vehicles_monitored, float road_len,
+    void set_statistics(unsigned vehicles_monitored, float road_len,
                         float speed_lim, unsigned parking_spots);
-    void run(Vehicles&);  // run the activity engine simulation
+    void run(Vehicles&, int);  // run the activity engine simulation
 private:
     void start_generating_discrete_events(SimTime &sim_time, Vehicles &vehicles);
-    void process_parking_events(SimTime &sim_time, bool parking_flag, VehicleStats *veh_stats);
-    void process_departure_events(SimTime &sim_time, VehicleType &veh_type, VehicleStats *veh_stats);
+    void process_parking_events(SimTime &sim_time, bool parking_flag, VehicleStats *veh);
+    void process_departure_events(SimTime &sim_time, VehicleType &veh_type, VehicleStats *veh);
     void simulate_events();
-    long double biased_expovariate(double rate_param, double lower_bound, double upper_bound);
+    double estimate_departure_time(VehicleStats &veh, simtime_t start_timestamp);
+    double estimate_departure_delta(double speed);
     mt19937_64 mersenne_twister_engine;
-    unsigned n_vehicles_monitored, n_parking_spots, simulate_days;
+    mt19937_64 registration_generator;
+    unsigned n_vehicles_monitored, n_parking_spots;
     float road_length, speed_limit;
     string log_file;
     Logger<SimTime, ActivityLog> logger;
