@@ -85,7 +85,9 @@ void ActivityEngine::start_generating_discrete_events(SimTime &sim_time, Vehicle
         normal_distribution<double> speed_normal_distrib((*iter).second.speed_mean, (*iter).second.speed_stddev);
 
         // Random number of n occurrences of vehicle over a day
-        auto n_arrivals = static_cast<unsigned int>(lround(num_normal_distrib(mersenne_twister_engine)));
+        auto n_arrivals = 0;
+        while (n_arrivals <=0)
+            n_arrivals = static_cast<int>(lround(num_normal_distrib(mersenne_twister_engine)));
         // rate of occurrence
         double lambda = n_arrivals / T_ARRIVAL_LIMIT;  // converted to seconds i.e. N occurrence per X seconds
 
@@ -103,7 +105,7 @@ void ActivityEngine::start_generating_discrete_events(SimTime &sim_time, Vehicle
          * If the timestamps do not exceed the T_ARRIVAL_LIMIT, and it matches the N number of vehicles to arrive
          * on road, then return the values and continue.
          * */
-        for (i = 0; i < 100; i++) {
+        for (i = 0; i < 1000; i++) {
             tmp_ts_arrivals = 0;
             do {
                 double delta = expovariate(mersenne_twister_engine);
@@ -146,8 +148,8 @@ void ActivityEngine::start_generating_discrete_events(SimTime &sim_time, Vehicle
             veh->depart_side_flag = depart_side_random(mersenne_twister_engine);  // bernoulli implem returns bool
 
             // calculate estimate depart time
-            veh->estimated_travel_delta = static_cast<double>(estimate_departure_delta(*veh, veh->arrival_speed));
-            veh->estimated_depart_timestamp = static_cast<double>(estimate_departure_time(*veh, ts_arrival));
+            veh->estimated_travel_delta = estimate_departure_delta(*veh, veh->arrival_speed);
+            veh->estimated_depart_timestamp = estimate_departure_time(*veh, ts_arrival);
 
             process_parking_events(sim_time, (*iter).second.parking_flag, veh);
             // process_departure_events(sim_time, (*iter).second, veh_stats);
@@ -169,13 +171,13 @@ void ActivityEngine::start_generating_discrete_events(SimTime &sim_time, Vehicle
                 }
                 cout << endl;
 
-                // cout << "Parking durations: ";
-                // for (i = 0; i < veh->ts_parking_ls.size() - 1; i++) {
-                //     SimTime parking_dur_time;
-                //     parking_dur_time.mktime(veh->ts_parking_ls[i] + veh->ts_parking_duration[i]);
-                //     cout << "[ " << parking_dur_time.formatted_time() << " | " << veh->ts_parking_duration[i]
-                //          << " ] >> ";
-                // }
+                cout << "Parking durations: ";
+                for (i = 0; i < veh->ts_parking_ls.size() - 1; i++) {
+                    SimTime parking_dur_time;
+                    parking_dur_time.mktime(veh->ts_parking_ls[i] + veh->ts_parking_duration[i]);
+                    cout << "[ " << parking_dur_time.formatted_time() << " | " << veh->ts_parking_duration[i]
+                         << " ] >> ";
+                }
                 cout << endl;
             }
 
@@ -201,78 +203,66 @@ void ActivityEngine::process_parking_events(SimTime &sim_time, bool parking_flag
         binomial_distribution<int> parking_n_random(n_parking_spots, PARKING_PROBABILITY);
         int tmp_n_parking = 0;
         // ensure at least 2 parking events are used because of the boundary of 2nd event required for at least 1 duration
-        while (tmp_n_parking < 2)
+        while (tmp_n_parking < 1)
             tmp_n_parking = parking_n_random(mersenne_twister_engine);
-        veh->n_parking = tmp_n_parking - 1;
+        // veh->n_parking = tmp_n_parking - 1;
+        veh->n_parking = tmp_n_parking;
 
-        /*simtime_t ts_parking;
-        double parking_mean = tmp_n_parking / (T_PARKING_LIMIT - veh->arrival_timestamp);
-        exponential_distribution<simtime_t> parking_expovariate(PARKING_PROBABILITY);*/
-        /*
-         * Generate a list of parking timestamps by using the deltas generated from the exponential distribution.
-         * to create timestamps. Loop to create to ensure the total parking time is less than
-         * the limit. From this list, only use (n - 1) deltas to ensure the last one is not too large.
-         *
-         * */
-        /*for (i = 0; i < 20; i++) {
-            ts_parking = veh->arrival_timestamp;  // parking can only occur after arrival_timestamp so this is t_0
-            do {
-                double delta = parking_expovariate(mersenne_twister_engine);
-                ts_parking += delta;
-                if (ts_parking < T_PARKING_LIMIT) {
-                    veh->ts_parking_ls.push_back(ts_parking);
+        simtime_t tmp_ts_parking, tmp_next_parking_delta;
+        tmp_ts_parking = tmp_next_parking_delta = 0;
+        double mean = 1 / (veh->estimated_depart_timestamp - veh->arrival_timestamp);
+        // random parking duration based on average rate
+        normal_distribution<double> parking_dur_random(AVG_PARKING_DURATION, 10);
+
+        for (i = 0; i < tmp_n_parking; i++) {
+            exponential_distribution<double> parking_random(mean);
+            // get the first parking timestamp
+            if (i == 0) {
+                while (tmp_ts_parking < veh->arrival_timestamp) {
+                    tmp_next_parking_delta = parking_random(mersenne_twister_engine);
+                    tmp_ts_parking = tmp_next_parking_delta + veh->arrival_timestamp;
                 }
-            } while (ts_parking < T_PARKING_LIMIT);
+                veh->ts_parking_ls.push_back(tmp_ts_parking);
+            } else {
+                while (tmp_ts_parking < veh->ts_vehicle_move_ls[i-1]) {
+                    tmp_next_parking_delta = parking_random(mersenne_twister_engine);
+                    tmp_ts_parking = tmp_next_parking_delta + veh->ts_vehicle_move_ls[i-1];
+                }
+                veh->ts_parking_ls.push_back(tmp_ts_parking);
+            }
 
-            if (veh->ts_parking_ls.size() == tmp_n_parking) break;
-            else veh->ts_parking_ls.clear();
-        }*/
-
-        simtime_t ts_parking = 0;
-        uniform_real_distribution<simtime_t> parking_random(veh->arrival_timestamp, T_PARKING_LIMIT);
-        do {
-            ts_parking = parking_random(mersenne_twister_engine);
-            if (ts_parking < T_PARKING_LIMIT)
-                veh->ts_parking_ls.push_back(ts_parking);
-            if (veh->ts_parking_ls.size() == tmp_n_parking)
-                break;
-        } while (ts_parking < T_PARKING_LIMIT && ts_parking > veh->arrival_timestamp);
-
-        sort(veh->ts_parking_ls.begin(), veh->ts_parking_ls.end());
-
-        /*
-         * Given a list of parking deltas, use this to generate random parking durations. Use only up to (n - 1)
-         * deltas because the last time stamp will be biased towards a large number. For example, if the (n - 2)
-         * parking timestamp is far away from the T_DAY_LIMIT, it is possible to have an extremely large duration
-         * because the t_(n + 1) - t_n is used to generate a mean for the normal distribution of random variable.
-         * */
-        for (i = 0; i < veh->n_parking; i++) {
-            // add the parking start event to the FEL.
             SimTime parking_time(sim_time);
             parking_time.mktime(veh->ts_parking_ls[i]);
             Event parking_event(PARKING_START, parking_time, veh);
             future_event_list.push(parking_event);
 
-            /* Parking Durations Random Generation*/
-            // use t_(n+1) - t_n as the upper bound. Not required to check as the (n - 1) last timestamp is not used
-            // so there is no need to worry about going out of bounds of the list.
-            double upper_bound = veh->ts_parking_ls[i+1] - veh->ts_parking_ls[i];
+            // get the duration for parking
+            double tmp_parking_dur = 0;
+            while (tmp_parking_dur <= 0)
+                tmp_parking_dur = parking_dur_random(mersenne_twister_engine);
+            veh->ts_parking_duration.push_back(tmp_parking_dur);
 
-            // given the upper bound, use upper_bound / 2 as the mean with a spread of 3 standard deviations to generate
-            // random variables that are dispersed.
-            normal_distribution<simtime_t> duration_distribution(upper_bound/veh->n_parking, 3);
-            double parking_duration = 0;
+            // get a new speed after moving
+            normal_distribution<double> speed_random(veh->arrival_speed, 3);
+            double tmp_veh_move_speed = 0;
+            while (tmp_veh_move_speed <= 0)
+                tmp_veh_move_speed = speed_random(mersenne_twister_engine);
+            veh->speed_vehicle_move.push_back(tmp_veh_move_speed);
 
+            // get the next veh_move time
+            veh->ts_vehicle_move_ls.push_back(veh->ts_parking_ls[i] + tmp_parking_dur);
+            SimTime veh_move_time(sim_time);
+            veh_move_time.mktime(veh->ts_vehicle_move_ls[i]);
+            Event veh_move_event(VEHICLE_MOVE, veh_move_time, veh);
+            future_event_list.push(veh_move_event);
 
-            while (parking_duration <= 0)  // check to ensure the parking duration is not negative
-                parking_duration = duration_distribution(mersenne_twister_engine);
-            veh->ts_parking_duration.push_back(parking_duration);
+            // change the estimate depart time
+            veh->estimated_travel_delta = estimate_departure_delta(*veh, tmp_veh_move_speed);
+            veh->estimated_depart_timestamp = estimate_departure_time(*veh, veh->ts_vehicle_move_ls[i]);
 
-            // add the vehicle move event to the FEL
-            SimTime veh_move_time(parking_time);
-            veh_move_time.mktime(parking_duration + veh->ts_parking_ls[i]);
-            Event vehicle_move_event(VEHICLE_MOVE, veh_move_time, veh);
-            future_event_list.push(vehicle_move_event);
+            // change the mean based on last veh move time and new speed
+            mean = 1 / (veh->estimated_depart_timestamp - veh->ts_vehicle_move_ls[i]);
+            tmp_ts_parking = tmp_next_parking_delta = 0;
         }
     }
 }
@@ -292,22 +282,24 @@ void ActivityEngine::process_departure_events(SimTime &sim_time, VehicleType &ve
         double exit_interval;
         simtime_t ts_depart_side = veh->arrival_timestamp;  // can only exit after arrival time
 
-        if (veh->n_parking != 0) {
-            double total_parking_duration = accumulate(next(veh->ts_parking_duration.begin()),
-                    veh->ts_parking_duration.end(), veh->ts_parking_duration[0]);
-            exit_interval = T_DAY_LIMIT - ( total_parking_duration + veh->arrival_time.tm_timestamp);
-            ts_depart_side += total_parking_duration;
-        } else {
-            exit_interval = T_DAY_LIMIT - veh->arrival_timestamp;
-        }
+        // if (veh->n_parking != 0) {
+        //     double total_parking_duration = accumulate(next(veh->ts_parking_duration.begin()),
+        //             veh->ts_parking_duration.end(), veh->ts_parking_duration[0]);
+        //     exit_interval = T_DAY_LIMIT - ( total_parking_duration + veh->arrival_time.tm_timestamp);
+        //     ts_depart_side += total_parking_duration;
+        // } else {
+        //     exit_interval = T_DAY_LIMIT - veh->arrival_timestamp;
+        // }
+        //
+        // while (ts_depart_side < T_DAY_LIMIT) {
+        //     long double test = biased_expovariate(1/exit_interval, 0, DEPART_SIDE_UPPER_BOUND);
+        //     if (ts_depart_side + test < T_DAY_LIMIT) {
+        //         ts_depart_side += test;
+        //         break;
+        //     }
+        // }
 
-        while (ts_depart_side < T_DAY_LIMIT) {
-            long double test = biased_expovariate(1/exit_interval, 0, DEPART_SIDE_UPPER_BOUND);
-            if (ts_depart_side + test < T_DAY_LIMIT) {
-                ts_depart_side += test;
-                break;
-            }
-        }
+
 
         depart_side_time.mktime(ts_depart_side);
         veh->departure_time = depart_side_time;
@@ -362,6 +354,10 @@ void ActivityEngine::simulate_events()
         Event ev = future_event_list.top();  // returns a reference to the top event but does not remove it
 
         // TODO: check if time is after limit. Then discard
+        // if (ev.time.tm_timestamp > T_DAY_LIMIT) {
+        //     future_event_list.pop();
+        //     continue;
+        // }
 
         switch(ev.ev_type) {
             case ARRIVAL:
@@ -398,12 +394,12 @@ void ActivityEngine::simulate_events()
     }
 }
 
-long double ActivityEngine::estimate_departure_delta(VehicleStats &veh, double speed) {
+double ActivityEngine::estimate_departure_delta(VehicleStats &veh, double speed) {
     // estimate of when they would exit at end of road if they were going at arrival speeds
     return (road_length / speed) * 3600;
 }
 
-long double ActivityEngine::estimate_departure_time(VehicleStats &veh, simtime_t start_timestamp)
+double ActivityEngine::estimate_departure_time(VehicleStats &veh, simtime_t start_timestamp)
 {
     double depart_avg = 0;
     int variance = (veh.depart_side_flag) ? 10 : 5;
